@@ -1,5 +1,5 @@
 // Copyright (c) 2015 PocketMath, Inc.  All rights reserved.
-
+`
   _________  __               .        ____   ____
  /   _____/_/  |_ _____   * ______ ____\   \ /   /     STARRING
  \_____  \ \   __\\__  \   /  ___//  _ \\   Y   /      Pocket "PocketTL" Targeting Lang
@@ -23,39 +23,39 @@
          IMPRESSION OPPORTUNITY DATA WITH              STORY BY                UNLEASHED
                TARGETING PARAMETERS.                   Eric Tucker            March 2015
 
+`
 
 
-//////////////////////////////////////////////////////////////////
-// BASIC USAGE
-//////////////////////////////////////////////////////////////////
+# BASIC USAGE
 
-Start the Engine
+### Start the Engine
+    ```Java
+    // Instatiate the engine
+    Engine engine = new Engine();
+    ```
 
-       // Instatiate the engine
-       Engine engine = new Engine();
+### Indexing Insertion Orders
+    ```Java
+    // Add some IOs
+    engine.index("City = Austin AND DeviceType = iPhone OR City = Houston", 1);
+    engine.index("City = Singapore AND DeviceType = iPhone", 2);
+    engine.index("City = \"San Francisco\"", 3);
+    engine.index("DeviceType = iPhone AND NOT City = Houston", 4);
+    engine.index("DeviceType IN (iPhone, Android) AND City IN (Singapore, \"San Francisco\"", 5);
+    ```
+### Impression Opportunity Matching
+    ```Java
+    // Create a dummy impression opportunity
+    MapOpportunityData opp = engine.mapOpportunityData();
+    opp.put("city", "singapore");
+    opp.put("devicetype", "iphone");
 
-Indexing Insertion Orders
+    // Find matching IOs
+    LongSortedSet results = engine.query(opp);
 
-        // Add some IOs
-        engine.index("City = Austin AND DeviceType = iPhone OR City = Houston", 1);
-        engine.index("City = Singapore AND DeviceType = iPhone", 2);
-        engine.index("City = \"San Francisco\"", 3);
-        engine.index("DeviceType = iPhone AND NOT City = Houston", 4);
-        engine.index("DeviceType IN (iPhone, Android) AND City IN (Singapore, \"San Francisco\"", 5);
-
-Impression Opportunity Matching
-
-        // Create a dummy impression opportunity
-        MapOpportunityData opp = engine.mapOpportunityData();
-        opp.put("city", "singapore");
-        opp.put("devicetype", "iphone");
-
-        // Find matching IOs
-        LongSortedSet results = engine.query(opp);
-
-        // Show results
-        System.out.println("Results=" + results);
-
+    // Show results
+    System.out.println("Results=" + results);
+    ```
 //////////////////////////////////////////////////////////////////
 // IDE + PLUGINS
 //////////////////////////////////////////////////////////////////
