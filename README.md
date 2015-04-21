@@ -1,4 +1,3 @@
-// Copyright (c) 2015 PocketMath, Inc.  All rights reserved.
 
       _________  __               .        ____   ____
      /   _____/_/  |_ _____   * ______ ____\   \ /   /     STARRING
@@ -24,9 +23,11 @@
                    TARGETING PARAMETERS.                   Eric Tucker            March 2015
 
 
+    --------- Copyright (c) 2015 PocketMath, Inc.  All rights reserved. --------------------
 
 
-# RIDICULOUSLY SIMPLE USAGE
+
+# RIDICULOUSLY SIMPLE
 
 ### Start the Engine
 ```Java
@@ -41,7 +42,7 @@ engine.index("City = Austin AND DeviceType = iPhone OR City = Houston", 1);
 engine.index("City = Singapore AND DeviceType = iPhone", 2);
 engine.index("City = \"San Francisco\"", 3);
 engine.index("DeviceType = iPhone AND NOT City = Houston", 4);
-engine.index("DeviceType IN (iPhone, Android) AND City IN (Singapore, \"San Francisco\"", 5);
+engine.index("DeviceType IN (iPhone, Android) AND City IN (Singapore, \"San Francisco\")", 5);
 ```
 ### Impression Opportunity Matching
 ```Java
