@@ -5,7 +5,7 @@
      /        \ |  |   / __ \_ \___ \(  <_> )\     /
     /_______  / |__|  (____  //____  >\____/  \___/
             \/+     .      \/      \/        *        .    CO-STARRING
-       .                 .                                 Arbitrary Boolean Exprs
+       .                 .                                 Arbitrary Boolean Expressions
           A secret weapon to take over galaxies.           Matching Tree
                       .                          .   *     IOBitset Reborn
                +            |    .     +                   Superfast Primitives
