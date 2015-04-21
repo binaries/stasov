@@ -1,54 +1,28 @@
 // Copyright (c) 2015 PocketMath, Inc.  All rights reserved.
 
   _________  __               .        ____   ____
- /   _____/_/  |_ _____   * ______ ____\   \ /   /
- \_____  \ \   __\\__  \   /  ___//  _ \\   Y   / 
+ /   _____/_/  |_ _____   * ______ ____\   \ /   /                        STARRING
+ \_____  \ \   __\\__  \   /  ___//  _ \\   Y   /          The Pocket "PocketTL" Targeting Language
  /        \ |  |   / __ \_ \___ \(  <_> )\     /  
 /_______  / |__|  (____  //____  >\____/  \___/   
-        \/+     .      \/      \/        *        .
-   .                 .
-      A secret weapon to take over galaxies.
-                  .                          .   *
-           +            |    .     +
+        \/+     .      \/      \/        *        .                      CO-STARRING
+   .                 .                                          Arbitrary Boolean Expressions
+      A secret weapon to take over galaxies.                            Matching Tree
+                  .                          .   *                     IOBitset Reborn
+           +            |    .     +                                 Superfast Primitives
     *                ---|---            .
           + .      /   _|_   \    *         *
-       .          /  /  |  \  \         +
-               -----|- AND -|-----     created .
-           .      \  \ _|_ /  /       March 2015
-  *                \    |    /       .        .
-             *       ---|---     +
-                        | .              .     *
+       .          /  /  |  \  \         +                            A SPECIAL THNAKS TO
+               -----|- AND -|-----     created .            Tors Dalid for the IOBitSet Concept
+           .      \  \ _|_ /  /       March 2015     Andy Kurnia for the original IOBitSet Implementation
+  *                \    |    /       .        .                   The Entire Shishito Team
+             *       ---|---     +                                 ANTLR Parser Generator
+                        | .              .     *           Exotic Italian Primitives Library FastUtil
 
       EFFICIENT SOFTWARE FOR MATCHING INCOMING
-         IMPRESSION OPPORTUNITY DATA WITH
-               TARGETING PARAMETERS.
+         IMPRESSION OPPORTUNITY DATA WITH                                 STORY BY
+               TARGETING PARAMETERS.                                     Eric Tucker
 
-
-                    STARRING
-
-      The Pocket "PocketTL" Targeting Langauge
-
-
-                   CO-STARRING
-
-          Arbitrary Boolean Expressions
-                  Matching Tree
-                 IOBitset Reborn
-              Superfast Primitives
-
-
-               A SPECIAL THANKS TO
-
-           Tors for the IOBitSet Concept
-    Andy for the original IOBitSet Implementation
-                   Shishito Team
-
-               ANTLR Parser Generator
-     Exotic Italian Primitives Library FastUtil
-
-
-               ORIGINAL DEVELOPMENT
-                   Eric Tucker
 
 
 
