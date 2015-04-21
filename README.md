@@ -27,7 +27,7 @@
 
 
 
-# RIDICULOUSLY SIMPLE
+# RIDICULOUSLY SIMPLE TO USE
 
 ### Start the Engine
 ```Java
