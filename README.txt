@@ -13,22 +13,29 @@
     *                ---|---            .
           + .      /   _|_   \    *         *
        .          /  /  |  \  \         +              A SPECIAL THNAKS TO
-               -----|- AND -|-----     created .       Tors Dalid, IOBitSet Concept
-           .      \  \ _|_ /  /       March 2015       Andy Kurnia, 1st IOBitSet Impl
+               -----|- AND -|-----           .         Tors Dalid, IOBitSet Concept
+           .      \  \ _|_ /  /                 .      Andy Kurnia, 1st IOBitSet Impl
   *                \    |    /       .        .        The Entire Shishito Team
              *       ---|---     +                     ANTLR Parser Generator
                         | .              .     *       Exotic Italian FastUtil
 
       EFFICIENT SOFTWARE FOR MATCHING INCOMING
-         IMPRESSION OPPORTUNITY DATA WITH              STORY BY
-               TARGETING PARAMETERS.                   Eric Tucker
+         IMPRESSION OPPORTUNITY DATA WITH              STORY BY                UNLEASHED
+               TARGETING PARAMETERS.                   Eric Tucker            March 2015
 
 
 
+//////////////////////////////////////////////////////////////////
+// OVERVIEW
+//////////////////////////////////////////////////////////////////
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Indexing Insertion Orders   TODO
+
+Impression Opportunity Matching  TODO
+
+//////////////////////////////////////////////////////////////////
 // IDE + PLUGINS
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////
 
 Original development used IntelliJ IDEA 14.
 
