@@ -11,7 +11,7 @@
                +            |    .     +                   Superfast Primitives
         *                ---|---            .
               + .      /   _|_   \    *         *
-           .          /  /  |  \  \         +              A SPECIAL THNAKS TO
+           .          /  /  |  \  \         +              A SPECIAL THANKS TO
                    -----|- AND -|-----           .         Tors Dalid, IOBitSet Concept
                .      \  \ _|_ /  /                 .      Andy Kurnia, 1st IOBitSet Impl
       *                \    |    /       .        .        The Entire Shishito Team
