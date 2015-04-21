@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/attributes/attributes.iml" filepath="$PROJECT_DIR$/attributes/attributes.iml" />
+      <module fileurl="file://$PROJECT_DIR$/attributes-common/attributes-common.iml" filepath="$PROJECT_DIR$/attributes-common/attributes-common.iml" />
+      <module fileurl="file://$PROJECT_DIR$/attributes-devel/attributes-devel.iml" filepath="$PROJECT_DIR$/attributes-devel/attributes-devel.iml" />
+      <module fileurl="file://$PROJECT_DIR$/attributes-generated-glue/attributes-generated-glue.iml" filepath="$PROJECT_DIR$/attributes-generated-glue/attributes-generated-glue.iml" />
+      <module fileurl="file://$PROJECT_DIR$/matcher/matcher.iml" filepath="$PROJECT_DIR$/matcher/matcher.iml" />
+      <module fileurl="file://$PROJECT_DIR$/pocketql-grammars/pocketql-grammars.iml" filepath="$PROJECT_DIR$/pocketql-grammars/pocketql-grammars.iml" />
+      <module fileurl="file://$PROJECT_DIR$/stasov-common/stasov-common.iml" filepath="$PROJECT_DIR$/stasov-common/stasov-common.iml" />
+      <module fileurl="file://$PROJECT_DIR$/stasov-util/stasov-util.iml" filepath="$PROJECT_DIR$/stasov-util/stasov-util.iml" />
+      <module fileurl="file://$PROJECT_DIR$/stasov4.iml" filepath="$PROJECT_DIR$/stasov4.iml" />
+    </modules>
+  </component>
+</project>
