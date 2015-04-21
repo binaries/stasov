@@ -1,29 +1,29 @@
 // Copyright (c) 2015 PocketMath, Inc.  All rights reserved.
-`
-  _________  __               .        ____   ____
- /   _____/_/  |_ _____   * ______ ____\   \ /   /     STARRING
- \_____  \ \   __\\__  \   /  ___//  _ \\   Y   /      Pocket "PocketTL" Targeting Lang
- /        \ |  |   / __ \_ \___ \(  <_> )\     /  
-/_______  / |__|  (____  //____  >\____/  \___/   
-        \/+     .      \/      \/        *        .    CO-STARRING
-   .                 .                                 Arbitrary Boolean Exprs
-      A secret weapon to take over galaxies.           Matching Tree
-                  .                          .   *     IOBitset Reborn
-           +            |    .     +                   Superfast Primitives
-    *                ---|---            .
-          + .      /   _|_   \    *         *
-       .          /  /  |  \  \         +              A SPECIAL THNAKS TO
-               -----|- AND -|-----           .         Tors Dalid, IOBitSet Concept
-           .      \  \ _|_ /  /                 .      Andy Kurnia, 1st IOBitSet Impl
-  *                \    |    /       .        .        The Entire Shishito Team
-             *       ---|---     +                     ANTLR Parser Generator
-                        | .              .     *       Exotic Italian FastUtil
 
-      EFFICIENT SOFTWARE FOR MATCHING INCOMING
-         IMPRESSION OPPORTUNITY DATA WITH              STORY BY                UNLEASHED
-               TARGETING PARAMETERS.                   Eric Tucker            March 2015
+      _________  __               .        ____   ____
+     /   _____/_/  |_ _____   * ______ ____\   \ /   /     STARRING
+     \_____  \ \   __\\__  \   /  ___//  _ \\   Y   /      Pocket "PocketTL" Targeting Lang
+     /        \ |  |   / __ \_ \___ \(  <_> )\     /
+    /_______  / |__|  (____  //____  >\____/  \___/
+            \/+     .      \/      \/        *        .    CO-STARRING
+       .                 .                                 Arbitrary Boolean Exprs
+          A secret weapon to take over galaxies.           Matching Tree
+                      .                          .   *     IOBitset Reborn
+               +            |    .     +                   Superfast Primitives
+        *                ---|---            .
+              + .      /   _|_   \    *         *
+           .          /  /  |  \  \         +              A SPECIAL THNAKS TO
+                   -----|- AND -|-----           .         Tors Dalid, IOBitSet Concept
+               .      \  \ _|_ /  /                 .      Andy Kurnia, 1st IOBitSet Impl
+      *                \    |    /       .        .        The Entire Shishito Team
+                 *       ---|---     +                     ANTLR Parser Generator
+                            | .              .     *       Exotic Italian FastUtil
 
-`
+          EFFICIENT SOFTWARE FOR MATCHING INCOMING
+             IMPRESSION OPPORTUNITY DATA WITH              STORY BY                UNLEASHED
+                   TARGETING PARAMETERS.                   Eric Tucker            March 2015
+
+
 
 
 # BASIC USAGE
