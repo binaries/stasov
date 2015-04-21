@@ -26,12 +26,34 @@
 
 
 //////////////////////////////////////////////////////////////////
-// OVERVIEW
+// BASIC USAGE
 //////////////////////////////////////////////////////////////////
 
-Indexing Insertion Orders   TODO
+Start the Engine
 
-Impression Opportunity Matching  TODO
+       // Instatiate the engine
+       Engine engine = new Engine();
+
+Indexing Insertion Orders
+
+        // Add some IOs
+        engine.index("City = Austin and DeviceType = iPhone or City = Houston", 1);
+        engine.index("City = Singapore and DeviceType = iPhone", 2);
+        engine.index("City = \"San Francisco\"", 3);
+        engine.index("DeviceType = iPhone", 4);
+
+Impression Opportunity Matching
+
+        // Create a dummy impression opportunity
+        MapOpportunityData opp = engine.mapOpportunityData();
+        opp.put("city", "singapore");
+        opp.put("devicetype", "iphone");
+
+        // Find matching IOs
+        LongSortedSet results = engine.query(opp);
+
+        // Show results
+        System.out.println("Results=" + results);
 
 //////////////////////////////////////////////////////////////////
 // IDE + PLUGINS
