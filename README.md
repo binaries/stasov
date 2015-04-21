@@ -29,33 +29,33 @@
 # BASIC USAGE
 
 ### Start the Engine
-    ```Java
-    // Instatiate the engine
-    Engine engine = new Engine();
-    ```
+```Java
+// Instatiate the engine
+Engine engine = new Engine();
+```
 
 ### Indexing Insertion Orders
-    ```Java
-    // Add some IOs
-    engine.index("City = Austin AND DeviceType = iPhone OR City = Houston", 1);
-    engine.index("City = Singapore AND DeviceType = iPhone", 2);
-    engine.index("City = \"San Francisco\"", 3);
-    engine.index("DeviceType = iPhone AND NOT City = Houston", 4);
-    engine.index("DeviceType IN (iPhone, Android) AND City IN (Singapore, \"San Francisco\"", 5);
-    ```
+```Java
+// Add some IOs
+engine.index("City = Austin AND DeviceType = iPhone OR City = Houston", 1);
+engine.index("City = Singapore AND DeviceType = iPhone", 2);
+engine.index("City = \"San Francisco\"", 3);
+engine.index("DeviceType = iPhone AND NOT City = Houston", 4);
+engine.index("DeviceType IN (iPhone, Android) AND City IN (Singapore, \"San Francisco\"", 5);
+```
 ### Impression Opportunity Matching
-    ```Java
-    // Create a dummy impression opportunity
-    MapOpportunityData opp = engine.mapOpportunityData();
-    opp.put("city", "singapore");
-    opp.put("devicetype", "iphone");
+```Java
+// Create a dummy impression opportunity
+MapOpportunityData opp = engine.mapOpportunityData();
+opp.put("city", "singapore");
+opp.put("devicetype", "iphone");
 
-    // Find matching IOs
-    LongSortedSet results = engine.query(opp);
+// Find matching IOs
+LongSortedSet results = engine.query(opp);
 
-    // Show results
-    System.out.println("Results=" + results);
-    ```
+// Show results
+System.out.println("Results=" + results);
+```
 //////////////////////////////////////////////////////////////////
 // IDE + PLUGINS
 //////////////////////////////////////////////////////////////////
