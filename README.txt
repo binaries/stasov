@@ -14,7 +14,7 @@
           + .      /   _|_   \    *         *
        .          /  /  |  \  \         +              A SPECIAL THNAKS TO
                -----|- AND -|-----     created .       Tors Dalid, IOBitSet Concept
-           .      \  \ _|_ /  /       March 2015       Andy Kurnia, original IOBitSet Impl
+           .      \  \ _|_ /  /       March 2015       Andy Kurnia, 1st IOBitSet Impl
   *                \    |    /       .        .        The Entire Shishito Team
              *       ---|---     +                     ANTLR Parser Generator
                         | .              .     *       Exotic Italian FastUtil
