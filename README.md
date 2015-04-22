@@ -95,6 +95,9 @@ TODO
 POCKETQL-GRAMMARS
 ANTLR grammars.
 
+When regenerating grammars, rebuild the entire project (or at least all modules dependent on generated grammars).
+Otherwise you may not see effects of changes to grammars.
+
 STASOV-COMMON
 All other modules should depend on this.
 
