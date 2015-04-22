@@ -13,14 +13,23 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
  */
 public class PQLRRTestBase {
 
-    private static boolean isNormalForm(final String input) throws Exception {
+
+    private boolean isNormalForm(final String input) throws Exception {
+        if (input == null) throw new IllegalArgumentException("input was null");
+        if (input.isEmpty()) throw new IllegalArgumentException("input was empty");
+
         final PocketQLNFCheckerLexer lexer =
                 new PocketQLNFCheckerLexer(new ANTLRInputStream(input));
         final CommonTokenStream tokens = new CommonTokenStream(lexer);
         final PocketQLNFCheckerParser parser = new PocketQLNFCheckerParser(tokens);
 
         final PocketQLNFCheckerParser.Normal_formContext nfctx = parser.normal_form();
-        return nfctx != null && !nfctx.isEmpty();
+
+        final boolean match = nfctx != null && nfctx.match && nfctx.getText().equals(input);
+
+        if (l()) log("normal form match=" + match + "  " + nfctx.getText());
+
+        return match;
     }
 
     private boolean l() {
@@ -33,15 +42,6 @@ public class PQLRRTestBase {
 
     protected String parse(final String input) throws Exception {
 
-        PocketQLAllLexer nflexer;
-        CommonTokenStream nftokens;
-
-        PocketQLAllParser nfparser;
-
-        PQLRR.Transformer transformer;
-
-        ParseTreeWalker nfwalker;
-
         String _input = input;
 
         String output = null;
@@ -51,39 +51,25 @@ public class PQLRRTestBase {
                 return _input;
             }
 
+            final PocketQLAllLexer nflexer;
+            final CommonTokenStream nftokens;
+            final PocketQLAllParser nfparser;
+
             nflexer = new PocketQLAllLexer(new ANTLRInputStream(_input));
             nftokens = new CommonTokenStream(nflexer);
-
             nfparser = new PocketQLAllParser(nftokens);
 
-//            transformer = new PQLRR.Transformer();
-
-  //          Listener
-
-            //nfwalker = new ParseTreeWalker();
-            //nfwalker.walk(new PocketQLAllBaseListener(), nfparser.start());
-
- //           nfparser.changed = false;
-
- //           PocketQLAllParser.Normal_formContext normal_form = nfparser.normal_form();
- //           if (normal_form != null && normal_form.value != null) return normal_form.value;
-
-            PocketQLAllParser.StartContext start = nfparser.start();
+            final PocketQLAllParser.StartContext start = nfparser.start();
             output = start.value;
-            //System.out.println("start value = " + output);
+
             System.out.println("transformation cycle: " + output);
+
+            if (output == null) return null;
 
             _input = output;
 
-            //if (nfparser.changed) {
-            //    assert(output != null);
-            //    assert(!output.isEmpty());
-            //    _input = output;
-            //} else return output;
         }
 
-        //return transformer.getOutput();
-        //return output;
         return null;
     }
 

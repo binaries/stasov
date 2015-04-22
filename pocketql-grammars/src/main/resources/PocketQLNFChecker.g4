@@ -50,16 +50,14 @@ psb = new StringBuilder();
 changed = false;
 }
 
-normal_form returns [String value] :
+normal_form returns [boolean match=false] :
     (
-        terminal_leaf (W+ AND W+ terminal_leaf)* W+ (OR W+ terminal_leaf (W+ AND W+ terminal_leaf)*)*
+        (terminal_leaf (W+ AND W+ terminal_leaf)* W+ (OR W+ terminal_leaf (W+ AND W+ terminal_leaf)*)*)
         |
         terminal_leaf
     )
     {
-        $value=getContext().getText();
-        if (l()) log("normal_form", "value=" + $value);
-        System.out.println("nf=" + $value);
+        $match = true;
     }
 ;
 

@@ -79,8 +79,8 @@ changed = false;
 start returns [String value] :
     //n=normal_form
     //  { $value=$n.value; changed=false; }
-     (e=expr)
-      { $value=$e.value; changed=true; if (l()) log("start" + $e.value); }
+    (e=expr)
+        {   $value=$e.value; changed=true; if (l()) log("start" + $e.value); }
 ;
 
 expr returns [String value] :

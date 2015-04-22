@@ -83,4 +83,11 @@ public class PQLRRTest extends PQLRRTestBase {
                 "city=austin AND devicetype=iphone OR city=singapore AND devicetype=iphone OR city=vancouver AND devicetype=iphone");
     }
 
+    @Test
+    public void test8() throws Exception {
+        Assert.assertNotEquals(
+                parse("a b c d e f g"),
+                "a b c d e f g");
+    }
+
 }
