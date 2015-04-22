@@ -17,7 +17,7 @@ public class MapOpportunityData extends OpportunityDataBase {
 
     private Long2ObjectMultiValueMap<String> map = new Long2ObjectMultiValueMap<String>(String.CASE_INSENSITIVE_ORDER, TreeAlgorithm.AVL);
 
-    public MapOpportunityData(AttrSvcBase attrSvc) {
+    MapOpportunityData(final AttrSvcBase attrSvc) {
         this.attrSvc = attrSvc;
     }
 
