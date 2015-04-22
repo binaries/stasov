@@ -11,8 +11,6 @@ import com.pocketmath.stasov.util.StasovStrings;
 
 @parser::members
 {
-public StringBuilder psb = new StringBuilder();
-public boolean changed = false;
 
 // convenience method
 private final static String conjoin(final String s1, final String s2, final String conjunction) {
@@ -46,8 +44,6 @@ protected void log(final String ruleName) { log(ruleName,""); }
 
 @init
 {
-psb = new StringBuilder();
-changed = false;
 }
 
 normal_form returns [boolean match=false] :

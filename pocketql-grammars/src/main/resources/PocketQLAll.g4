@@ -37,8 +37,6 @@ import com.pocketmath.stasov.util.StasovStrings;
 
 @parser::members
 {
-public StringBuilder psb = new StringBuilder();
-public boolean changed = false;
 
 // convenience method
 private final static String conjoin(final String s1, final String s2, final String conjunction) {
@@ -72,15 +70,11 @@ protected void log(final String ruleName) { log(ruleName,""); }
 
 @init
 {
-psb = new StringBuilder();
-changed = false;
 }
 
 start returns [String value] :
-    //n=normal_form
-    //  { $value=$n.value; changed=false; }
     (e=expr)
-        {   $value=$e.value; changed=true; if (l()) log("start" + $e.value); }
+        {   $value=$e.value; if (l()) log("start" + $e.value); }
 ;
 
 expr returns [String value] :
