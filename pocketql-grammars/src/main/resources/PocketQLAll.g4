@@ -38,9 +38,19 @@ import com.pocketmath.stasov.util.StasovStrings;
 @parser::members
 {
 
+// register-like variables for intermediate results
+private String e1v = null;
+private String e2v = null;
+private String e3v = null;
+
 // convenience method
 private final static String conjoin(final String s1, final String s2, final String conjunction) {
     return StasovStrings.conjoin(s1,s2,conjunction);
+}
+
+// convenience method
+private final static String p(final String s) {
+    return '(' + s + ')';
 }
 
 //
@@ -74,33 +84,113 @@ protected void log(final String ruleName) { log(ruleName,""); }
 
 start returns [String value] :
     (e=expr)
-        {   $value=$e.value; if (l()) log("start" + $e.value); }
+        {
+            $value=$e.value;
+            if (l()) log("expr", "RESULT=" + $value);
+        }
 ;
+
+exp returns [String v] :
+(
+    e1=atom W* { e1v = $e1.v; }
+    (
+        EOF { $v=e1v; }
+        |
+        AND e2=exp EOF { $v=conjoin(e1v,$e2.v," AND "); }
+        |
+        OR e2=exp EOF { $v=conjoin(e1v,$e2.v," OR "); }
+    )
+    |
+    '(' W*
+    (
+        ( e3=atom EOF ) { $v=$e3.v; }
+        |
+        ( '(' e4=exp ')' EOF ) { $v=p($e4.v); }
+    )
+    W* ')' EOF
+)
+    |
+(
+    NOT W*
+    (
+        e5=exp EOF { $v=$e5.v; }
+        |
+        NOT e6=exp EOF { $v=$e6.v; }
+    )
+)
+;
+
+atom returns [String v] :
+    e=eq { $v=$e.value; }
+;
+
+
 
 expr returns [String value] :
     (e=eq)
-        { $value=$e.value; }
+        {
+            $value=$e.value;
+            if (l()) log("expr", "eq0");
+            if (l()) log("expr", "RESULT=" + $value);
+        }
     | ( NOT W+ NOT W+ ne=expr )
         {
             $value = $ne.value;
             if (l()) log("expr", "double negation elimination");
+            if (l()) log("expr", "RESULT=" + $value);
         }
+    | '(' W* e=eq W* ')'
+        {
+            if (l()) log("expr", "atomic parens elimination");
+            $value = $e.value;
+            if (l()) log("expr", "RESULT=" + $value);
+        }
+    (
+        '(' W*
+        e1=expr { $value = $e1.value; }
+        W* OR W* e2=expr { $value += " OR " + $e2.value; }
+        (W* OR W* e3=expr { $value += " OR " + $e3.value; } )*
+        ')' W*
+    )
+       {
+           if (l()) log("expr", "parens OR" + $value);
+           if (l()) log("expr", "RESULT=" + $value);
+       }
+
   //  | e1=and_expr W+ AND W+ e2=and_expr
   //      { $value= }
   //  | or_expr W+ AND W+ or_expr
     | '(' W* e1=expr W* OR W* e2=expr W* ')' W* AND W* e3=expr
         {
-            String c1 = conjoin($e1.value, $e3.value, " AND ");
-            String c2 = conjoin($e2.value, $e3.value, " AND ");
+           if (l()) log("expr",
+                "( e1=expr OR e2=expr ) AND e3=expr, INPUT: "
+                + getContext().getText()
+                + "VALUES: e1=,"
+                + $e1.value
+                + ", e2="
+                + $e2.value
+                + ", e3="
+                + $e3.value);
+            String c1 = conjoin( p($e1.value), p($e3.value), " AND ");
+            String c2 = conjoin( p($e2.value), p($e3.value), " AND ");
             $value = conjoin(c1, c2, " OR ");
-            if (l()) log("expr", "( e1=expr OR e2=expr ) AND e3=expr");
+            if (l()) log("expr", "RESULT=" + $value);
         }
-   | e1=expr W* AND W* '(' W* e2=expr W* OR W* e3=expr W* ')'
+    | e1=expr W* AND W* '(' W* e2=expr W* OR W* e3=expr W* ')'
         {
-            String c1 = conjoin($e1.value, $e2.value, " AND ");
-            String c2 = conjoin($e1.value, $e3.value, " AND ");
+            if (l()) log("expr",
+                "e1=expr AND ( e2=expr OR e3=expr ), INPUT: "
+                + getContext().getText()
+                + ", VALUES: e1="
+                + $e1.value
+                + ", e2="
+                + $e2.value
+                + ", e3="
+                + $e3.value);
+            String c1 = conjoin( p($e1.value), p($e2.value), " AND ");
+            String c2 = conjoin( p($e1.value), p($e3.value), " AND ");
             $value = conjoin(c1, c2, " OR ");
-            if (l()) log("expr", "e1=expr AND ( e2=expr OR e3=expr )");
+            if (l()) log("expr", "RESULT=" + $value);
         }
   // | '(' W* e1=expr {$value = $e1.value;} (W* AND W* e2=expr {$value = " AND " + $e2.value;})* ')'
   //      {
@@ -109,29 +199,49 @@ expr returns [String value] :
    (
        | '(' e1=expr W* ')' W* AND W* '(' W* e2=expr W* ')'
             {
-                $value = '(' + $e1.value + ") AND (" + $e2.value + ')';
+                $value = p($e1.value) + " AND " + p($e2.value);
                 if (l()) log("expr", "AND");
+                if (l()) log("expr", "RESULT=" + $value);
             }
 
        | e1=expr W* AND W* e2=expr
             {
                 $value = $e1.value + " AND " + $e2.value;
                 if (l()) log("expr", "AND");
+                if (l()) log("expr", "RESULT=" + $value);
             }
        | '(' e1=expr W* ')' W* OR W* '(' W* e2=expr W* ')'
             {
-                $value = '(' + $e1.value + ") OR (" + $e2.value + ')';
+                $value = conjoin( p($e1.value), p($e2.value), " OR ");
                 if (l()) log("expr", "OR");
+                if (l()) log("expr", "RESULT=" + $value);
             }
-       | e1=expr W* OR W* e2=expr
+       |(
+            e1=expr { $value = $e1.value; }
+            W* OR W* e2=expr { $value += " OR " + $e2.value; }
+            (W* OR W* e3=expr { $value += " OR " + $e3.value; } )*
+        )
             {
-                $value=$e1.value + " OR " + $e2.value;
-                if (l()) log("expr", "OR");
+                if (l()) log("expr", " OR");
+                if (l()) log("expr", "RESULT=" + $value);
             }
        | '(' W* ex=expr W* ')'
             {
                 $value='(' + $ex.value + ')';
                 if (l()) log("expr", "parens");
+                if (l()) log("expr", "RESULT=" + $value);
+            }
+       | e1=expr W* AND W* e2=expr
+            {
+                $value = conjoin( $e1.value, $e2.value, " AND ");
+                if (l()) log("expr", "AND simple");
+                if (l()) log("expr", "RESULT=" + $value);
+            }
+       | e1=expr W* OR W* e2=expr
+            {
+                $value = conjoin( $e1.value, $e2.value, " OR ");
+                if (l()) log("expr", "OR simple");
+                if (l()) log("expr", "RESULT=" + $value);
             }
    )
 ;

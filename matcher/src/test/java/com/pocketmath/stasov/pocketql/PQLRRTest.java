@@ -90,4 +90,10 @@ public class PQLRRTest extends PQLRRTestBase {
                 "a b c d e f g");
     }
 
+    @Test
+    public void test_lots_of_ors() throws Exception {
+        String s = "a=1 OR b=2 OR c=3 OR d=4 OR e=5";
+        Assert.assertEquals(parse(s),s);
+    }
+
 }
