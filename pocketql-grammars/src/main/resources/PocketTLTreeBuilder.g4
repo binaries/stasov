@@ -1,5 +1,13 @@
 grammar PocketTLTreeBuilder;
 
+@header
+{
+}
+
+@parser::members
+{
+}
+
 AND : [aA][nN][dD];
 OR : [oO][rR];
 NOT : [nN][oO][tT];
@@ -13,19 +21,29 @@ RPAREN : ')';
 
 filter: ((NOT expression) | expression) EOF;
 
-expression : or_expression;
+expression : WS* or_expression;
 
-or_expression : and_expression (OR and_expression)*;
+or_expression : WS* and_expression (WS* OR and_expression WS*)*
+{
 
-and_expression : term (AND term)*;
+}
+;
 
-term : in | atom (operator atom)? | LPAREN expression RPAREN;
+and_expression : term (WS* AND WS* term WS*)*
+{
 
+}
+;
+
+term : in | atom (WS* operator WS* atom)? | LPAREN WS* expression WS* RPAREN;
+
+not_atom : NOT WS+ atom;
 atom : ID | INT | FLOAT | STRING | TRUE | FALSE;
 
 operator : LT | GT | EQ | NEQ;
 
-in: ID IN LPAREN atom (',' ((NOT atom) | atom) )* RPAREN;
+in: ID WS+ IN WS* LPAREN WS* (not_atom | atom) WS* (',' WS* (not_atom | atom) WS* )* WS* RPAREN
+;
 
 TRUE : [tT][rR][uU][eE];
 FALSE : [fF][aA][lL][sS][eE];
@@ -33,3 +51,4 @@ INT : (('-'|'+') [0-9]+) | [0-9]+;
 FLOAT : (('-'|'+') [0-9]+ '.' [0-9]*) | ([0-9]+ '.' [0-9]*);
 STRING : '"' ([a-zA-Z0-9]|'_')* '"';
 ID : ([a-zA-Z]|'_') ([a-zA-Z0-9]|'_')*;
+WS : ' ';
