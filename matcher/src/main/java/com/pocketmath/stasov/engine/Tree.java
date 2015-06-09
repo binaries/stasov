@@ -85,7 +85,6 @@ class Tree {
             exclusionary.put(attrTypeId, exclVal, child);
         }
 
-        @Override
         public int compareTo(Node o) {
             return Long.compare(id, o.id);
         }
@@ -415,7 +414,7 @@ class Tree {
 
     /**
      *
-     * @param q index 0 is attrTypeId, index 1 is value
+     * @param query index 0 is attrTypeId, index 1 is value
      * @return
      */
     public LongSortedSet query(final OpportunityQueryBase query) {
