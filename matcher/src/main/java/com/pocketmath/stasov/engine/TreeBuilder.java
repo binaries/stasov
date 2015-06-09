@@ -25,6 +25,7 @@ public class TreeBuilder {
         if (ctx instanceof And_expressionContext) {
             final And_expressionContext and_expressionContext = (And_expressionContext) ctx;
             final AndNode andNode = new AndNode(parent);
+            parent.addChild(andNode);
 
             for (final TermContext termContext : and_expressionContext.term()) {
                 final Node child = parse(termContext, andNode);
@@ -36,6 +37,7 @@ public class TreeBuilder {
         } else if (ctx instanceof Or_expressionContext) {
             final Or_expressionContext or_expressionContext = (Or_expressionContext) ctx;
             final OrNode orNode = new OrNode(parent);
+            parent.addChild(orNode);
 
             for (final And_expressionContext and_expressionContext : or_expressionContext.and_expression()) {
                 final Node child = parse(and_expressionContext, orNode);
@@ -82,6 +84,7 @@ public class TreeBuilder {
             }
 
             final PTTree.InNode inNode = new InNode(parent); //inNodesMap.get(ctx);
+            parent.addChild(inNode);
             inNode.setVariableName(variableName);
             inNode.addPositiveValues(positiveValues);
             inNode.addNegativeValues(negativeValues);
@@ -128,7 +131,9 @@ public class TreeBuilder {
 
         }
 
-        return parent; // TODO: Not sure about this.
+        throw new IllegalStateException();
+
+        //return parent; // TODO: Not sure about this.
     }
 
     public static PTTree.Node parse(final String input) throws Exception {
@@ -142,7 +147,7 @@ public class TreeBuilder {
 
         final ExpressionContext expression = parser.expression();
 
-        final Node root = new PTTree.AndNode(null);
+        final Node root = new PTTree.OrNode(null);
 
         ParserRuleContext ctx = expression;
         return parse(ctx, root);
