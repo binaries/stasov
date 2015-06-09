@@ -19,7 +19,7 @@ import java.util.*;
 class Tree {
 
     static class NodeComparator implements Comparator<Node> {
-        @Override
+
         public int compare(Node o1, Node o2) {
             return Long.compare(o1.id, o2.id);
         }

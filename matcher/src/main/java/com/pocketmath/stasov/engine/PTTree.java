@@ -652,7 +652,7 @@ public class PTTree {
             grandparent.removeChild(parent);
 
             parent.removeChild(node);
-            node.setParent(grandparent);
+            //node.setParent(grandparent);
 
             for (final Node l0 : node.getChildren()) {
                 final AndNode newAndNode = new AndNode(topOrNode);
@@ -669,9 +669,10 @@ public class PTTree {
                 }
             }
 
+            //parent.removeAllChildren(); // old parent will be destroyed
+
             state.setModified(true);
             logOutputNode(topOrNode);
-            //logger.log(Level.FINER, "output node = {0}", newOrNode);
             return topOrNode;
 
         } else if (parent instanceof OrNode) { // de-dup
