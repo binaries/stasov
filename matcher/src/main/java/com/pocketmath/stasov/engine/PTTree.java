@@ -75,6 +75,8 @@ public class PTTree {
 
         public abstract void removeChild(Node child) throws UnsupportedOperationException;
 
+        public abstract void removeAllChildren() throws UnsupportedOperationException;
+
         public abstract Set<Node> getChildren() throws UnsupportedOperationException;
 
         public boolean containsChild(final Node child) { return false; }
@@ -120,6 +122,11 @@ public class PTTree {
             if (child == null) throw new IllegalArgumentException("child was null");
             if (children.contains(child)) children.remove(child);
             else throw new IllegalArgumentException("attempt to remove child that was not a child of this node");
+        }
+
+        @Override
+        public void removeAllChildren() throws UnsupportedOperationException {
+            children.clear();
         }
 
         public void addChildren(Collection<Node> children) { this.children.addAll(children); }
@@ -200,6 +207,7 @@ public class PTTree {
 
         @Override
         public void addChild(Node child) {
+            assert(child != null && set.size() == 1 || child == null && set.isEmpty());
             if (child == null) throw new IllegalArgumentException("parameter child was null");
             if (this.child != null) throw new IllegalStateException("attempt to add child when maximum number of children (1) already exists");
             this.child = child;
@@ -211,6 +219,7 @@ public class PTTree {
         @Override
         public void removeChild(Node child) {
             if (child == null) throw new IllegalArgumentException("parameter child was null");
+            assert(child != null && set.size() == 1 || child == null && set.isEmpty());
             if (child.equals(this.child)) {
                 this.child = null;
                 set.clear();
@@ -220,15 +229,26 @@ public class PTTree {
             assert(child != null && set.size() == 1 || child == null && set.isEmpty());
         }
 
+        @Override
+        public void removeAllChildren() throws UnsupportedOperationException {
+            assert(child != null && set.size() == 1 || child == null && set.isEmpty());
+            child = null;
+            set.clear();
+        }
+
         public void setChild(Node child) {
             if (child == null) throw new IllegalArgumentException("parameter child was null");
+            assert(child != null && set.size() == 1 || child == null && set.isEmpty());
             this.child = child;
+            set.clear();
+            set.add(child);
         }
 
         @Override
         public boolean containsChild(final Node child) {
             if (child == null) throw new IllegalArgumentException("input was null");
             if (this.child == null) return false;
+            assert(child != null && set.size() == 1 || child == null && set.isEmpty());
             return child.equals(this.child);
         }
 
@@ -263,9 +283,9 @@ public class PTTree {
 
         @Override
         public void prettyPrint(PrintWriter out) {
-            if (getChildren().size() > 1) {
-                System.out.println("AND, CHILDREN > 1: " + this);
-            }
+            //if (getChildren().size() > 1) {
+            //    System.out.println("AND, CHILDREN > 1: " + this);
+            //}
             prettyPrint(out, " AND ", false);
         }
 
@@ -405,6 +425,11 @@ public class PTTree {
 
         @Override
         public void removeChild(Node child) throws UnsupportedOperationException {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void removeAllChildren() throws UnsupportedOperationException {
             throw new UnsupportedOperationException();
         }
 
@@ -593,6 +618,7 @@ public class PTTree {
 
         Object[] logParams = { node, parent };
         logger.log(Level.FINER, "input node = {0}, parent = {1}", logParams);
+        logInputNode(node);
 
         if (! node.hasChildren()) {
             logger.log(Level.WARNING, "input node with no children; will disregard and use parent");
@@ -611,17 +637,26 @@ public class PTTree {
             //  (a + b) c ===> ac + bc
             logger.log(Level.FINEST, "parent instanceof AndNode");
 
+            // TODO: check we are in proper form? -- if so, don't modify!   Is this covered by at-root checking in method convert(...)?
+
             final Node grandparent = parent.getParent();
-            final OrNode newOrNode = new OrNode(grandparent);
-            grandparent.addChild(newOrNode);
+
+            final OrNode topOrNode;
+            if (grandparent instanceof OrNode) {
+                topOrNode = (OrNode) grandparent;
+            } else {
+                topOrNode = new OrNode(grandparent);
+                grandparent.addChild(topOrNode);
+            }
+
             grandparent.removeChild(parent);
 
             parent.removeChild(node);
             node.setParent(grandparent);
 
             for (final Node l0 : node.getChildren()) {
-                final AndNode newAndNode = new AndNode(newOrNode);
-                newOrNode.addChild(newAndNode);
+                final AndNode newAndNode = new AndNode(topOrNode);
+                topOrNode.addChild(newAndNode);
                 newAndNode.addChild(l0);
                 l0.setParent(newAndNode);
 
@@ -635,41 +670,9 @@ public class PTTree {
             }
 
             state.setModified(true);
-            logOutputNode(newOrNode);
+            logOutputNode(topOrNode);
             //logger.log(Level.FINER, "output node = {0}", newOrNode);
-            return newOrNode;
-
-            /*
-            final NotNode notNode = new NotNode(parent);
-            parent.addChild(notNode);
-
-            final AndNode andNode = new AndNode(notNode);
-            notNode.addChild(andNode);
-
-            for (final Node orChild : node.getChildren()) { // all the OrNode children
-                NotNode notNode2 = new NotNode(andNode);
-                andNode.addChild(notNode2);
-
-                notNode2.addChild(orChild);
-                orChild.setParent(notNode2);
-
-               /* final AndNode newAndNode = new AndNode(newOrNode);
-                newAndNode.addChild(orChild);
-                for (final Node andChild : ((AndNode) parent).getChildren()) {
-                    if (!andChild.equals(orChild)) {
-                        newAndNode.addChild(andChild);
-                    }
-                }
-                if (newAndNode.hasChildren()) {
-                    newOrNode.addChild(newAndNode);
-                } else {
-                    throw new IllegalStateException("and child cannot have no children at this phase"); // input nodes without children would have already caused the method to return
-                }*/
-            /*}
-
-            state.setModified(true);
-            logger.log(Level.FINER, "output node = {0}", newOrNode);
-            return newOrNode;*/
+            return topOrNode;
 
         } else if (parent instanceof OrNode) { // de-dup
             logger.log(Level.FINEST, "parent instanceof OrNode");
@@ -680,7 +683,7 @@ public class PTTree {
                 }
             }
             state.setModified(true);
-            logger.log(Level.FINER, "output node = {0}", parent);
+            logOutputNode(parent);
             return parent;
 
         } else if (parent instanceof NotNode) {
@@ -695,7 +698,7 @@ public class PTTree {
             if (newAndNode.hasChildren()) grandparent.addChild(newAndNode);
             grandparent.removeChild(parent);
             state.setModified(true);
-            logger.log(Level.FINER, "output node = {0}", grandparent);
+            logOutputNode(grandparent);
             return grandparent;
 
         } else {
