@@ -24,28 +24,6 @@ import static org.testng.Assert.*;
  */
 public class PTTreeTest {
 
-/*    protected PTTree.Node parse(final String input) throws Exception {
-        PocketTLTreeBuilderLexer lexer;
-        CommonTokenStream tokens;
-        PocketTLTreeBuilderParser parser;
-
-        lexer = new PocketTLTreeBuilderLexer(new ANTLRInputStream(input));
-        tokens = new CommonTokenStream(lexer);
-        parser = new PocketTLTreeBuilderParser(tokens);
-
-        parser.expression();
-
-
-        ParseTreeBuilder builder = new ParseTreeBuilder();
-        parser.addParseListener(builder);
-
-        PocketTLTreeBuilderVisitor visitor = new PocketTLTreeBuilderBaseVisitor();
-
-        visitor.visit(parser.expression());
-
-        return builder.getRoot();
-    }*/
-
     PrintWriter writer = null;
 
     @BeforeMethod
@@ -81,9 +59,57 @@ public class PTTreeTest {
     public void test4() throws Exception {
         final PTTree.Node tree = TreeBuilder.parse("chicken IN (1,2,3) OR robot IN (4)");
         tree.prettyPrint(writer);
-        //System.out.println(tree);
-        //PTTree.convert(tree);
-        //writer.println();
-        //tree.prettyPrint(writer);
+    }
+
+    @Test
+    public void test100_transforming_tree_no_changes_expected() throws Exception {
+        // first build the tree
+        final PTTree.Node tree = TreeBuilder.parse("chicken IN (1,2,3)");
+        tree.prettyPrint(writer);
+
+        writer.println();
+
+        // transform tree
+        PTTree.convert(tree);
+        tree.prettyPrint(writer);
+    }
+
+    @Test
+    public void test101_transforming_tree_no_changes_expected() throws Exception {
+        // first build the tree
+        final PTTree.Node tree = TreeBuilder.parse("chicken IN (1,2,3) AND robot IN (4)");
+        tree.prettyPrint(writer);
+
+        writer.println();
+
+        // transform tree
+        PTTree.convert(tree);
+        tree.prettyPrint(writer);
+    }
+
+    @Test
+    public void test102_transforming_tree_no_structural_changes_expected() throws Exception {
+        // first build the tree
+        final PTTree.Node tree = TreeBuilder.parse("chicken IN (1,2,3) OR robot IN (4) AND lobster IN (5)");
+        tree.prettyPrint(writer);
+
+        writer.println();
+
+        // transform tree
+        PTTree.convert(tree);
+        tree.prettyPrint(writer);
+    }
+
+    @Test
+    public void test200_transforming_tree_structural_changes_expected() throws Exception {
+        // first build the tree
+        final PTTree.Node tree = TreeBuilder.parse("(chicken IN (1,2,3) OR robot IN (4)) AND lobster IN (5)");
+        tree.prettyPrint(writer);
+
+        writer.println();
+
+        // transform tree
+        PTTree.convert(tree);
+        tree.prettyPrint(writer);
     }
 }
