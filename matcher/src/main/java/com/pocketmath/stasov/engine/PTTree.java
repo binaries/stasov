@@ -5,34 +5,68 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.SetUtils;
 
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 /**
  * Created by etucker on 5/1/15.
  */
 public class PTTree {
 
+    private Logger logger = Logger.getLogger(getClass().getName());
+    {
+        // shameless hard coded logging setup
+
+        ConsoleHandler consoleHandler = new ConsoleHandler();
+        consoleHandler.setLevel(Level.FINEST);
+
+        logger.setLevel(Level.FINEST);
+        logger.addHandler(consoleHandler);
+
+    }
+
     public static interface Leaf {
 
     }
 
+    /**
+     * Note: Parents are weak references while children if any are strong references.
+     */
     public static abstract class Node {
-        private String text;
+        //private String text;
 
-        private Node parent;
+        private WeakReference<Node> parent = null;
 
         protected Node(Node parent) {
-            this.parent = parent;
+            if (parent != null) {
+                this.parent = new WeakReference<Node>(parent);
+                //parent.addChild(this);
+            }
         }
 
+        /**
+         * Overriding methods must call super.
+         * @return
+         */
         public Node getParent() {
-            return parent;
+            return parent == null ? null : parent.get();
         }
 
+        /**
+         * Overriding methods must call super.
+         * @param parent
+         */
         public void setParent(Node parent) {
-            this.parent = parent;
+            if (parent == null) throw new IllegalArgumentException("argument parent was null");
+            this.parent = new WeakReference<Node>(parent);
         }
 
         public abstract boolean hasChildren();
@@ -43,7 +77,25 @@ public class PTTree {
 
         public abstract Set<Node> getChildren() throws UnsupportedOperationException;
 
+        public boolean containsChild(final Node child) { return false; }
+
         public abstract void prettyPrint(PrintWriter out);
+
+        protected String prettyString() {
+            final StringWriter sw = new StringWriter();
+            final PrintWriter pw = new PrintWriter(sw);
+            prettyPrint(pw);
+            pw.flush();
+            sw.flush();
+            try {
+                sw.close();
+            } catch (IOException e) {
+                e.printStackTrace(); // TODO: Refine exception handling
+                throw new IllegalStateException(e);
+            }
+            pw.close();
+            return sw.toString();
+        }
     }
 
     public static abstract class NodeWithChildren extends Node {
@@ -82,6 +134,13 @@ public class PTTree {
         }
 
         @Override
+        public boolean containsChild(final Node child) {
+            if (child == null) throw new IllegalArgumentException("input was null");
+            if (children.isEmpty()) return false;
+            return children.contains(child);
+        }
+
+/*        @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
@@ -90,7 +149,6 @@ public class PTTree {
             NodeWithChildren that = (NodeWithChildren) o;
 
             return getChildren().equals(that.getChildren());
-
         }
 
         @Override
@@ -98,7 +156,7 @@ public class PTTree {
             int result = super.hashCode();
             result = 31 * result + getChildren().hashCode();
             return result;
-        }
+        }*/
 
         protected void prettyPrint(PrintWriter out, String separator, boolean useParens) {
             if (useParens) out.print('(');
@@ -168,6 +226,13 @@ public class PTTree {
         }
 
         @Override
+        public boolean containsChild(final Node child) {
+            if (child == null) throw new IllegalArgumentException("input was null");
+            if (this.child == null) return false;
+            return child.equals(this.child);
+        }
+
+        @Override
         public boolean hasChildren() {
             assert(child != null && set.size() == 1 || child == null && set.isEmpty());
             return child != null;
@@ -234,6 +299,17 @@ public class PTTree {
         @Override
         public void removeChild(Node child) {
             throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void prettyPrint(PrintWriter out) {
+            out.print(" NOT ");
+            getChild().prettyPrint(out);
+        }
+
+        @Override
+        public String toString() {
+            return "NotNode{} " + super.toString();
         }
     }
 
@@ -349,7 +425,7 @@ public class PTTree {
 
     private Node root;
 
-    public PTTree(Node root) {
+    public PTTree(final Node root) {
         this.root = root;
     }
 
@@ -358,7 +434,53 @@ public class PTTree {
     }
 
     private boolean isRoot(final Node root) {
-        return this.root == root;
+        return root.getParent() == null;
+    }
+
+    protected final void logNode(final Node node, final Level level, final String msgPrefix) {
+
+        if (!logger.isLoggable(level)) return;
+
+        final LogRecord logRecord = new LogRecord(level, msgPrefix + node.prettyString());
+
+        final StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+
+        StackTraceElement ste = null;
+        for (StackTraceElement stackTraceElement: stackTrace) {
+            final String className = stackTraceElement.getClassName();
+            final String methodName = stackTraceElement.getMethodName();
+            if (stackTraceElement.getMethodName().endsWith("getStackTrace")
+                ||
+                    className.equals(this.getClass().getCanonicalName())
+                    &&
+                    (methodName.endsWith("logOutputNode")
+                    || methodName.endsWith("logInputNode")
+                    || methodName.endsWith("logNode"))) {
+
+                // do nothing
+            } else {
+                ste = stackTraceElement;
+                break;
+            }
+        }
+
+        if (ste == null) throw new IllegalStateException();
+
+        final String className = ste.getClassName();
+        final String methodName = ste.getMethodName();
+
+        logRecord.setSourceClassName(className);
+        logRecord.setSourceMethodName(methodName);
+
+        logger.log(logRecord);
+    }
+
+    private void logOutputNode(final Node node) {
+        logNode(node, Level.FINER, "out node = ");
+    }
+
+    private void logInputNode(final Node node) {
+        logNode(node, Level.FINER, "in node = " );
     }
 
     /**
@@ -369,12 +491,21 @@ public class PTTree {
     private Node convertNot(final NotNode node, final State state) {
         final Node parent = node.getParent();
 
+        if (! node.hasChildren()) {
+            logger.log(Level.WARNING, "input node with no children; will disregard and use parent");
+            return parent;
+        }
+
+        if (!parent.containsChild(node)) {
+            throw new IllegalStateException("parent did not contain the child it was derived from.\n\rparent = " + parent + "\n\rchild = " + node);
+        }
+
         if (parent instanceof AndNode) {
             // do nothing
         } else if (parent instanceof OrNode) {
             // do nothing
         } else if (parent instanceof NotNode) { // case: double negation
-            if (parent != root) {
+            if (!isRoot(parent)) {
                 // double negation found, remove both intermediate NOTs
                 final NotNode notNode = (NotNode) parent;
                 Node grandparent = parent.getParent();
@@ -382,6 +513,9 @@ public class PTTree {
                 if (grandparent == root) return parent;
 
                 node.getChild().setParent(grandparent);
+                grandparent.addChild(node.getChild());
+
+                grandparent.removeChild(parent);
                 state.setModified(true);
                 return grandparent;
             }
@@ -407,16 +541,31 @@ public class PTTree {
     private Node convertAnd(final AndNode node, final State state) {
         final Node parent = node.getParent();
 
+        Object[] logParams = { node, parent };
+        logger.log(Level.FINER, "node = {0}, parent = {1}", logParams);
+
+        if (! node.hasChildren()) {
+            logger.log(Level.WARNING, "input node with no children; will disregard and use parent");
+            return parent;
+        }
+
+        if (!parent.containsChild(node)) {
+            throw new IllegalStateException("parent did not contain the child it was derived from.\n\rparent = " + parent + "\n\rchild = " + node);
+        }
+
         if (parent instanceof AndNode) { // de-dup
             // rollup
-            for (Node child : node.getChildren()) {
+            for (final Node child : node.getChildren()) {
                 ((AndNode)parent).addChild(child);
                 child.setParent(parent);
                 state.setModified(true);
             }
+            parent.removeChild(node);
+            logger.log(Level.FINER, "parent of AndNode: output node = {0}", parent);
             return parent;
 
         } else if (parent instanceof OrNode) {
+            logger.log(Level.FINER, "parent of OrNode: output node = {0}", parent);
             return parent;
 
         } else if (parent instanceof NotNode) {
@@ -429,6 +578,7 @@ public class PTTree {
             if (newOrNode.hasChildren()) grandparent.addChild(newOrNode);
             grandparent.removeChild(parent);
             state.setModified(true);
+            logger.log(Level.FINER, "parent of NotNode: output node = {0}", grandparent);
             return grandparent;
 
         } else {
@@ -441,14 +591,69 @@ public class PTTree {
 
         final Node parent = node.getParent();
 
+        Object[] logParams = { node, parent };
+        logger.log(Level.FINER, "input node = {0}, parent = {1}", logParams);
+
+        if (! node.hasChildren()) {
+            logger.log(Level.WARNING, "input node with no children; will disregard and use parent");
+            return parent;
+        }
+
+        if (!parent.containsChild(node)) {
+            if (isRoot(parent)) logger.log(Level.SEVERE, "found root node but it didn't contain the child");
+            logger.log(Level.SEVERE, "parent did not contain child it was derived from");
+            throw new IllegalStateException("parent did not contain the child it was derived from.\n\rparent = " + parent + "\n\rchild = " + node);
+        }
+
         // all ors multiply
-        //  ( a + b ) cd   ==> acd + bcd
         //
         if (parent instanceof AndNode) {
-            final OrNode newOrNode = new OrNode(parent);
+            //  (a + b) c ===> ac + bc
+            logger.log(Level.FINEST, "parent instanceof AndNode");
+
+            final Node grandparent = parent.getParent();
+            final OrNode newOrNode = new OrNode(grandparent);
+            grandparent.addChild(newOrNode);
+            grandparent.removeChild(parent);
+
+            parent.removeChild(node);
+            node.setParent(grandparent);
+
+            for (final Node l0 : node.getChildren()) {
+                final AndNode newAndNode = new AndNode(newOrNode);
+                newOrNode.addChild(newAndNode);
+                newAndNode.addChild(l0);
+                l0.setParent(newAndNode);
+
+                for (final Node l1 : parent.getChildren()) {
+                    assert(l1 != null);
+                    assert(l1 != node);
+                    assert(!l1.equals(node));
+                    newAndNode.addChild(l1);
+                    l1.setParent(newAndNode);
+                }
+            }
+
+            state.setModified(true);
+            logOutputNode(newOrNode);
+            //logger.log(Level.FINER, "output node = {0}", newOrNode);
+            return newOrNode;
+
+            /*
+            final NotNode notNode = new NotNode(parent);
+            parent.addChild(notNode);
+
+            final AndNode andNode = new AndNode(notNode);
+            notNode.addChild(andNode);
 
             for (final Node orChild : node.getChildren()) { // all the OrNode children
-                final AndNode newAndNode = new AndNode(newOrNode);
+                NotNode notNode2 = new NotNode(andNode);
+                andNode.addChild(notNode2);
+
+                notNode2.addChild(orChild);
+                orChild.setParent(notNode2);
+
+               /* final AndNode newAndNode = new AndNode(newOrNode);
                 newAndNode.addChild(orChild);
                 for (final Node andChild : ((AndNode) parent).getChildren()) {
                     if (!andChild.equals(orChild)) {
@@ -457,13 +662,17 @@ public class PTTree {
                 }
                 if (newAndNode.hasChildren()) {
                     newOrNode.addChild(newAndNode);
-                }
-            }
+                } else {
+                    throw new IllegalStateException("and child cannot have no children at this phase"); // input nodes without children would have already caused the method to return
+                }*/
+            /*}
 
             state.setModified(true);
-            return newOrNode;
+            logger.log(Level.FINER, "output node = {0}", newOrNode);
+            return newOrNode;*/
 
         } else if (parent instanceof OrNode) { // de-dup
+            logger.log(Level.FINEST, "parent instanceof OrNode");
             for (final Node orChild : node.getChildren()) {
                 if (!orChild.equals(node)) {
                     ((OrNode) parent).addChild(orChild);
@@ -471,18 +680,22 @@ public class PTTree {
                 }
             }
             state.setModified(true);
+            logger.log(Level.FINER, "output node = {0}", parent);
             return parent;
 
         } else if (parent instanceof NotNode) {
+            logger.log(Level.FINEST, "parent instanceof NotNode");
             final Node grandparent = parent.getParent();
             final AndNode newAndNode = new AndNode(grandparent);
             for (final Node orChild : node.getChildren()) {
                 final NotNode newNotNode = new NotNode(newAndNode);
+                newAndNode.addChild(newNotNode);
                 newNotNode.setChild(orChild);
             }
             if (newAndNode.hasChildren()) grandparent.addChild(newAndNode);
             grandparent.removeChild(parent);
             state.setModified(true);
+            logger.log(Level.FINER, "output node = {0}", grandparent);
             return grandparent;
 
         } else {
@@ -568,7 +781,7 @@ public class PTTree {
     }
 
     public static void main(String args[]) {
-        PTTree tree = new PTTree(new AndNode(null));
+        PTTree tree = new PTTree(new OrNode(null));
         tree.convert();
         Node convertedRoot = tree.getRoot();
     }
