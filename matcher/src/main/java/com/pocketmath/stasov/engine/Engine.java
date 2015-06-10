@@ -11,9 +11,9 @@ import it.unimi.dsi.fastutil.longs.LongSortedSet;
 public class Engine {
 
     protected final AttrSvcBase attrSvc;
-    protected final Tree tree;
+    protected final MatchTree tree;
 
-    protected final PocketQL pocketQL;
+    protected final PocketTLIndexer pocketQL;
 
     public Engine() {
         try {
@@ -21,8 +21,8 @@ public class Engine {
         } catch (Exception e) {
             throw new IllegalStateException(e); // TODO: Exception handling.
         }
-        this.tree = new Tree(attrSvc);
-        this.pocketQL = new PocketQL(attrSvc);
+        this.tree = new MatchTree(attrSvc);
+        this.pocketQL = new PocketTLIndexer(attrSvc);
     }
 
     public void index(final String specification, final long id) throws IndexingException {

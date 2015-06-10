@@ -6,8 +6,6 @@ import com.pocketmath.pocketql.grammars.nf.PocketQLNormalFormBaseListener;
 import com.pocketmath.pocketql.grammars.nf.PocketQLNormalFormLexer;
 import com.pocketmath.pocketql.grammars.nf.PocketQLNormalFormParser;
 import com.pocketmath.stasov.attributes.AttrSvcBase;
-import com.pocketmath.stasov.engine.IndexingException;
-import com.pocketmath.stasov.engine.Tree;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.misc.NotNull;
@@ -16,7 +14,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.List;
 
-class PocketQL {
+class PocketTLIndexer {
 
     private final AttrSvcBase attrSvc;
 
@@ -24,11 +22,11 @@ class PocketQL {
 
         private final long[] matches;
 
-        final private Tree tree;
-        private Tree.AndGroupBuilder andGroupBuilder = null;
+        final private MatchTree tree;
+        private MatchTree.AndGroupBuilder andGroupBuilder = null;
         private boolean not = false;
 
-        public BranchBuilder(final Tree tree, final long[] matches) {
+        public BranchBuilder(final MatchTree tree, final long[] matches) {
             this.tree = tree;
             this.matches = matches;
         }
@@ -50,7 +48,7 @@ class PocketQL {
             final TerminalNode varNameTN = ctx.ALPHANUM();
             final String varName = varNameTN.getText().toLowerCase();
             final long attrTypeId = attrSvc.findTypeId(varName);
-            if (attrTypeId < 1) throw new IllegalStateException(); // TODO: Refine exception.
+            if (attrTypeId < 1) throw new IllegalStateException(""); // TODO: Refine exception.
             final List<TerminalNode> valueNodes = ctx.list().ALPHANUM();
             for (TerminalNode valueNode : valueNodes) {
                 final String valueString = valueNode.getText();
@@ -95,11 +93,11 @@ class PocketQL {
         }
     }
 
-    public PocketQL(final AttrSvcBase attrSvc) {
+    public PocketTLIndexer(final AttrSvcBase attrSvc) {
         this.attrSvc = attrSvc;
     }
 
-    void index(final Tree tree, final String inputString, final long[] matches) throws IndexingException {
+    void index(final MatchTree tree, final String inputString, final long[] matches) throws IndexingException {
 
         PocketQLNormalFormLexer nflexer =
                 new PocketQLNormalFormLexer(new ANTLRInputStream(inputString));

@@ -16,7 +16,7 @@ import java.util.*;
 /**
  * Created by etucker on 3/16/15.
  */
-class Tree {
+class MatchTree {
 
     static class NodeComparator implements Comparator<Node> {
 
@@ -316,7 +316,7 @@ class Tree {
         }
     }
 
-    public Tree(final AttrSvcBase attrSvc) {
+    public MatchTree(final AttrSvcBase attrSvc) {
         this.attrSvc = attrSvc;
     }
 
