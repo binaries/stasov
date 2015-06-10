@@ -27,14 +27,18 @@ or_expression : WS* and_expression (WS* OR WS+ and_expression WS*)*;
 
 and_expression : term (WS* AND WS+ term WS*)*;
 
-term : in | atom (WS* operator WS* atom)? | LPAREN WS* expression WS* RPAREN;
+//term : in | atom (WS* operator WS* atom)? | LPAREN WS* expression WS* RPAREN;
+term : ID WS* (eq | in) | LPAREN WS* expression WS* RPAREN;
 
 not_atom : NOT WS+ atom;
 atom : ID | INT | FLOAT | STRING | TRUE | FALSE;
 
-operator : LT | GT | EQ | NEQ;
+//operator : LT | GT | EQ | NEQ;
+operator : eq;
 
-in: ID WS+ IN WS* LPAREN WS* (not_atom | atom) WS* (',' WS* (not_atom | atom) WS* )* WS* RPAREN
+eq : EQ WS* atom;
+
+in: IN WS* LPAREN WS* (not_atom | atom) WS* (',' WS* (not_atom | atom) WS* )* WS* RPAREN
 ;
 
 TRUE : [tT][rR][uU][eE];
