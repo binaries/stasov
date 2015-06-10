@@ -11,5 +11,27 @@
 
     <artifactId>matcher</artifactId>
 
+    <!--<plugins>-->
+        <!--<plugin>-->
+            <!--&lt;!&ndash; thanks to http://www.nailedtothex.org/roller/kyle/entry/java-util-logging-programmatic-configuration &ndash;&gt;-->
+            <!--<artifactId>maven-surefire-plugin</artifactId>-->
+            <!--<version>2.18.1</version>-->
+            <!--<configuration>-->
+                <!--<systemPropertyVariables>-->
+                    <!--&lt;!&ndash;-->
+                    <!--<java.util.logging.config.class>-->
+                        <!--testutil.LoggingConfig-->
+                    <!--</java.util.logging.config.class>-->
+                    <!--&ndash;&gt;-->
+
+                    <!--&lt;!&ndash; If you prefer a file this will work too &ndash;&gt;-->
+                    <!--<java.util.logging.config.file>-->
+                    <!--src/test/resources/logging-test.properties-->
+                    <!--</java.util.logging.config.file>-->
+                <!--</systemPropertyVariables>-->
+            <!--</configuration>-->
+        <!--</plugin>-->
+    <!--</plugins>-->
+
 
 </project>
