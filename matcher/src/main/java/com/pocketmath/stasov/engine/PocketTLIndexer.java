@@ -64,8 +64,6 @@ class PocketTLIndexer {
         public void enterEq(@NotNull PocketQLNormalFormParser.EqContext ctx) {
             super.enterEq(ctx);
 
-            System.out.println(ctx.getText());
-
             final TerminalNode varNameTN = ctx.ALPHANUM(0);
             final String varName = varNameTN.getText().toLowerCase();
             final long attrTypeId = attrSvc.findTypeId(varName);

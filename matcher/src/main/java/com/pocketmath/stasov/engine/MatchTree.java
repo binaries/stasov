@@ -326,7 +326,6 @@ class MatchTree {
 
     public void addAndGroup(final AndGroupBuilder agb) {
         final AndGroup ag = agb.toAndGroup();
-        System.out.println(ag);
         addAndGroup(ag);
     }
 
@@ -354,8 +353,6 @@ class MatchTree {
                 final Long2ObjectMap<Node> nextLayerNodes = new Long2ObjectRBTreeMap<Node>();
 
                 if (inclVals != null) for (final long inclVal : inclVals) {
-
-                    System.out.print(".");
 
                     //boolean existing = true;
                     Long2ObjectMap<Node> possibleExistingNodes = null;
