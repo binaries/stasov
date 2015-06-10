@@ -1,6 +1,8 @@
 package com.pocketmath.stasov.engine;
 
 import com.pocketmath.stasov.attributes.AttrSvcBase;
+import com.pocketmath.stasov.pmtl.dnfconv.DNFConv;
+import com.pocketmath.stasov.pmtl.PocketTLLanguageException;
 import it.unimi.dsi.fastutil.longs.LongSortedSet;
 
 /**
@@ -24,7 +26,16 @@ public class Engine {
     }
 
     public void index(final String specification, final long id) throws IndexingException {
-        pocketQL.index(tree, specification, new long[]{id});
+        final String dnfSpec;
+        try {
+            dnfSpec = DNFConv.convertToDNF(specification);
+        } catch (PocketTLLanguageException e) {
+           throw new IndexingException(e);
+        }
+        if (dnfSpec == null) throw new IndexingException("DNF converted string was null.");
+        if (dnfSpec.isEmpty()) throw new IndexingException("DNF converted string was empty.");
+        if (dnfSpec.trim().isEmpty()) throw new IndexingException("DNF converted string was only whitespace.");
+        pocketQL.index(tree, dnfSpec, new long[]{id});
     }
 
     public LongSortedSet query(final OpportunityDataBase opportunity) {
