@@ -15,5 +15,8 @@
     <orderEntry type="library" name="org.reflections:reflections:0.9.9" level="project" />
     <orderEntry type="library" name="Maven: org.freemarker:freemarker:2.3.22" level="project" />
     <orderEntry type="module" module-name="stasov-common" />
+    <orderEntry type="module" module-name="attributes-common" />
+    <orderEntry type="library" name="org.apache.commons:commons-collections4:4.0" level="project" />
+    <orderEntry type="module" module-name="attributes" />
   </component>
 </module>
