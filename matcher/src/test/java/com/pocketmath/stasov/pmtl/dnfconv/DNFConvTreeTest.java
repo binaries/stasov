@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 /**
  * Created by etucker on 5/17/15.
  */
-public class PTTreeTest {
+public class DNFConvTreeTest {
 
     PrintWriter writer = null;
 
