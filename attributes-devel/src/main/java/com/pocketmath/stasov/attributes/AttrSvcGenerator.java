@@ -52,6 +52,10 @@ public class AttrSvcGenerator {
                 attrs.add(attr);
             }
 
+            if (attrs.isEmpty()) {
+                throw new IllegalStateException("no attrs found");
+            }
+
             data.put("imports", imports);
             data.put("attrs", attrs);
 
