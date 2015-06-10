@@ -1,4 +1,4 @@
-package com.pocketmath.stasov.engine;
+package com.pocketmath.stasov.dnfconv;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -7,7 +7,7 @@ import java.util.Set;
 /**
  * Created by etucker on 5/18/15.
  */
-public class PTTreeUtil {
+class DNFConvTreeUtil {
 
     static String idTypesToString(final Collection collection) {
         final StringBuffer sb = new StringBuffer();

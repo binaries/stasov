@@ -1,16 +1,12 @@
-package com.pocketmath.stasov.engine;
+package com.pocketmath.stasov.dnfconv;
 
 import it.unimi.dsi.fastutil.objects.ObjectArraySet;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.collections4.SetUtils;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.ref.WeakReference;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -19,7 +15,7 @@ import java.util.logging.Logger;
 /**
  * Created by etucker on 5/1/15.
  */
-public class PTTree {
+class DNFConvTree {
 
     private Logger logger = Logger.getLogger(getClass().getName());
     {
@@ -97,6 +93,10 @@ public class PTTree {
             }
             pw.close();
             return sw.toString();
+        }
+
+        public String toPocketTL() {
+            return prettyString();
         }
     }
 
@@ -442,15 +442,15 @@ public class PTTree {
         public String toString() {
             return "InNode{" +
                     "var='" + variableName + '\'' +
-                    ", neg=" + PTTreeUtil.idTypesToString(negativeValues) +
-                    ", pos=" + PTTreeUtil.idTypesToString(positiveValues) +
+                    ", neg=" + DNFConvTreeUtil.idTypesToString(negativeValues) +
+                    ", pos=" + DNFConvTreeUtil.idTypesToString(positiveValues) +
                     "} ";
         }
     }
 
     private Node root;
 
-    public PTTree(final Node root) {
+    public DNFConvTree(final Node root) {
         this.root = root;
     }
 
@@ -637,7 +637,7 @@ public class PTTree {
             //  (a + b) c ===> ac + bc
             logger.log(Level.FINEST, "parent instanceof AndNode");
 
-            // TODO: check we are in proper form? -- if so, don't modify!   Is this covered by at-root checking in method convert(...)?
+            // TODO: check we are in proper form? -- if so, don't modify!   Is this covered by at-root checking in method transformToDNF(...)?
 
             final Node grandparent = parent.getParent();
 
@@ -771,7 +771,7 @@ public class PTTree {
         }
     }
 
-    public void convert() {
+    public void transformToDNF() {
         final State state = new State();
         do {
             state.reset();
@@ -779,14 +779,14 @@ public class PTTree {
         } while (state.isModified());
     }
 
-    public static void convert(Node root) {
-        PTTree tree = new PTTree(root);
-        tree.convert();
+    public static void transformToDNF(Node root) {
+        DNFConvTree tree = new DNFConvTree(root);
+        tree.transformToDNF();
     }
 
     public static void main(String args[]) {
-        PTTree tree = new PTTree(new OrNode(null));
-        tree.convert();
+        DNFConvTree tree = new DNFConvTree(new OrNode(null));
+        tree.transformToDNF();
         Node convertedRoot = tree.getRoot();
     }
 

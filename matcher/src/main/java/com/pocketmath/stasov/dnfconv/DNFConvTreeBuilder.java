@@ -1,16 +1,13 @@
-package com.pocketmath.stasov.engine;
+package com.pocketmath.stasov.dnfconv;
 
-import com.pocketmath.pocketql.grammars.anytree.PocketTLTreeBuilderBaseVisitor;
 import com.pocketmath.pocketql.grammars.anytree.PocketTLTreeBuilderLexer;
 import com.pocketmath.pocketql.grammars.anytree.PocketTLTreeBuilderParser;
-import com.pocketmath.pocketql.grammars.anytree.PocketTLTreeBuilderVisitor;
 import com.pocketmath.pocketql.grammars.anytree.PocketTLTreeBuilderParser.*;
-import com.pocketmath.stasov.engine.PTTree.*;
-import com.sun.tools.javac.tree.JCTree;
+import com.pocketmath.stasov.dnfconv.DNFConvTree;
+import com.pocketmath.stasov.dnfconv.DNFConvTree.*;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.List;
 import java.util.SortedSet;
@@ -19,7 +16,7 @@ import java.util.TreeSet;
 /**
  * Created by etucker on 5/19/15.
  */
-public class TreeBuilder {
+class DNFConvTreeBuilder {
 
     private static Node parse(final ParserRuleContext ctx, Node parent) {
         if (ctx instanceof And_expressionContext) {
@@ -65,7 +62,7 @@ public class TreeBuilder {
             final SortedSet positiveValues = new TreeSet(); // TODO: provide comparator that handles all types we will encounter
 
             for (PocketTLTreeBuilderParser.AtomContext atomContext : atomContexts) {
-                final String value = atomContext.getText(); // TODO: convert values to appropriate types to faciliate type-specific actions?
+                final String value = atomContext.getText(); // TODO: transformToDNF values to appropriate types to faciliate type-specific actions?
                 // TODO: format checking
                 if (value == null) throw new IllegalStateException(); // TODO: improve exception handling
                 positiveValues.add(value);
@@ -83,7 +80,7 @@ public class TreeBuilder {
                 negativeValues.add(value);
             }
 
-            final PTTree.InNode inNode = new InNode(parent); //inNodesMap.get(ctx);
+            final DNFConvTree.InNode inNode = new InNode(parent); //inNodesMap.get(ctx);
             parent.addChild(inNode);
             inNode.setVariableName(variableName);
             inNode.addPositiveValues(positiveValues);
@@ -136,7 +133,7 @@ public class TreeBuilder {
         //return parent; // TODO: Not sure about this.
     }
 
-    public static PTTree.Node parse(final String input) throws Exception {
+    public static DNFConvTree.Node parse(final String input) {
         final PocketTLTreeBuilderLexer lexer;
         final CommonTokenStream tokens;
         final PocketTLTreeBuilderParser parser;
@@ -147,7 +144,7 @@ public class TreeBuilder {
 
         final ExpressionContext expression = parser.expression();
 
-        final Node root = new PTTree.OrNode(null);
+        final Node root = new DNFConvTree.OrNode(null);
 
         ParserRuleContext ctx = expression;
         return parse(ctx, root);
