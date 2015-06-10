@@ -1,8 +1,7 @@
-package com.pocketmath.stasov.dnfconv;
+package com.pocketmath.stasov.pmtl.dnfconv;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Set;
 
 /**
  * Created by etucker on 5/18/15.

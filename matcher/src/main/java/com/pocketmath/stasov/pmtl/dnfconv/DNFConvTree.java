@@ -1,4 +1,4 @@
-package com.pocketmath.stasov.dnfconv;
+package com.pocketmath.stasov.pmtl.dnfconv;
 
 import it.unimi.dsi.fastutil.objects.ObjectArraySet;
 

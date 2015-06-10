@@ -1,10 +1,10 @@
-package com.pocketmath.stasov.dnfconv;
+package com.pocketmath.stasov.pmtl.dnfconv;
 
 import com.pocketmath.pocketql.grammars.anytree.PocketTLTreeBuilderLexer;
 import com.pocketmath.pocketql.grammars.anytree.PocketTLTreeBuilderParser;
 import com.pocketmath.pocketql.grammars.anytree.PocketTLTreeBuilderParser.*;
-import com.pocketmath.stasov.dnfconv.DNFConvTree;
-import com.pocketmath.stasov.dnfconv.DNFConvTree.*;
+import com.pocketmath.stasov.pmtl.PocketTLLanguageException;
+import com.pocketmath.stasov.pmtl.dnfconv.DNFConvTree.*;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -18,7 +18,7 @@ import java.util.TreeSet;
  */
 class DNFConvTreeBuilder {
 
-    private static Node parse(final ParserRuleContext ctx, Node parent) {
+    private static Node parse(final ParserRuleContext ctx, Node parent) throws PocketTLLanguageException {
         if (ctx instanceof And_expressionContext) {
             final And_expressionContext and_expressionContext = (And_expressionContext) ctx;
             final AndNode andNode = new AndNode(parent);
@@ -43,12 +43,38 @@ class DNFConvTreeBuilder {
 
             return orNode;
 
+        } else if (ctx instanceof EqContext) {
+            final EqContext eqContext = (EqContext) ctx;
+
+            final TermContext termContext = (TermContext) ctx.getParent();
+
+            // get the variable name
+            if (termContext.ID() == null) throw new IllegalStateException(); // TODO: improve exception handling
+            final String variableName = termContext.ID().getText();
+            if (variableName == null) throw new IllegalStateException(); // TODO: improve exception handling
+
+            final SortedSet positiveValues = new TreeSet(); // TODO: provide comparator that handles all types we will encounter
+            final SortedSet negativeValues = new TreeSet();
+
+            final String value = eqContext.atom().getText();
+            positiveValues.add(value);
+
+            final DNFConvTree.InNode inNode = new InNode(parent); //inNodesMap.get(ctx);
+            parent.addChild(inNode);
+            inNode.setVariableName(variableName);
+            inNode.addPositiveValues(positiveValues);
+            inNode.addNegativeValues(negativeValues);
+
+            return inNode;
+
         } else if (ctx instanceof InContext) {
             final InContext inContext = (InContext) ctx;
 
+            final TermContext termContext = (TermContext) ctx.getParent();
+
             // get the variable name
-            if (inContext.ID() == null) throw new IllegalStateException(); // TODO: improve exception handling
-            final String variableName = inContext.ID().getText();
+            if (termContext.ID() == null) throw new IllegalStateException(); // TODO: improve exception handling
+            final String variableName = termContext.ID().getText();
             if (variableName == null) throw new IllegalStateException(); // TODO: improve exception handling
 
             // next steps build positive values
@@ -124,16 +150,21 @@ class DNFConvTreeBuilder {
                 return parse(in, parent);
             }
 
-            throw new UnsupportedOperationException();
+            final EqContext eq = termContext.eq();
+            if (eq != null) {
+                return parse(eq, parent);
+            }
+
+            throw new PocketTLLanguageException("text=" + ctx.getText());
 
         }
 
-        throw new IllegalStateException();
+        throw new IllegalStateException("ctx class = " + ctx.getClass());
 
         //return parent; // TODO: Not sure about this.
     }
 
-    public static DNFConvTree.Node parse(final String input) {
+    public static DNFConvTree.Node parse(final String input) throws PocketTLLanguageException {
         final PocketTLTreeBuilderLexer lexer;
         final CommonTokenStream tokens;
         final PocketTLTreeBuilderParser parser;
