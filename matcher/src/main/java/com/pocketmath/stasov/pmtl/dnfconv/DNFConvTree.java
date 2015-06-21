@@ -821,10 +821,4 @@ class DNFConvTree {
         tree.transformToDNF();
     }
 
-    public static void main(String args[]) {
-        DNFConvTree tree = new DNFConvTree(new OrNode(null));
-        tree.transformToDNF();
-        Node convertedRoot = tree.getRoot();
-    }
-
 }
