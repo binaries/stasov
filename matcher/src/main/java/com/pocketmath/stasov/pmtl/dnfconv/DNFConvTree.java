@@ -29,7 +29,7 @@ class DNFConvTree {
 
     }
 
-    public static interface Leaf {
+    static interface Leaf {
 
     }
 
@@ -147,24 +147,6 @@ class DNFConvTree {
             return children.contains(child);
         }
 
-/*        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            if (!super.equals(o)) return false;
-
-            NodeWithChildren that = (NodeWithChildren) o;
-
-            return getChildren().equals(that.getChildren());
-        }
-
-        @Override
-        public int hashCode() {
-            int result = super.hashCode();
-            result = 31 * result + getChildren().hashCode();
-            return result;
-        }*/
-
         protected void prettyPrint(PrintWriter out, String separator, boolean useParens) {
             if (useParens) out.print('(');
             Node child = null;
@@ -183,6 +165,22 @@ class DNFConvTree {
             return "{" +
                     children +
                     '}';
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            NodeWithChildren that = (NodeWithChildren) o;
+
+            return getChildren().equals(that.getChildren());
+
+        }
+
+        @Override
+        public int hashCode() {
+            return getChildren().hashCode();
         }
     }
 
@@ -267,6 +265,22 @@ class DNFConvTree {
         @Override
         public void prettyPrint(PrintWriter out) {
             child.prettyPrint(out);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            NodeWithChild that = (NodeWithChild) o;
+
+            return !(getChild() != null ? !getChild().equals(that.getChild()) : that.getChild() != null);
+
+        }
+
+        @Override
+        public int hashCode() {
+            return getChild() != null ? getChild().hashCode() : 0;
         }
     }
 /*
@@ -445,6 +459,29 @@ class DNFConvTree {
                     ", neg=" + DNFConvTreeUtil.idTypesToString(negativeValues) +
                     ", pos=" + DNFConvTreeUtil.idTypesToString(positiveValues) +
                     "} ";
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            InNode inNode = (InNode) o;
+
+            if (getVariableName() != null ? !getVariableName().equals(inNode.getVariableName()) : inNode.getVariableName() != null)
+                return false;
+            if (getPositiveValues() != null ? !getPositiveValues().equals(inNode.getPositiveValues()) : inNode.getPositiveValues() != null)
+                return false;
+            return !(negativeValues != null ? !negativeValues.equals(inNode.negativeValues) : inNode.negativeValues != null);
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = getVariableName() != null ? getVariableName().hashCode() : 0;
+            result = 31 * result + (getPositiveValues() != null ? getPositiveValues().hashCode() : 0);
+            result = 31 * result + (negativeValues != null ? negativeValues.hashCode() : 0);
+            return result;
         }
     }
 
