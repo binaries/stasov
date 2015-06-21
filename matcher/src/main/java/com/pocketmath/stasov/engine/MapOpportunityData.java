@@ -9,6 +9,8 @@ import it.unimi.dsi.fastutil.longs.LongComparators;
 import java.util.Set;
 
 /**
+ * Intended principally for use in testing.  Permits the creation of opportunities via a map-like interface.
+ *
  * Created by etucker on 4/5/15.
  */
 public class MapOpportunityData extends OpportunityDataBase {
@@ -29,5 +31,13 @@ public class MapOpportunityData extends OpportunityDataBase {
     @Override
     public Set<String> getData(final long attrTypeId) {
         return map.get(attrTypeId);
+    }
+
+    @Override
+    public String toString() {
+        return "MapOpportunityData{" +
+                "attrSvc=" + attrSvc +
+                ", map=" + map +
+                "} " + super.toString();
     }
 }
