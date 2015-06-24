@@ -76,7 +76,7 @@ public class DualLong2ObjectMultiValueMap<V extends Comparable<V>> extends Abstr
 
     public boolean matchesAll(final long key1, final long[] keys2, final V value) {
         final Long2ObjectMultiValueMap subMap = map.get(key1);
-        return subMap.matchesAll(keys2, value);
+        return subMap != null ? subMap.matchesAll(keys2, value) : false;
     }
 
     public void remove(final long key1, final long key2, final long value) {
