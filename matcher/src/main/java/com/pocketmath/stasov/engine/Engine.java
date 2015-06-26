@@ -5,10 +5,25 @@ import com.pocketmath.stasov.pmtl.dnfconv.DNFConv;
 import com.pocketmath.stasov.pmtl.PocketTLLanguageException;
 import it.unimi.dsi.fastutil.longs.LongSortedSet;
 
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * Created by etucker on 4/5/15.
  */
 public class Engine {
+
+    private Logger logger = Logger.getLogger(getClass().getName());
+    {
+        // shameless hard coded logging setup
+
+        ConsoleHandler consoleHandler = new ConsoleHandler();
+        consoleHandler.setLevel(Level.FINEST);
+
+        logger.setLevel(Level.FINEST);
+        logger.addHandler(consoleHandler);
+    }
 
     protected final AttrSvcBase attrSvc;
     protected final MatchTree tree;
@@ -32,6 +47,7 @@ public class Engine {
         } catch (PocketTLLanguageException e) {
            throw new IndexingException(e);
         }
+        logger.log(Level.FINE, "DNF converted: {0}", dnfSpec);
         if (dnfSpec == null) throw new IndexingException("DNF converted string was null.");
         if (dnfSpec.isEmpty()) throw new IndexingException("DNF converted string was empty.");
         if (dnfSpec.trim().isEmpty()) throw new IndexingException("DNF converted string was only whitespace.");
@@ -48,4 +64,16 @@ public class Engine {
         return new MapOpportunityData(attrSvc);
     }
 
+    @Override
+    public String toString() {
+        return "Engine{" +
+                "attrSvc=" + attrSvc +
+                ", tree=" + tree +
+                ", pocketQL=" + pocketQL +
+                '}';
+    }
+
+    public String prettyPrint() {
+        return "Engine: tree: " + tree.prettyPrint();
+    }
 }

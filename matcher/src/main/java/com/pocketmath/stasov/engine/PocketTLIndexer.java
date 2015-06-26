@@ -6,6 +6,8 @@ import com.pocketmath.pocketql.grammars.nf.PocketQLNormalFormBaseListener;
 import com.pocketmath.pocketql.grammars.nf.PocketQLNormalFormLexer;
 import com.pocketmath.pocketql.grammars.nf.PocketQLNormalFormParser;
 import com.pocketmath.stasov.attributes.AttrSvcBase;
+import com.pocketmath.stasov.pmtl.PocketTLDataException;
+import com.pocketmath.stasov.pmtl.PocketTLLanguageException;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.misc.NotNull;
@@ -48,11 +50,12 @@ class PocketTLIndexer {
             final TerminalNode varNameTN = ctx.ALPHANUM();
             final String varName = varNameTN.getText().toLowerCase();
             final long attrTypeId = attrSvc.findTypeId(varName);
-            if (attrTypeId < 1) throw new IllegalStateException(""); // TODO: Refine exception.
+            if (attrTypeId < 1) throw new IllegalArgumentException(new PocketTLDataException("could not find varName: " + varName));
             final List<TerminalNode> valueNodes = ctx.list().ALPHANUM();
             for (TerminalNode valueNode : valueNodes) {
                 final String valueString = valueNode.getText();
                 final long valueId = attrSvc.findValue(attrTypeId, valueString);
+                if (valueId < 1) throw new IllegalArgumentException( new PocketTLDataException("value not found for varName: " + varName + "; attrTypeId: " + attrTypeId + "; value: " + valueString) );
                 if (not)
                     andGroupBuilder.addExclusionaryValue(attrTypeId, valueId);
                 else
@@ -67,13 +70,12 @@ class PocketTLIndexer {
             final TerminalNode varNameTN = ctx.ALPHANUM(0);
             final String varName = varNameTN.getText().toLowerCase();
             final long attrTypeId = attrSvc.findTypeId(varName);
-            if (attrTypeId < 1) throw new IllegalStateException("attr type id was not found for varName=" + varName); // TODO: Refine exception.
+            if (attrTypeId < 1) throw new IllegalArgumentException(new PocketTLDataException("could not find varName: " + varName));
 
             final TerminalNode valueTN = ctx.ALPHANUM(1);
             final String valueString = valueTN.getText();
             final long valueId = attrSvc.findValue(attrTypeId, valueString);
-            if (valueId < 1) throw new IllegalStateException("value id was not found for valueStringe=" + valueString);
-
+            if (valueId < 1) throw new IllegalArgumentException( new PocketTLDataException("value not found for varName: " + varName + "; attrTypeId: " + attrTypeId + "; value: " + valueString) );
             if (not)
                 andGroupBuilder.addExclusionaryValue(attrTypeId, valueId);
             else

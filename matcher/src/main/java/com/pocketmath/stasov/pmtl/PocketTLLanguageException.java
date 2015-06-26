@@ -3,7 +3,7 @@ package com.pocketmath.stasov.pmtl;
 /**
  * Created by etucker on 6/9/15.
  */
-public class PocketTLLanguageException extends Exception {
+public class PocketTLLanguageException extends PocketTLException {
     public PocketTLLanguageException() {
         super();
     }
@@ -20,7 +20,7 @@ public class PocketTLLanguageException extends Exception {
         super(message, cause);
     }
 
-    protected PocketTLLanguageException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public PocketTLLanguageException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }
