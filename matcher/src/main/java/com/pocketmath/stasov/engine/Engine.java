@@ -28,7 +28,7 @@ public class Engine {
     protected final AttrSvcBase attrSvc;
     protected final MatchTree tree;
 
-    protected final PocketTLIndexer pocketQL;
+    protected final PocketTLIndexer indexer;
 
     public Engine() {
         try {
@@ -37,21 +37,21 @@ public class Engine {
             throw new IllegalStateException(e); // TODO: Exception handling.
         }
         this.tree = new MatchTree(attrSvc);
-        this.pocketQL = new PocketTLIndexer(attrSvc);
+        this.indexer = new PocketTLIndexer(attrSvc);
     }
 
-    public void index(final String specification, final long id) throws IndexingException {
+    public void index(final String pmtl, final long id) throws IndexingException {
         final String dnfSpec;
         try {
-            dnfSpec = DNFConv.convertToDNF(specification);
+            dnfSpec = DNFConv.convertToDNF(pmtl); // BNF --> DNF translation
         } catch (PocketTLLanguageException e) {
            throw new IndexingException(e);
         }
-        logger.log(Level.FINE, "DNF converted: {0}", dnfSpec);
+        logger.log(Level.FINE, "DNF converted :: {0}", dnfSpec);
         if (dnfSpec == null) throw new IndexingException("DNF converted string was null.");
         if (dnfSpec.isEmpty()) throw new IndexingException("DNF converted string was empty.");
         if (dnfSpec.trim().isEmpty()) throw new IndexingException("DNF converted string was only whitespace.");
-        pocketQL.index(tree, dnfSpec, new long[]{id});
+        indexer.index(tree, dnfSpec, new long[]{id});
     }
 
     public LongSortedSet query(final OpportunityDataBase opportunity) {
@@ -69,7 +69,7 @@ public class Engine {
         return "Engine{" +
                 "attrSvc=" + attrSvc +
                 ", tree=" + tree +
-                ", pocketQL=" + pocketQL +
+                ", indexer=" + indexer +
                 '}';
     }
 
