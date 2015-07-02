@@ -306,9 +306,23 @@ public class EngineTest {
         );
     }
 
+    @Test
+    public void test203_eq_first_io_of_202() throws IndexingException {
+        testIndexAndQuery(
+                ImmutableMap.<Long,String>of(
+                        1L, "NOT (devicetype = \"android\" OR devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\""
+                ),
+                ImmutableMap.<String,String>of(
+                        "devicetype", "android",
+                        "city", "austin",
+                        "creativesize", "300x250"
+                ),
+                new long[]{}
+        );
+    }
 
     @Test
-         public void test203_eq() throws IndexingException {
+         public void test204_eq() throws IndexingException {
         testIndexAndQuery(
                 ImmutableMap.<Long,String>of(
                         1L, "NOT (NOT devicetype = \"android\" OR devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
@@ -324,13 +338,13 @@ public class EngineTest {
     }
 
     @Test
-    public void test204_eq() throws IndexingException {
+    public void test205_eq() throws IndexingException {
         testIndexAndQuery(
-                ImmutableMap.<Long,String>of(
+                ImmutableMap.<Long, String>of(
                         1L, "NOT (devicetype = \"android\" OR NOT devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
                         2L, "devicetype = \"iphone\""
                 ),
-                ImmutableMap.<String,String>of(
+                ImmutableMap.<String, String>of(
                         "devicetype", "android",
                         "city", "austin",
                         "creativesize", "300x250"
@@ -338,5 +352,38 @@ public class EngineTest {
                 new long[]{}
         );
     }
+
+    @Test
+    public void test300() throws IndexingException {
+        testIndexAndQuery(
+                ImmutableMap.<Long,String>of(
+                        1L, "city IN (\"austin\", \"london\") AND creativesize = \"300x250\"",
+                        2L, "devicetype = \"iphone\""
+                ),
+                ImmutableMap.<String,String>of(
+                        "devicetype", "android",
+                        "city", "austin",
+                        "creativesize", "300x250"
+                ),
+                new long[]{1L}
+        );
+    }
+
+    @Test
+    public void test301() throws IndexingException {
+        testIndexAndQuery(
+                ImmutableMap.<Long,String>of(
+                        1L, "city IN (\"austin\", NOT \"london\") AND creativesize = \"300x250\"",
+                        2L, "devicetype = \"iphone\""
+                ),
+                ImmutableMap.<String,String>of(
+                        "devicetype", "android",
+                        "city", "austin",
+                        "creativesize", "300x250"
+                ),
+                new long[]{1L}
+        );
+    }
+
 
 }

@@ -26,77 +26,77 @@ public class DNFConvTreeTest {
 
     @Test
     public void test1() throws Exception {
-        final DNFConvTree.Node tree = DNFConvTreeBuilder.parse("chicken in (1,2,3)");
+        final DNFConvTree tree = TreeBuilder.parse("chicken in (1,2,3)");
         tree.prettyPrint(writer);
     }
 
     @Test
     public void test2_positive_and_negative() throws Exception {
-        final DNFConvTree.Node tree = DNFConvTreeBuilder.parse("chicken in (1,not 2,3)");
+        final DNFConvTree tree = TreeBuilder.parse("chicken in (1,not 2,3)");
         tree.prettyPrint(writer);
     }
 
     @Test
     public void test3() throws Exception {
-        final DNFConvTree.Node tree = DNFConvTreeBuilder.parse("chicken IN (1,2,3) AND robot IN (4)");
+        final DNFConvTree tree = TreeBuilder.parse("chicken IN (1,2,3) AND robot IN (4)");
         tree.prettyPrint(writer);
     }
 
     @Test
     public void test4() throws Exception {
-        final DNFConvTree.Node tree = DNFConvTreeBuilder.parse("chicken IN (1,2,3) OR robot IN (4)");
+        final DNFConvTree tree = TreeBuilder.parse("chicken IN (1,2,3) OR robot IN (4)");
         tree.prettyPrint(writer);
     }
 
     @Test
     public void test100_transforming_tree_no_changes_expected() throws Exception {
         // first build the tree
-        final DNFConvTree.Node tree = DNFConvTreeBuilder.parse("chicken IN (1,2,3)");
+        final DNFConvTree tree = TreeBuilder.parse("chicken IN (1,2,3)");
         tree.prettyPrint(writer);
 
         writer.println();
 
         // transform tree
-        DNFConvTree.transformToDNF(tree);
+        tree.transformToDNF();
         tree.prettyPrint(writer);
     }
 
     @Test
     public void test101_transforming_tree_no_changes_expected() throws Exception {
         // first build the tree
-        final DNFConvTree.Node tree = DNFConvTreeBuilder.parse("chicken IN (1,2,3) AND robot IN (4)");
+        final DNFConvTree tree = TreeBuilder.parse("chicken IN (1,2,3) AND robot IN (4)");
         tree.prettyPrint(writer);
 
         writer.println();
 
         // transform tree
-        DNFConvTree.transformToDNF(tree);
+        tree.transformToDNF();
         tree.prettyPrint(writer);
     }
 
     @Test
     public void test102_transforming_tree_no_structural_changes_expected() throws Exception {
         // first build the tree
-        final DNFConvTree.Node tree = DNFConvTreeBuilder.parse("chicken IN (1,2,3) OR robot IN (4) AND lobster IN (5)");
+        final DNFConvTree tree = TreeBuilder.parse("chicken IN (1,2,3) OR robot IN (4) AND lobster IN (5)");
         tree.prettyPrint(writer);
 
         writer.println();
 
         // transform tree
-        DNFConvTree.transformToDNF(tree);
+        tree.transformToDNF();
         tree.prettyPrint(writer);
     }
 
     @Test
     public void test200_transforming_tree_structural_changes_expected() throws Exception {
         // first build the tree
-        final DNFConvTree.Node tree = DNFConvTreeBuilder.parse("(chicken IN (1,2,3) OR robot IN (4)) AND lobster IN (5)");
+        final DNFConvTree tree = TreeBuilder.parse("(chicken IN (1,2,3) OR robot IN (4)) AND lobster IN (5)");
         tree.prettyPrint(writer);
 
         writer.println();
 
         // transform tree
-        DNFConvTree.transformToDNF(tree);
+        tree.transformToDNF();
         tree.prettyPrint(writer);
     }
 }
