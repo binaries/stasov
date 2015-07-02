@@ -38,6 +38,7 @@ public abstract class AttrSvcBase {
 
     public long findValue(final long attrTypeId, final String input) {
         assert(registered);
+        if (input == null) throw new IllegalArgumentException("input was null");
         final AttributeHandler handler = lookupHandler(attrTypeId);
         if (handler == null) throw new UnsupportedOperationException("Handler not found for attrTypeId=" + attrTypeId);
         return handler.find(input);
@@ -45,6 +46,8 @@ public abstract class AttrSvcBase {
 
     long findValue(final String typeName, final String input) {
         assert(registered);
+        if (typeName == null) throw new IllegalArgumentException("typeName was null");
+        if (input == null) throw new IllegalArgumentException("input was null");
         final long typeId = findTypeId(typeName);
         if (typeId < 1) throw new UnsupportedOperationException();
         return findValue(typeId, input);

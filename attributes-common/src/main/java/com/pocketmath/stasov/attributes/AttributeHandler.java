@@ -5,6 +5,6 @@ package com.pocketmath.stasov.attributes;
  */
 public abstract class AttributeHandler {
 
-    public abstract long find(String input);
+    public abstract long find(final String input);
 
 }
