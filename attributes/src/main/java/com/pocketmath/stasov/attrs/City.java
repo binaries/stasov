@@ -1,18 +1,21 @@
 package com.pocketmath.stasov.attrs;
 
 import com.pocketmath.stasov.attributes.AttributeHandler;
+import com.pocketmath.stasov.attributes.AttributeHandlerMapAutoIdBase;
 
 /**
  * Created by etucker on 3/13/15.
  */
-public class City extends AttributeHandler {
+public class City extends AttributeHandlerMapAutoIdBase {
 
-    public long find(String input) {
-        if (input.equalsIgnoreCase("Austin")) return 1;
-        else if (input.equalsIgnoreCase("Singapore")) return 2;
-        else if (input.equalsIgnoreCase("San Francisco")) return 3;
-        else if (input.equalsIgnoreCase("Houston")) return 4;
-        return -1;
+    public City() {
+        add("Austin");
+        add("San Francisco");
+        add("Singapore");
+        add("Houston");
+        add("New York");
+        add("Los Angeles");
+        add("London");
+        add("Tokyo");
     }
-
 }

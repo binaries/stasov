@@ -10,6 +10,7 @@ public class DeviceId extends AttributeHandler {
     public DeviceId() {
     }
 
+    @Override
     public long find(String input) {
         if (input.equalsIgnoreCase("0")) {
             return 1L;
