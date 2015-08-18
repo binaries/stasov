@@ -5,7 +5,7 @@ package com.pocketmath.stasov.pmtl.dnfconv;
  */
 public class TreeParentMistmatchStructuralException extends TreeStructuralException {
 
-    TreeParentMistmatchStructuralException(final DNFConvTree.Node child, final DNFConvTree.Node actualParent, final DNFConvTree.Node expectedParent) {
+    TreeParentMistmatchStructuralException(final DNFConvModels.Node child, final DNFConvModels.Node actualParent, final DNFConvModels.Node expectedParent) {
         super("child: " + child + "; actual parent: " + actualParent + "; expected parent: " + expectedParent);
     }
 

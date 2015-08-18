@@ -1,12 +1,18 @@
 package com.pocketmath.stasov.pmtl.dnfconv;
 
+import com.pocketmath.stasov.pmtl.dnfconv.DNFConvModels.*;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.objects.ObjectArraySet;
 
+import javax.xml.bind.ValidationException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.ref.WeakReference;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -17,6 +23,8 @@ import java.util.logging.Logger;
  */
 class DNFConvTree {
 
+    private final boolean validationOn = true;
+
     private Logger logger = Logger.getLogger(getClass().getName());
     {
         // shameless hard coded logging setup
@@ -26,422 +34,28 @@ class DNFConvTree {
 
         logger.setLevel(Level.FINEST);
         logger.addHandler(consoleHandler);
-
     }
 
-    static interface Leaf {
 
-    }
-
-    /**
-     * Note: Parents are weak references while children if any are strong references.
-     */
-    public static abstract class Node {
-        //private String text;
-
-        private WeakReference<Node> parent = null;
-
-        protected Node(Node parent) {
-            if (parent != null) {
-                this.parent = new WeakReference<Node>(parent);
-                //parent.addChild(this);
-            }
-        }
-
-        /**
-         * Overriding methods must call super.
-         * @return
-         */
-        public Node getParent() {
-            return parent == null ? null : parent.get();
-        }
-
-        /**
-         * Overriding methods must call super.
-         * @param parent
-         */
-        public void setParent(Node parent) {
-            if (parent == null) throw new IllegalArgumentException("argument parent was null");
-            this.parent = new WeakReference<Node>(parent);
-        }
-
-        public abstract boolean hasChildren();
-
-        public abstract void addChild(Node child) throws UnsupportedOperationException;
-
-        public abstract void removeChild(Node child) throws UnsupportedOperationException;
-
-        public abstract void removeAllChildren() throws UnsupportedOperationException;
-
-        public abstract Set<Node> getChildren() throws UnsupportedOperationException;
-
-        public boolean containsChild(final Node child) { return false; }
-
-        public abstract void prettyPrint(PrintWriter out);
-
-        protected String prettyString() {
-            final StringWriter sw = new StringWriter();
-            final PrintWriter pw = new PrintWriter(sw);
-            prettyPrint(pw);
-            pw.flush();
-            sw.flush();
-            try {
-                sw.close();
-            } catch (IOException e) {
-                e.printStackTrace(); // TODO: Refine exception handling
-                throw new IllegalStateException(e);
-            }
-            pw.close();
-            return sw.toString();
-        }
-
-        public String toPocketTL() {
-            return prettyString();
-        }
-    }
-
-    public static abstract class NodeWithChildren extends Node {
-        private Set<Node> children = new HashSet<Node>();
-
-        /**
-         *
-         * @param parent Null parents are permitted but not recommended.
-         */
-        protected NodeWithChildren(Node parent) {
-            super(parent);
-        }
-
-        @Override
-        public void addChild(Node child) {
-            if (child == null) throw new IllegalArgumentException("child was null");
-            children.add(child);
-        }
-
-        @Override
-        public void removeChild(Node child) {
-            if (child == null) throw new IllegalArgumentException("child was null");
-            if (children.contains(child)) children.remove(child);
-            else throw new IllegalArgumentException("attempt to remove child that was not a child of this node");
-        }
-
-        @Override
-        public void removeAllChildren() throws UnsupportedOperationException {
-            children.clear();
-        }
-
-        public void addChildren(Collection<Node> children) { this.children.addAll(children); }
-
-        public Set<Node> getChildren() {
-            return children;
-        }
-
-        @Override
-        public boolean hasChildren() {
-            return children != null && ! children.isEmpty();
-        }
-
-        @Override
-        public boolean containsChild(final Node child) {
-            if (child == null) throw new IllegalArgumentException("input was null");
-            if (children.isEmpty()) return false;
-            return children.contains(child);
-        }
-
-        protected void prettyPrint(PrintWriter out, String separator, boolean useParens) {
-            if (useParens) out.print('(');
-            Node child = null;
-            final Iterator<Node> itr = getChildren().iterator();
-            while (itr.hasNext()) {
-                child = itr.next();
-                child.prettyPrint(out);
-                if (itr.hasNext())
-                    out.print(separator);
-            }
-            if (useParens) out.print(')');
-        }
-
-        @Override
-        public String toString() {
-            return "{" +
-                    children +
-                    '}';
-        }
-    }
-
-    public static abstract class NodeWithChild extends Node {
-        private Node child;
-        private Set<Node> set = new ObjectArraySet<Node>(1);
-
-        public NodeWithChild(Node parent, Node child) {
-            super(parent);
-            this.child = child;
-            this.set.add(child);
-        }
-
-        public NodeWithChild(Node parent) {
-            this(parent, null);
-        }
-
-        public Node getChild() {
-            assert(child != null && set.size() == 1 || child == null && set.isEmpty());
-            return child;
-        }
-
-        @Override
-        public void addChild(Node child) {
-            assert(child != null && set.size() == 1 || child == null && set.isEmpty());
-            if (child == null) throw new IllegalArgumentException("parameter child was null");
-            if (this.child != null) throw new IllegalStateException("attempt to add child when maximum number of children (1) already exists");
-            this.child = child;
-            this.set.clear();
-            this.set.add(child);
-            assert(child != null && set.size() == 1);
-        }
-
-        @Override
-        public void removeChild(Node child) {
-            if (child == null) throw new IllegalArgumentException("parameter child was null");
-            assert(child != null && set.size() == 1 || child == null && set.isEmpty());
-            if (child.equals(this.child)) {
-                this.child = null;
-                set.clear();
-            } else {
-                throw new IllegalArgumentException("attempt to remove child that was not a child of this node");
-            }
-            assert(child != null && set.size() == 1 || child == null && set.isEmpty());
-        }
-
-        @Override
-        public void removeAllChildren() throws UnsupportedOperationException {
-            assert(child != null && set.size() == 1 || child == null && set.isEmpty());
-            child = null;
-            set.clear();
-        }
-
-        public void setChild(Node child) {
-            if (child == null) throw new IllegalArgumentException("parameter child was null");
-            assert(child != null && set.size() == 1 || child == null && set.isEmpty());
-            this.child = child;
-            set.clear();
-            set.add(child);
-        }
-
-        @Override
-        public boolean containsChild(final Node child) {
-            if (child == null) throw new IllegalArgumentException("input was null");
-            if (this.child == null) return false;
-            assert(child != null && set.size() == 1 || child == null && set.isEmpty());
-            return child.equals(this.child);
-        }
-
-        @Override
-        public boolean hasChildren() {
-            assert(child != null && set.size() == 1 || child == null && set.isEmpty());
-            return child != null;
-        }
-
-        @Override
-        public Set<Node> getChildren() {
-            assert(child != null && set.size() == 1 || child == null && set.isEmpty());
-            return set;
-        }
-
-        @Override
-        public void prettyPrint(PrintWriter out) {
-            child.prettyPrint(out);
-        }
-    }
-/*
-    static class ParenthesizedNode extends NodeWithChild {
-        public ParenthesizedNode(Node parent, Node child) {
-            super(parent, child);
-        }
-    }
-*/
-    public static class AndNode extends NodeWithChildren {
-        public AndNode(Node parent) {
-            super(parent);
-        }
-
-        @Override
-        public void prettyPrint(PrintWriter out) {
-            //if (getChildren().size() > 1) {
-            //    System.out.println("AND, CHILDREN > 1: " + this);
-            //}
-            prettyPrint(out, " AND ", false);
-        }
-
-        @Override
-        public String toString() {
-            return "And " + super.toString();
-        }
-    }
-
-    public static class OrNode extends NodeWithChildren {
-        public OrNode(Node parent) {
-            super(parent);
-        }
-
-        @Override
-        public void prettyPrint(PrintWriter out) {
-            prettyPrint(out, " OR ", getChildren().size() > 1);
-        }
-
-        @Override
-        public String toString() {
-            return "OrNode{} " + super.toString();
-        }
-    }
-
-    public static class NotNode extends NodeWithChild {
-        public NotNode(Node parent) {
-            super(parent);
-        }
-
-        @Override
-        public void removeChild(Node child) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void prettyPrint(PrintWriter out) {
-            out.print(" NOT ");
-            getChild().prettyPrint(out);
-        }
-
-        @Override
-        public String toString() {
-            return "NotNode{} " + super.toString();
-        }
-    }
-
-    public static abstract class AtomNode extends Node {
-        public AtomNode(Node parent) {
-            super(parent);
-        }
-    }
-
-    public static class InNode extends Node implements Leaf {
-        private String variableName;
-        private final Set positiveValues;
-        private final Set negativeValues;
-
-        public InNode(Node parent, String variableName, Set positiveValues, Set negativeValues) {
-            super(parent);
-            this.negativeValues = negativeValues;
-            this.variableName = variableName;
-            this.positiveValues = positiveValues;
-        }
-
-        public InNode(Node parent) {
-            super(parent);
-            this.variableName = null;
-            this.positiveValues = new TreeSet();
-            this.negativeValues = new TreeSet();
-        }
-
-        public Set getPositiveValues() {
-            return positiveValues;
-        }
-
-        public String getVariableName() {
-            return variableName;
-        }
-
-        @Override
-        public void prettyPrint(PrintWriter out) {
-            // print positive values
-            if (! positiveValues.isEmpty()) {
-                Object posChild = null;
-                out.print(variableName + " IN (");
-                final Iterator posItr = positiveValues.iterator();
-                while(posItr.hasNext()) {
-                    posChild = posItr.next();
-                    out.print(posChild);
-                    if (posItr.hasNext())
-                        out.print(", ");
-                }
-                out.print(')');
-            }
-
-            if (! positiveValues.isEmpty() && ! negativeValues.isEmpty()) {
-                out.print(" AND ");
-            }
-
-            // print negative values
-            if (! negativeValues.isEmpty()) {
-                Object negChild = null;
-                out.print("NOT " + variableName + " IN (");
-                final Iterator negItr = negativeValues.iterator();
-                while(negItr.hasNext()) {
-                    negChild = negItr.next();
-                    out.print(negChild);
-                    if (negItr.hasNext())
-                        out.print(", ");
-                }
-                out.print(')');
-            }
-        }
-
-        public void setVariableName(final String variableName) { this.variableName = variableName; }
-
-        public void addPositiveValue(final Object value) { positiveValues.add(value); }
-
-        public void addPositiveValues(final Collection values) { positiveValues.addAll(values); }
-
-        public void addNegativeValue(final Object value) {
-            negativeValues.add(value);
-        }
-
-        public void addNegativeValues(final Collection values) { negativeValues.addAll(values); }
-
-        @Override
-        public void addChild(Node child) throws UnsupportedOperationException {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean hasChildren() {
-            return false;
-        }
-
-        @Override
-        public void removeChild(Node child) throws UnsupportedOperationException {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void removeAllChildren() throws UnsupportedOperationException {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Set<Node> getChildren() throws UnsupportedOperationException {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public String toString() {
-            return "InNode{" +
-                    "var='" + variableName + '\'' +
-                    ", neg=" + DNFConvTreeUtil.idTypesToString(negativeValues) +
-                    ", pos=" + DNFConvTreeUtil.idTypesToString(positiveValues) +
-                    "} ";
-        }
-    }
 
     private Node root;
 
-    public DNFConvTree(final Node root) {
+    DNFConvTree(final Node root) {
         this.root = root;
     }
 
-    public Node getRoot() {
+    Node getRoot() {
         return root;
     }
 
-    private boolean isRoot(final Node root) {
-        return root.getParent() == null;
+    public boolean isRoot(final Node root) {
+        if (root.getParent() == null) {
+            if (this.root != root) throw new IllegalStateException();
+            return true;
+        } else {
+            if (this.root == root) throw new IllegalStateException();
+            return false;
+        }
     }
 
     protected final void logNode(final Node node, final Level level, final String msgPrefix) {
@@ -577,7 +191,7 @@ class DNFConvTree {
 
         } else if (parent instanceof NotNode) {
             final Node grandparent = parent.getParent();
-            final OrNode newOrNode = new OrNode(grandparent);
+            final OrNode newOrNode = new OrNode(grandparent, false);
             for (final Node andChild : node.getChildren()) {
                 final NotNode newNotNode = new NotNode(newOrNode);
                 newNotNode.setChild(andChild);
@@ -595,11 +209,14 @@ class DNFConvTree {
     }
     
     private Node convertOr(final OrNode node, final State state) {
+        validate();
 
         final Node parent = node.getParent();
 
-        Object[] logParams = { node, parent };
-        logger.log(Level.FINER, "input node = {0}, parent = {1}", logParams);
+        {
+            final Object[] logParams = {node, parent};
+            logger.log(Level.FINER, "input node = {0}, parent = {1}", logParams);
+        }
         logInputNode(node);
 
         if (! node.hasChildren()) {
@@ -619,7 +236,116 @@ class DNFConvTree {
             //  (a + b) c ===> ac + bc
             logger.log(Level.FINEST, "parent instanceof AndNode");
 
-            // TODO: check we are in proper form? -- if so, don't modify!   Is this covered by at-root checking in method transformToDNF(...)?
+            final Node n0 = parent.getParent();
+            final Node and = parent; // and node
+            final Node or = node; // or node
+
+         //   for (Node node1 : n2.getChildren()) {
+         //
+         //   }
+
+            validate();
+
+            final Node newOrNode = new OrNode(n0);
+
+            System.out.println("n0=" + n0);
+
+            n0.addChild(newOrNode);
+
+            n0.removeChild(and); // remove the old 'and' node from the grandparent
+
+            System.out.println("n0=" + n0);
+
+            //validate();
+
+            for (final Object orChildObj : or.getChildren().toArray()) {
+                Node orChild = (Node) orChildObj;
+                //final Set<Node> n1ChildrenToRemove = new HashSet<Node>();
+
+                //validate();
+
+                final Node newAndNode = new AndNode(newOrNode, false);
+                newAndNode.setParent(newOrNode);
+                newOrNode.addChild(newAndNode);
+
+                {
+                    System.out.println("root=" + root);
+
+                    final Node orChildClone = (Node) orChild.clone();
+                    newAndNode.addChild(orChildClone);
+                    orChildClone.setParent(newAndNode);
+
+                    System.out.println("added orChildClone=" + orChildClone);
+
+                    if (orChildClone.hasChildren()) {
+                        //if (!(orChildClone instanceof Leaf)) {
+                        orChildClone.removeChild(and, true);
+
+                        for (Node n : orChildClone.getChildren()) {
+                            //if (n instanceof InNode) {
+                            n.setParent(orChildClone);
+                            //}
+                            validate(n);
+                        }
+                    }
+
+                    validate(orChildClone);
+                    validate(root);
+                    validate(getRoot());
+
+                    validate();
+                }
+
+                if (and.getChildren().size() == 1 && and.containsChild(or)) continue;
+
+                int i = 0;
+
+                for (final Object andChildObj : and.getChildren().toArray()) {
+                    Node andChild = (Node) andChildObj;
+
+                    if (andChild.equals(or)) continue;
+
+                    //validate();
+
+                    System.out.println("it's okay! " + i++);
+
+                    {
+                        final Node andChildClone = (Node) andChild.clone();
+                        newAndNode.addChild(andChildClone);
+                        andChildClone.setParent(newAndNode);
+
+                        if (andChildClone.hasChildren()) {
+                        //if (!(andChildClone instanceof Leaf)) {
+                            andChildClone.removeChild(or, true);
+
+                            for (Node n : andChildClone.getChildren()) {
+                                //if (n instanceof InNode) {
+                                n.setParent(andChildClone);
+                                //}
+                            }
+                        }
+
+                        validate();
+                    }
+
+                    System.out.println("newAndNode: " + newAndNode);
+
+                    //System.out.println("id= ," + "id=");
+
+                    //n1ChildrenToRemove.add(or);
+                    //newOrNode.addChild(newAndNode);
+                }
+                //validate();
+                //for (Node n1ChildToRemove : n1ChildrenToRemove) and.removeChild(n1ChildToRemove);
+                //validate();
+            }
+
+            System.out.println("root = " + getRoot());
+
+            validate();
+            return newOrNode;
+
+/*
 
             final Node grandparent = parent.getParent();
 
@@ -655,24 +381,65 @@ class DNFConvTree {
 
             state.setModified(true);
             logOutputNode(topOrNode);
+
+            validate();
             return topOrNode;
+            */
 
         } else if (parent instanceof OrNode) { // de-dup
-            logger.log(Level.FINEST, "parent instanceof OrNode");
+            validate();
+
+            // Move all children of the child to the parent.
+            // In other words, move the grandchildren to be the children of the parent.
+
+            final Node n1 = parent;
+            final Node n2 = node;
+
+            logger.log(Level.FINEST, "parent instanceof OrNode (n2.getChildren().size()={0})", n2.getChildren().size());
+            for (final Node n3 : n2.getChildren()) {
+                logger.log(Level.FINEST, "n3: " + n3);
+                if (!(n3 instanceof Leaf) && !n3.hasChildren()) throw new IllegalStateException(new TreeStructuralException());
+                n1.addChild(n3);
+                n3.setParent(n1);
+            }
+            if (!n1.containsChild(n2)) throw new IllegalStateException(new TreeStructuralException());
+            {
+                final Object[] logParams = new Object[]{n1, n2};
+                logger.log(Level.FINEST, "n1: {0}; n2: {1}", logParams);
+            }
+            n1.removeChild(n2);
+            if (!n1.hasChildren()) {
+                if (isRoot(n1)) {
+                    throw new IllegalStateException("empty root");
+                } else {
+                    final Node n0 = n1.getParent();
+                    n0.removeChild(n1);
+                    if (isRoot(n0) && !n0.hasChildren()) throw new IllegalStateException("empty root");
+                }
+            }
+            n2.removeAllChildren();
+            if (n2.hasChildren()) throw new IllegalStateException(new TreeStructuralException());
+
+/*
             for (final Node orChild : node.getChildren()) {
-                if (!orChild.equals(node)) {
+                if (orChild != node) {
                     ((OrNode) parent).addChild(orChild);
                     orChild.setParent(parent);
                 }
             }
+            */
             state.setModified(true);
             logOutputNode(parent);
+
+            validate();
             return parent;
 
         } else if (parent instanceof NotNode) {
+            validate();
+
             logger.log(Level.FINEST, "parent instanceof NotNode");
             final Node grandparent = parent.getParent();
-            final AndNode newAndNode = new AndNode(grandparent);
+            final AndNode newAndNode = new AndNode(grandparent, false);
             for (final Node orChild : node.getChildren()) {
                 final NotNode newNotNode = new NotNode(newAndNode);
                 newAndNode.addChild(newNotNode);
@@ -682,6 +449,8 @@ class DNFConvTree {
             grandparent.removeChild(parent);
             state.setModified(true);
             logOutputNode(grandparent);
+
+            validate();
             return grandparent;
 
         } else {
@@ -692,18 +461,29 @@ class DNFConvTree {
     private static final int MAX_CYCLES = 1024;
 
     private Node convertFromLeaf(final Node leaf, final State state) {
+        if (leaf == null) throw new IllegalArgumentException("leaf was null");
+        if (state == null) throw new IllegalArgumentException("state was null");
         if (!(leaf instanceof Leaf)) throw new IllegalArgumentException("leaf did not implement interface Leaf");
+        validate();
 
         Node currentNode = leaf;
 
         int i;
         for (i = 0; i < MAX_CYCLES; i++) {
+            validate();
+
+            if (logger.isLoggable(Level.FINEST)) {
+                //final StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+                final List<Object> logParams =
+                        Lists.<Object>asList(Integer.valueOf(i), currentNode.prettyString(), new Object[]{});
+                logger.log(Level.FINEST, "current node [{0}]", logParams);
+            }
 
             if (currentNode == currentNode.getParent())
                 throw new IllegalStateException();
 
             if (isRoot(currentNode))
-                return leaf;
+                return currentNode;
 
             if (currentNode instanceof AndNode) {
                 currentNode = convertAnd((AndNode) currentNode, state);
@@ -716,6 +496,8 @@ class DNFConvTree {
             } else {
                 throw new UnsupportedOperationException();
             }
+
+            validate();
         }
         if (i >= MAX_CYCLES) throw new IllegalStateException("max cycles exceeded");
 
@@ -739,31 +521,65 @@ class DNFConvTree {
     }
 
     private void convertFromLeaves(final Node top, final State state) {
+        validate();
+
         if (top instanceof Leaf) {
             convertFromLeaf(top, state);
         } else {
             if (top.hasChildren()) {
-                for (Node child : top.getChildren()) { // TODO: Optimize O(n^2) performance
+                for (final Node child : top.getChildren()) { // TODO: Optimize O(n^2) performance
+                    validate();
                     convertFromLeaves(child, state);
+                    validate();
                     if (state.isModified()) return;
                 }
             } else {
                 throw new IllegalStateException("non-leaf node with no children, node=" + top);
             }
         }
+
+        validate();
     }
 
     public void transformToDNF() {
+        validate();
         final State state = new State();
+        int cycles = 0;
         do {
+            if (cycles++ > MAX_CYCLES) throw new IllegalStateException("cycles exceeded");
             state.reset();
             convertFromLeaves(root, state);
         } while (state.isModified());
+        validate();
     }
 
-    public static void transformToDNF(Node root) {
-        DNFConvTree tree = new DNFConvTree(root);
-        tree.transformToDNF();
+    public String toPocketTL() {
+        return getRoot().toPocketTL();
+    }
+
+    public void prettyPrint(final PrintWriter out) {
+        getRoot().prettyPrint(out);
+    }
+
+    private void validate(final Node node) {
+        if (!validationOn) return;
+        try {
+            if (!(node instanceof Leaf) && !node.hasChildren())
+                throw new ValidationException("non-leaf node with no children; node=" + node);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, this.toPocketTL());
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private void validate() {
+        if (!validationOn) return;
+        try {
+            TreeValidator.validate(this);
+        } catch (TreeStructuralException e) {
+            logger.log(Level.SEVERE, this.toPocketTL());
+            throw new IllegalStateException(e);
+        }
     }
 
 }

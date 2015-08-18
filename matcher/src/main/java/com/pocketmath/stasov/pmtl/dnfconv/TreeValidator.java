@@ -1,5 +1,7 @@
 package com.pocketmath.stasov.pmtl.dnfconv;
 
+import com.pocketmath.stasov.pmtl.dnfconv.DNFConvModels.*;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -8,15 +10,24 @@ import java.util.Set;
  */
 public class TreeValidator {
 
-    private static void validate(final DNFConvTree tree, final DNFConvTree.Node current, final Set<DNFConvTree.Node> visited) throws TreeStructuralException {
+    private static void validate(final DNFConvTree tree, final Node current, final Set<Node> visited) throws TreeStructuralException {
+        if (tree == null) throw new IllegalArgumentException("tree was null");
+        if (current == null) throw new IllegalStateException();
+        if (visited == null) throw new IllegalArgumentException("visited was null");
+
         if (visited.contains(current)) throw new TreeStructuralException();
 
-        if (current instanceof DNFConvTree.Leaf) return;
+        if (current instanceof Leaf) return;
         else if (!current.hasChildren()) throw new TreeStructuralException("non-leaf node has no children; node: " + current + "; parent: " + current.getParent() + "; node.isRoot: " + tree.isRoot(current));
 
+        if (current.getChildren().size() < 1) throw new IllegalStateException();
+
         // check children
-        for (final DNFConvTree.Node node : current.getChildren()) {
-            if (!current.containsChild(node)) throw new TreeStructuralException();
+        for (final Node node : current.getChildren()) {
+            if (!current.containsChild(node))
+                throw new TreeStructuralException("missing child: " + node);
+            if (!node.getParent().equals(current))
+                throw new TreeParentMistmatchStructuralException(node, node.getParent(), current);
             if (node.getParent() != current) throw new TreeParentMistmatchStructuralException(node, node.getParent(), current);
             validate(tree, node, visited);
         }
@@ -28,13 +39,13 @@ public class TreeValidator {
      * @param tree
      */
     static void validate(final DNFConvTree tree) throws TreeStructuralException {
-        final DNFConvTree.Node root = tree.getRoot();
+        final Node root = tree.getRoot();
 
         // check validity of root
         if (root.getParent() != null) throw new TreeStructuralException("root had a parent");
 
         // check everything else (recursively)
-        validate(tree, root, new HashSet<DNFConvTree.Node>());
+        validate(tree, root, new HashSet<Node>());
     }
 
 }

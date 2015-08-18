@@ -1,5 +1,7 @@
 package com.pocketmath.stasov.pmtl.dnfconv;
 
+import com.pocketmath.stasov.pmtl.dnfconv.DNFConvModels.*;
+
 import com.pocketmath.pocketql.grammars.anytree.PocketTLTreeBuilderLexer;
 import com.pocketmath.pocketql.grammars.anytree.PocketTLTreeBuilderParser;
 import com.pocketmath.pocketql.grammars.anytree.PocketTLTreeBuilderParser.*;
@@ -9,20 +11,50 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created by etucker on 5/19/15.
  */
-class DNFConvTreeBuilder {
+class TreeBuilder {
 
-    private static Node parse(final ParserRuleContext ctx, Node parent) throws PocketTLLanguageException {
+    private static Logger logger = Logger.getLogger(TreeBuilder.class.getName());
+    static {
+        // shameless hard coded logging setup
+
+        ConsoleHandler consoleHandler = new ConsoleHandler();
+        consoleHandler.setLevel(Level.FINEST);
+
+        logger.setLevel(Level.FINEST);
+        logger.addHandler(consoleHandler);
+    }
+
+    /**
+     *
+     * @param ctx
+     * @param parent
+     * @return An unconverted parse tree based upon the input grammar.
+     * @throws PocketTLLanguageException
+     */
+    private static Node parse(final ParserRuleContext ctx, final Node parent) throws PocketTLLanguageException {
+        if (ctx == null) throw new IllegalArgumentException("context was null");
+        if (parent == null) throw new IllegalArgumentException("parent was null");
+
         if (ctx instanceof And_expressionContext) {
             final And_expressionContext and_expressionContext = (And_expressionContext) ctx;
-            final AndNode andNode = new AndNode(parent);
-            parent.addChild(andNode);
+            final Node p;
+            logger.log(Level.FINEST, "AND NOT : {0}", and_expressionContext.NOT());
+            if (and_expressionContext.NOT() != null) {
+                final NotNode notNode = new NotNode(parent);
+                parent.addChild(notNode);
+                p = notNode;
+            } else p = parent;
+
+            final AndNode andNode = new AndNode(p, false);
+            p.addChild(andNode);
 
             for (final TermContext termContext : and_expressionContext.term()) {
                 final Node child = parse(termContext, andNode);
@@ -33,8 +65,16 @@ class DNFConvTreeBuilder {
 
         } else if (ctx instanceof Or_expressionContext) {
             final Or_expressionContext or_expressionContext = (Or_expressionContext) ctx;
-            final OrNode orNode = new OrNode(parent);
-            parent.addChild(orNode);
+            final Node p;
+            logger.log(Level.FINEST, "OR NOT : {0}", or_expressionContext.NOT());
+            if (or_expressionContext.NOT() != null) {
+                final NotNode notNode = new NotNode(parent);
+                parent.addChild(notNode);
+                p = notNode;
+            } else p = parent;
+
+            final OrNode orNode = new OrNode(p, false);
+            p.addChild(orNode);
 
             for (final And_expressionContext and_expressionContext : or_expressionContext.and_expression()) {
                 final Node child = parse(and_expressionContext, orNode);
@@ -48,6 +88,8 @@ class DNFConvTreeBuilder {
 
             final TermContext termContext = (TermContext) ctx.getParent();
 
+            logger.log(Level.FINEST, "EQ term NOT : {0}", termContext.NOT());
+
             // get the variable name
             if (termContext.ID() == null) throw new IllegalStateException(); // TODO: improve exception handling
             final String variableName = termContext.ID().getText();
@@ -59,7 +101,7 @@ class DNFConvTreeBuilder {
             final String value = eqContext.atom().getText();
             positiveValues.add(value);
 
-            final DNFConvTree.InNode inNode = new InNode(parent); //inNodesMap.get(ctx);
+            final InNode inNode = new InNode(parent); //inNodesMap.get(ctx);
             parent.addChild(inNode);
             inNode.setVariableName(variableName);
             inNode.addPositiveValues(positiveValues);
@@ -71,6 +113,8 @@ class DNFConvTreeBuilder {
             final InContext inContext = (InContext) ctx;
 
             final TermContext termContext = (TermContext) ctx.getParent();
+
+            System.out.println("IN NOT: " + termContext.NOT());
 
             // get the variable name
             if (termContext.ID() == null) throw new IllegalStateException(); // TODO: improve exception handling
@@ -106,7 +150,7 @@ class DNFConvTreeBuilder {
                 negativeValues.add(value);
             }
 
-            final DNFConvTree.InNode inNode = new InNode(parent); //inNodesMap.get(ctx);
+            final InNode inNode = new InNode(parent); //inNodesMap.get(ctx);
             parent.addChild(inNode);
             inNode.setVariableName(variableName);
             inNode.addPositiveValues(positiveValues);
@@ -127,11 +171,11 @@ class DNFConvTreeBuilder {
 
         } else if (ctx instanceof PocketTLTreeBuilderParser.FilterContext) {
             final FilterContext filterContext = (FilterContext) ctx;
-            if (filterContext.NOT() != null) {
-                throw new UnsupportedOperationException();
-            } else {
+            //if (filterContext.NOT() != null) {
+            //    throw new UnsupportedOperationException();
+            //} else {
                 return parse(filterContext.expression(), parent);
-            }
+            //}
 
         } else if (ctx instanceof PocketTLTreeBuilderParser.OperatorContext) {
             final OperatorContext operatorContext = (OperatorContext) ctx;
@@ -164,7 +208,7 @@ class DNFConvTreeBuilder {
         //return parent; // TODO: Not sure about this.
     }
 
-    public static DNFConvTree.Node parse(final String input) throws PocketTLLanguageException {
+    static DNFConvTree parse(final String input) throws PocketTLLanguageException {
         final PocketTLTreeBuilderLexer lexer;
         final CommonTokenStream tokens;
         final PocketTLTreeBuilderParser parser;
@@ -175,10 +219,12 @@ class DNFConvTreeBuilder {
 
         final ExpressionContext expression = parser.expression();
 
-        final Node root = new DNFConvTree.OrNode(null);
+        final Node root = new OrNode(null, false);
 
-        ParserRuleContext ctx = expression;
-        return parse(ctx, root);
+        final ParserRuleContext ctx = expression;
+        parse(ctx, root);
+
+        return new DNFConvTree(root);
     }
 
 }

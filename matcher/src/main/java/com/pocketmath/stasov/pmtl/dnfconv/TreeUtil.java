@@ -6,7 +6,7 @@ import java.util.Iterator;
 /**
  * Created by etucker on 5/18/15.
  */
-class DNFConvTreeUtil {
+class TreeUtil {
 
     static String idTypesToString(final Collection collection) {
         final StringBuffer sb = new StringBuffer();
