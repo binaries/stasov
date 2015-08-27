@@ -19,16 +19,18 @@ NEQ : '!=';
 LPAREN : '(';
 RPAREN : ')';
 
-filter: ((NOT expression) | expression) EOF;
+//filter: ((NOT expression) | expression) EOF;
+
+filter: expression EOF;
 
 expression : or_expression;
 
-or_expression : WS* and_expression (WS* OR WS+ and_expression WS*)*;
+or_expression : NOT? WS* and_expression (WS* OR WS+ and_expression WS*)*;
 
-and_expression : term (WS* AND WS+ term WS*)*;
+and_expression : NOT? term (WS* AND WS+ term WS*)*;
 
 //term : in | atom (WS* operator WS* atom)? | LPAREN WS* expression WS* RPAREN;
-term : ID WS* (eq | in) | LPAREN WS* expression WS* RPAREN;
+term : NOT? ID WS* (eq | in) | LPAREN WS* expression WS* RPAREN;
 
 not_atom : NOT WS+ atom;
 atom : ID | INT | FLOAT | STRING | TRUE | FALSE;
