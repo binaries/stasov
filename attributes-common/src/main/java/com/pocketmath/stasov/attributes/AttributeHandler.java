@@ -7,4 +7,11 @@ public abstract class AttributeHandler {
 
     public abstract long find(final String input);
 
+    /**
+     * To facilitate testing.
+     *
+     * @return
+     */
+    public abstract Iterable<String> sampleValues(final Order order);
+
 }

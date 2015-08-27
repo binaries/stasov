@@ -80,4 +80,13 @@ public abstract class AttrSvcBase {
         assert(registered);
         return attrComparator;
     }
+
+    /**
+     * For testing/debugging use only.
+     */
+    public Iterable<String> sampleValues(final long attrTypeId) {
+        final AttributeHandler attributeHandler = lookupHandler(attrTypeId);
+        if (attributeHandler == null) return null;
+        return attributeHandler.sampleValues();
+    }
 }
