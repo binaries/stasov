@@ -92,6 +92,8 @@ public class DNFConvModels {
         @Override
         public abstract Object clone();
 
+        public abstract void validate() throws ModelStructuralException;
+
         public abstract void prettyPrint(PrintWriter out);
 
         protected String prettyString() {
@@ -136,7 +138,7 @@ public class DNFConvModels {
         */
     }
 
-    public static abstract class NodeWithChildren<T extends NodeWithChildren> extends Node {
+    static abstract class NodeWithChildren<T extends NodeWithChildren> extends Node {
         private Set<Node> children = new ObjectArraySet<Node>();  //new HashSet<Node>();
 
         /**
@@ -237,9 +239,14 @@ public class DNFConvModels {
         public int hashCode() {
             return Objects.hash(getChildren());
         }
+
+        @Override
+        public void validate() throws ModelStructuralException {
+            // TODO
+        }
     }
 
-    public static abstract class NodeWithChild<T extends NodeWithChild> extends Node {
+    static abstract class NodeWithChild<T extends NodeWithChild> extends Node {
         private Node child;
         private Set<Node> set = new ObjectArraySet<Node>(1);
 
@@ -252,11 +259,12 @@ public class DNFConvModels {
          */
         protected NodeWithChild(T a, Node parent, boolean addAsChild) {
             this(parent, (Node) a.getChild().clone(), addAsChild);
+            this.getChild().setParent(this);
         }
 
-        public NodeWithChild(Node parent, Node child, boolean addAsChild) {
+        NodeWithChild(Node parent, Node child, boolean addAsChild) {
             super(parent, addAsChild);
-            addChild(child);
+            if (child != null) addChild(child);
         }
 
         public NodeWithChild(Node parent, boolean addAsChild) {
@@ -272,7 +280,7 @@ public class DNFConvModels {
 
         @Override
         public void addChild(Node child) {
-            assert(child != null && set.size() == 1 || child == null && set.isEmpty());
+            assert(this.child != null && set.size() == 1 || this.child == null && set.isEmpty());
             if (child == null) throw new IllegalArgumentException("parameter child was null");
             if (this.child != null) throw new IllegalStateException("attempt to add child when maximum number of children (1) already exists");
             this.child = child;
@@ -303,7 +311,9 @@ public class DNFConvModels {
 
         public void setChild(Node child) {
             if (child == null) throw new IllegalArgumentException("parameter child was null");
-            assert(child != null && set.size() == 1 || child == null && set.isEmpty());
+            if (!(this.child != null && set.size() == 1 || this.child == null && set.isEmpty())) {
+                throw new IllegalStateException("child=" + this.child + "; set.size()=" + set.size());
+            }
             this.child = child;
             set.clear();
             set.add(child);
@@ -353,6 +363,16 @@ public class DNFConvModels {
             int result = getChild() != null ? getChild().hashCode() : 0;
             result = 31 * result + (set != null ? set.hashCode() : 0);
             return result;
+        }
+
+        @Override
+        public String toString() {
+            return "child=" + child + super.toString();
+        }
+
+        @Override
+        public void validate() throws ModelStructuralException {
+            if (!(child != null && set.size() == 1 || child == null && set.isEmpty())) throw new ModelStructuralException(this, "child=" + child + "; set.size()=" + set.size());
         }
     }
     /*
@@ -479,6 +499,11 @@ public class DNFConvModels {
             node.variableName = this.variableName;
             node.positiveValues.addAll(this.positiveValues);
             node.negativeValues.addAll(this.negativeValues);
+            try {
+                node.validate();
+            } catch (ModelStructuralException e) {
+                throw new IllegalStateException(e);
+            }
             return node;
         }
 
@@ -597,6 +622,15 @@ public class DNFConvModels {
                     ", neg=" + TreeUtil.idTypesToString(negativeValues) +
                     ", pos=" + TreeUtil.idTypesToString(positiveValues) +
                     "} ";
+        }
+
+        @Override
+        public void validate() throws ModelStructuralException {
+            if (negativeValues == null) throw new ModelStructuralException();
+            if (positiveValues == null) throw new ModelStructuralException();
+            if (negativeValues.isEmpty() && positiveValues.isEmpty()) throw new ModelStructuralException();
+            if (variableName == null) throw new ModelStructuralException();
+            if (variableName.isEmpty()) throw new ModelStructuralException();
         }
     }
 

@@ -6,7 +6,6 @@ import com.pocketmath.pocketql.grammars.anytree.PocketTLTreeBuilderLexer;
 import com.pocketmath.pocketql.grammars.anytree.PocketTLTreeBuilderParser;
 import com.pocketmath.pocketql.grammars.anytree.PocketTLTreeBuilderParser.*;
 import com.pocketmath.stasov.pmtl.PocketTLLanguageException;
-import com.pocketmath.stasov.pmtl.dnfconv.DNFConvTree.*;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -28,9 +27,11 @@ class TreeBuilder {
         ConsoleHandler consoleHandler = new ConsoleHandler();
         consoleHandler.setLevel(Level.FINEST);
 
-        logger.setLevel(Level.FINEST);
+        logger.setLevel(Level.WARNING);
         logger.addHandler(consoleHandler);
     }
+
+    private static final boolean notSupported = false;
 
     /**
      *
@@ -43,45 +44,82 @@ class TreeBuilder {
         if (ctx == null) throw new IllegalArgumentException("context was null");
         if (parent == null) throw new IllegalArgumentException("parent was null");
 
+        validate(parent, false, false);
+
         if (ctx instanceof And_expressionContext) {
             final And_expressionContext and_expressionContext = (And_expressionContext) ctx;
             final Node p;
             logger.log(Level.FINEST, "AND NOT : {0}", and_expressionContext.NOT());
+
+            final boolean not;
             if (and_expressionContext.NOT() != null) {
+                if (!notSupported) throw new NotIsUnsupportedOperationException();
                 final NotNode notNode = new NotNode(parent);
                 parent.addChild(notNode);
                 p = notNode;
-            } else p = parent;
+                not = true;
+            } else {
+                p = parent;
+                not = false;
+            }
+
+            validate(parent, false, false);
 
             final AndNode andNode = new AndNode(p, false);
             p.addChild(andNode);
+            andNode.setParent(p);
+
+            validate(parent, false, false);
 
             for (final TermContext termContext : and_expressionContext.term()) {
+                validate(p, false, false);
+
+                logger.log(Level.FINEST, "termContext.getText(): {0}", termContext.getText());
+
                 final Node child = parse(termContext, andNode);
+                logger.log(Level.FINEST, "child: {0}", child);
                 andNode.addChild(child);
+                logger.log(Level.FINEST, "andNode: {0}", andNode);
+                child.setParent(andNode);
+
+                validate(p, false, true);
+                validate(p.getParent(), false, true);
             }
 
-            return andNode;
+            validate(p, false, true);
+
+            return not ? p : andNode;
 
         } else if (ctx instanceof Or_expressionContext) {
             final Or_expressionContext or_expressionContext = (Or_expressionContext) ctx;
             final Node p;
             logger.log(Level.FINEST, "OR NOT : {0}", or_expressionContext.NOT());
+
+            final boolean not;
             if (or_expressionContext.NOT() != null) {
+                if (!notSupported) throw new NotIsUnsupportedOperationException();
                 final NotNode notNode = new NotNode(parent);
                 parent.addChild(notNode);
                 p = notNode;
-            } else p = parent;
+                not = true;
+            } else {
+                p = parent;
+                not = false;
+            }
 
             final OrNode orNode = new OrNode(p, false);
             p.addChild(orNode);
+            orNode.setParent(p);
 
             for (final And_expressionContext and_expressionContext : or_expressionContext.and_expression()) {
                 final Node child = parse(and_expressionContext, orNode);
                 orNode.addChild(child);
+                child.setParent(orNode);
             }
 
-            return orNode;
+            validate(parent, false, true);
+
+            return not ? p : orNode;
 
         } else if (ctx instanceof EqContext) {
             final EqContext eqContext = (EqContext) ctx;
@@ -89,6 +127,23 @@ class TreeBuilder {
             final TermContext termContext = (TermContext) ctx.getParent();
 
             logger.log(Level.FINEST, "EQ term NOT : {0}", termContext.NOT());
+
+            Node n = parent;
+
+            validate(n, false, false);
+
+            final boolean not;
+
+            if (termContext.NOT() != null) {
+                if (!notSupported) throw new NotIsUnsupportedOperationException();
+                not = true;
+                NotNode notNode = new NotNode(n);
+                n.addChild(notNode);
+                notNode.setParent(n);
+                n = notNode;
+            } else not = false;
+
+            validate(n, false, false);
 
             // get the variable name
             if (termContext.ID() == null) throw new IllegalStateException(); // TODO: improve exception handling
@@ -101,20 +156,25 @@ class TreeBuilder {
             final String value = eqContext.atom().getText();
             positiveValues.add(value);
 
-            final InNode inNode = new InNode(parent); //inNodesMap.get(ctx);
-            parent.addChild(inNode);
+            final InNode inNode = new InNode(n); //inNodesMap.get(ctx);
+            n.addChild(inNode);
+            inNode.setParent(n);
             inNode.setVariableName(variableName);
             inNode.addPositiveValues(positiveValues);
             inNode.addNegativeValues(negativeValues);
 
-            return inNode;
+            validate(parent, false, true);
+
+            logger.log(Level.FINEST, "inNode: {0}", inNode);
+
+            return not ? n : inNode;
 
         } else if (ctx instanceof InContext) {
             final InContext inContext = (InContext) ctx;
 
             final TermContext termContext = (TermContext) ctx.getParent();
 
-            System.out.println("IN NOT: " + termContext.NOT());
+            //System.out.println("IN NOT: " + termContext.NOT());
 
             // get the variable name
             if (termContext.ID() == null) throw new IllegalStateException(); // TODO: improve exception handling
@@ -156,6 +216,8 @@ class TreeBuilder {
             inNode.addPositiveValues(positiveValues);
             inNode.addNegativeValues(negativeValues);
 
+            validate(parent, false, true);
+
             return inNode;
         } else if (ctx instanceof PocketTLTreeBuilderParser.AtomContext) {
             final AtomContext atomContext = (AtomContext) ctx;
@@ -167,6 +229,7 @@ class TreeBuilder {
 
         } else if (ctx instanceof PocketTLTreeBuilderParser.ExpressionContext) {
             final ExpressionContext expressionContext = (ExpressionContext) ctx;
+            validate(parent, false, false);
             return parse(expressionContext.or_expression(), parent);
 
         } else if (ctx instanceof PocketTLTreeBuilderParser.FilterContext) {
@@ -174,6 +237,7 @@ class TreeBuilder {
             //if (filterContext.NOT() != null) {
             //    throw new UnsupportedOperationException();
             //} else {
+            validate(parent, false, false);
                 return parse(filterContext.expression(), parent);
             //}
 
@@ -186,16 +250,19 @@ class TreeBuilder {
 
             final ExpressionContext expression = termContext.expression();
             if (expression != null) {
+                validate(parent, false, false);
                 return parse(expression, parent);
             }
 
             final InContext in = termContext.in();
             if (in != null) {
+                validate(parent, false, false);
                 return parse(in, parent);
             }
 
             final EqContext eq = termContext.eq();
             if (eq != null) {
+                validate(parent, false, false);
                 return parse(eq, parent);
             }
 
@@ -224,7 +291,21 @@ class TreeBuilder {
         final ParserRuleContext ctx = expression;
         parse(ctx, root);
 
-        return new DNFConvTree(root);
+        final DNFConvTree tree = new DNFConvTree(root);
+        try {
+            TreeValidator.validate(tree, true, true);
+        } catch (TreeStructuralException e) {
+            throw new IllegalStateException(e);
+        }
+        return tree;
+    }
+
+    private static void validate(final Node top, final boolean topMustBeRoot, final boolean requireNonLeafNodesHaveLeaves) {
+        try {
+            TreeValidator.validate(top, topMustBeRoot, requireNonLeafNodesHaveLeaves);
+        } catch (TreeStructuralException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
 }

@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.ConsoleHandler;
@@ -25,18 +26,27 @@ class DNFConvTree {
 
     private final boolean validationOn = true;
 
-    private Logger logger = Logger.getLogger(getClass().getName());
-    {
+    private static Logger logger = Logger.getLogger(DNFConvTree.class.getName());
+    static {
         // shameless hard coded logging setup
 
         ConsoleHandler consoleHandler = new ConsoleHandler();
-        consoleHandler.setLevel(Level.FINEST);
+        consoleHandler.setLevel(Level.WARNING);
 
         logger.setLevel(Level.FINEST);
         logger.addHandler(consoleHandler);
     }
 
+    private static Logger transformationLogger = Logger.getLogger(DNFConvTree.class.getName() + "_TRANSFORMATION");
+    static {
 
+        ConsoleHandler consoleHandler = new ConsoleHandler();
+        consoleHandler.setLevel(Level.FINEST);
+
+        transformationLogger.setLevel(Level.FINEST);
+        transformationLogger.addHandler(consoleHandler);
+
+    }
 
     private Node root;
 
@@ -48,12 +58,14 @@ class DNFConvTree {
         return root;
     }
 
-    public boolean isRoot(final Node root) {
-        if (root.getParent() == null) {
-            if (this.root != root) throw new IllegalStateException();
+    public boolean isRoot(final Node node) {
+        if (node == null) throw new IllegalArgumentException("argument root was null");
+        if (node.getParent() == null) {
+            if (this.root != node) throw new IllegalStateException();
             return true;
         } else {
-            if (this.root == root) throw new IllegalStateException();
+            if (this.root == node) throw new IllegalStateException("node marked as root had parent.  node=" + node + "; parent=" + node.getParent());
+            if (this.root.equals(node)) throw new IllegalStateException("node marked as root had parent.  node=" + node + "; parent=" + node.getParent());
             return false;
         }
     }
@@ -110,7 +122,14 @@ class DNFConvTree {
      * @return the topmost node after any
      */
     private Node convertNot(final NotNode node, final State state) {
+        if (node == null) throw new IllegalArgumentException();
+        if (state == null) throw new IllegalArgumentException();
+        validate(node, false, true);
+
+        logger.entering(getClass().getName(), "convertNot");
+
         final Node parent = node.getParent();
+        validate(parent, false, true);
 
         if (! node.hasChildren()) {
             logger.log(Level.WARNING, "input node with no children; will disregard and use parent");
@@ -122,9 +141,9 @@ class DNFConvTree {
         }
 
         if (parent instanceof AndNode) {
-            // do nothing
+            return parent;
         } else if (parent instanceof OrNode) {
-            // do nothing
+            return parent;
         } else if (parent instanceof NotNode) { // case: double negation
             if (!isRoot(parent)) {
                 // double negation found, remove both intermediate NOTs
@@ -142,7 +161,7 @@ class DNFConvTree {
             }
         }
 
-        return null;
+        throw new IllegalStateException();
     }
 /*
     private Node convertParenthesized(final ParenthesizedNode node) {
@@ -160,6 +179,8 @@ class DNFConvTree {
 */
 
     private Node convertAnd(final AndNode node, final State state) {
+        logger.entering(getClass().getName(), "convertAnd");
+
         final Node parent = node.getParent();
 
         Object[] logParams = { node, parent };
@@ -194,7 +215,9 @@ class DNFConvTree {
             final OrNode newOrNode = new OrNode(grandparent, false);
             for (final Node andChild : node.getChildren()) {
                 final NotNode newNotNode = new NotNode(newOrNode);
+                andChild.setParent(newNotNode);
                 newNotNode.setChild(andChild);
+                newOrNode.addChild(newNotNode);
             }
             if (newOrNode.hasChildren()) grandparent.addChild(newOrNode);
             grandparent.removeChild(parent);
@@ -209,6 +232,7 @@ class DNFConvTree {
     }
     
     private Node convertOr(final OrNode node, final State state) {
+        logger.entering(getClass().getName(), "convertOr");
         validate();
 
         final Node parent = node.getParent();
@@ -248,13 +272,13 @@ class DNFConvTree {
 
             final Node newOrNode = new OrNode(n0);
 
-            System.out.println("n0=" + n0);
+            //System.out.println("n0=" + n0);
 
             n0.addChild(newOrNode);
 
             n0.removeChild(and); // remove the old 'and' node from the grandparent
 
-            System.out.println("n0=" + n0);
+            //System.out.println("n0=" + n0);
 
             //validate();
 
@@ -269,13 +293,17 @@ class DNFConvTree {
                 newOrNode.addChild(newAndNode);
 
                 {
-                    System.out.println("root=" + root);
+                    //System.out.println("root=" + root);
 
                     final Node orChildClone = (Node) orChild.clone();
                     newAndNode.addChild(orChildClone);
                     orChildClone.setParent(newAndNode);
 
-                    System.out.println("added orChildClone=" + orChildClone);
+                    logger.log(Level.FINEST, "added orChildClone={0}", orChildClone);
+
+                    validate(orChildClone, false, true);
+
+                    validate();
 
                     if (orChildClone.hasChildren()) {
                         //if (!(orChildClone instanceof Leaf)) {
@@ -307,7 +335,7 @@ class DNFConvTree {
 
                     //validate();
 
-                    System.out.println("it's okay! " + i++);
+                    //System.out.println("it's okay! " + i++);
 
                     {
                         final Node andChildClone = (Node) andChild.clone();
@@ -328,19 +356,20 @@ class DNFConvTree {
                         validate();
                     }
 
-                    System.out.println("newAndNode: " + newAndNode);
+                    //System.out.println("newAndNode: " + newAndNode);
 
                     //System.out.println("id= ," + "id=");
 
                     //n1ChildrenToRemove.add(or);
                     //newOrNode.addChild(newAndNode);
+                    validate();
                 }
-                //validate();
+                validate();
                 //for (Node n1ChildToRemove : n1ChildrenToRemove) and.removeChild(n1ChildToRemove);
                 //validate();
             }
 
-            System.out.println("root = " + getRoot());
+            //System.out.println("root = " + getRoot());
 
             validate();
             return newOrNode;
@@ -444,6 +473,7 @@ class DNFConvTree {
                 final NotNode newNotNode = new NotNode(newAndNode);
                 newAndNode.addChild(newNotNode);
                 newNotNode.setChild(orChild);
+                orChild.setParent(newNotNode);
             }
             if (newAndNode.hasChildren()) grandparent.addChild(newAndNode);
             grandparent.removeChild(parent);
@@ -471,6 +501,7 @@ class DNFConvTree {
         int i;
         for (i = 0; i < MAX_CYCLES; i++) {
             validate();
+            if (currentNode == null) throw new IllegalStateException();
 
             if (logger.isLoggable(Level.FINEST)) {
                 //final StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
@@ -487,21 +518,47 @@ class DNFConvTree {
 
             if (currentNode instanceof AndNode) {
                 currentNode = convertAnd((AndNode) currentNode, state);
+                if (currentNode == null) throw new IllegalStateException();
+
             } else if (currentNode instanceof OrNode) {
                 currentNode = convertOr((OrNode) currentNode, state);
+                if (currentNode == null) throw new IllegalStateException();
+
             } else if (currentNode instanceof NotNode) {
                 currentNode = convertNot((NotNode) currentNode, state);
+                if (currentNode == null) throw new IllegalStateException();
+
             } else if (currentNode instanceof Leaf) {
                 currentNode = currentNode.getParent();
+                if (currentNode == null) throw new IllegalStateException();
+
             } else {
                 throw new UnsupportedOperationException();
             }
 
             validate();
+            if (currentNode == null) throw new IllegalStateException();
         }
         if (i >= MAX_CYCLES) throw new IllegalStateException("max cycles exceeded");
 
         throw new IllegalStateException("unable to navigate or transform tree");
+    }
+
+    private static class Call {
+        private final Method method;
+        private final Object[] params;
+
+        public Call(Method method, Object[] params) {
+            this.method = method;
+            this.params = params;
+        }
+    }
+
+    private static class History {
+    }
+
+    private void trackHistory() {
+        
     }
 
     private static class State {
@@ -549,6 +606,9 @@ class DNFConvTree {
             if (cycles++ > MAX_CYCLES) throw new IllegalStateException("cycles exceeded");
             state.reset();
             convertFromLeaves(root, state);
+            if (transformationLogger.isLoggable(Level.FINEST)) {
+                transformationLogger.log(Level.FINEST, "intermediate transformation: {0}", toPocketTL());
+            }
         } while (state.isModified());
         validate();
     }
@@ -575,9 +635,18 @@ class DNFConvTree {
     private void validate() {
         if (!validationOn) return;
         try {
-            TreeValidator.validate(this);
-        } catch (TreeStructuralException e) {
+            TreeValidator.validate(this, true, true);
+        } catch (Exception e) {
             logger.log(Level.SEVERE, this.toPocketTL());
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private void validate(final Node top, final boolean topMustBeRoot, final boolean requireNonLeafNodesHaveLeaves) {
+        if (!validationOn) return;
+        try {
+            TreeValidator.validate(top, topMustBeRoot, requireNonLeafNodesHaveLeaves);
+        } catch (TreeStructuralException e) {
             throw new IllegalStateException(e);
         }
     }
