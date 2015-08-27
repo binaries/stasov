@@ -270,7 +270,7 @@ public class EngineTest {
         );
     }
 
-    @Test
+    @Test(enabled=false)
     public void test200_eq() throws IndexingException {
         testIndexAndQuery(
                 ImmutableMap.<Long,String>of(
@@ -286,7 +286,7 @@ public class EngineTest {
         );
     }
 
-    @Test
+    @Test(enabled=false)
     public void test201_eq() throws IndexingException {
         testIndexAndQuery(
                 ImmutableMap.<Long,String>of(
@@ -302,7 +302,7 @@ public class EngineTest {
         );
     }
 
-    @Test
+    @Test(enabled=false)
     public void test201b_eq() throws IndexingException {
         testIndexAndQuery(
                 ImmutableMap.<Long,String>of(
@@ -318,7 +318,7 @@ public class EngineTest {
         );
     }
 
-    @Test
+    @Test(enabled=false)
     public void test202_eq() throws IndexingException {
         testIndexAndQuery(
                 ImmutableMap.<Long,String>of(
@@ -334,7 +334,7 @@ public class EngineTest {
         );
     }
 
-    @Test
+    @Test(enabled=false)
     public void test203_eq_first_io_of_202() throws IndexingException {
         testIndexAndQuery(
                 ImmutableMap.<Long,String>of(
@@ -349,7 +349,7 @@ public class EngineTest {
         );
     }
 
-    @Test
+    @Test(enabled=false)
          public void test204_eq() throws IndexingException {
         testIndexAndQuery(
                 ImmutableMap.<Long,String>of(
@@ -365,7 +365,7 @@ public class EngineTest {
         );
     }
 
-    @Test
+    @Test(enabled=false)
     public void test205_eq() throws IndexingException {
         testIndexAndQuery(
                 ImmutableMap.<Long, String>of(
