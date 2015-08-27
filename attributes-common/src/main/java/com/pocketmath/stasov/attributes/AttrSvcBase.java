@@ -9,7 +9,11 @@ import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created by etucker on 4/3/15.
@@ -21,6 +25,11 @@ public abstract class AttrSvcBase {
     private final AttrTypeIdWeightComparator attrComparator;
 
     private Object2LongMap<String> typeNameToTypeId = null;
+
+    /**
+     * For testing/debugging use only.
+     */
+    private Map<Long,String> typeIdToName = new HashMap<Long, String>();
 
     private boolean registered = false;
 
@@ -58,8 +67,17 @@ public abstract class AttrSvcBase {
         final LongSet typeIds = new LongRBTreeSet();
         final Object2LongMap<String> typeNameToTypeId = new Object2LongOpenHashMap<String>();
         for (final AttrMeta am : set) {
+            if (am.getTypeId() < 1L) throw new IllegalArgumentException();
+            if (am.getTypeName() == null) throw new IllegalArgumentException();
+            if (am.getTypeName().isEmpty()) throw new IllegalArgumentException();
+            if (am.getClassName() == null) throw new IllegalArgumentException();
+            if (am.getClassName().isEmpty()) throw new IllegalArgumentException();
+
             typeIds.add(am.getTypeId());
             typeNameToTypeId.put(am.getTypeName(), am.getTypeId());
+
+            // for testing/debugging
+            this.typeIdToName.put(am.getTypeId(), am.getTypeName());
         }
 
         final long[] attrTypeIdsPrimitives = Longs.toArray(typeIds);
@@ -83,10 +101,24 @@ public abstract class AttrSvcBase {
 
     /**
      * For testing/debugging use only.
+     *
+     * @param attrTypeId
+     * @return
      */
-    public Iterable<String> sampleValues(final long attrTypeId) {
+    public String getAttrName(final long attrTypeId) {
+        Logger.getAnonymousLogger().log(Level.WARNING, "Testing/debugging method only!  Not for production use.");
+
+        return typeIdToName.get(attrTypeId);
+    }
+
+    /**
+     * For testing/debugging use only.
+     */
+    public Iterable<String> sampleValues(final long attrTypeId, final Order order) {
+        Logger.getAnonymousLogger().log(Level.WARNING, "Testing/debugging method only!  Not for production use.");
+
         final AttributeHandler attributeHandler = lookupHandler(attrTypeId);
         if (attributeHandler == null) return null;
-        return attributeHandler.sampleValues();
+        return attributeHandler.sampleValues(order);
     }
 }
