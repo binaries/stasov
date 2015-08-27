@@ -272,7 +272,9 @@ class MatchTree {
             for(final long attrTypeId: attrTypeIds) {
                 final LongSortedSet _inclVals = inclVals.get(attrTypeId);
                 final LongSortedSet _exclVals = exclVals.get(attrTypeId);
-                if (_inclVals.isEmpty() && _exclVals.isEmpty()) throw new UnsupportedOperationException(); // TODO: to refine exception type.
+                if (_inclVals == null && _exclVals == null) throw new IllegalStateException(); // TODO: refine exception type.
+                if (_inclVals == null && _exclVals.isEmpty()) throw new IllegalStateException(); // TODO: refine exception type.
+                if (_exclVals == null && _inclVals.isEmpty()) throw new IllegalStateException(); // TODO: refine exception type.
                 ag.add(attrTypeId, _inclVals, _exclVals);
             }
             return ag;
