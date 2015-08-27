@@ -70,9 +70,9 @@ public class EngineTest {
         final LongSortedSet results = engine.query(opp);
 
         if (expectedResults.length < 1) {
-            Assert.assertEquals(results, null);
+            Assert.assertNull(results);
         } else {
-            Assert.assertNotEquals(results, null);
+            Assert.assertNotNull(results);
         }
 
         if (results == null) {
@@ -214,6 +214,18 @@ public class EngineTest {
 
     @Test
     public void test102_eq() throws IndexingException {
+
+        // (creativesize IN ("300x250") AND devicetype IN ("android")
+        // OR city IN ("austin") AND devicetype IN ("iphone")
+        // OR devicetype IN ("iphone") AND creativesize IN ("300x250")
+        // OR city IN ("austin") AND devicetype IN ("android"))
+
+        // output 1:
+        // (city IN ("austin") AND devicetype IN ("android")
+        // OR creativesize IN ("300x250") AND devicetype IN ("android")
+        // OR city IN ("austin") AND devicetype IN ("iphone")
+        // OR creativesize IN ("300x250") AND devicetype IN ("iphone"))
+
         testIndexAndQuery(
                 ImmutableMap.<Long,String>of(
                         1L, "(devicetype = \"android\" OR devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
@@ -279,6 +291,22 @@ public class EngineTest {
         testIndexAndQuery(
                 ImmutableMap.<Long,String>of(
                         1L, "(NOT devicetype = \"android\" AND devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
+                        2L, "devicetype = \"iphone\""
+                ),
+                ImmutableMap.<String,String>of(
+                        "devicetype", "android",
+                        "city", "austin",
+                        "creativesize", "300x250"
+                ),
+                new long[]{}
+        );
+    }
+
+    @Test
+    public void test201b_eq() throws IndexingException {
+        testIndexAndQuery(
+                ImmutableMap.<Long,String>of(
+                        1L, "NOT (devicetype = \"android\" AND devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
                         2L, "devicetype = \"iphone\""
                 ),
                 ImmutableMap.<String,String>of(
@@ -384,6 +412,5 @@ public class EngineTest {
                 new long[]{1L}
         );
     }
-
 
 }
