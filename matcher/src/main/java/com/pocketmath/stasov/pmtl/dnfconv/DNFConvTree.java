@@ -3,17 +3,11 @@ package com.pocketmath.stasov.pmtl.dnfconv;
 import com.pocketmath.stasov.pmtl.dnfconv.DNFConvModels.*;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import it.unimi.dsi.fastutil.objects.ObjectArraySet;
 
 import javax.xml.bind.ValidationException;
-import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -163,20 +157,6 @@ class DNFConvTree {
 
         throw new IllegalStateException();
     }
-/*
-    private Node convertParenthesized(final ParenthesizedNode node) {
-        final Node parent = node.getParent();
-
-        // case: double paren
-        if (parent instanceof ParenthesizedNode) {
-            Node child = node.getChild();
-            child.setParent(parent);
-            ((ParenthesizedNode) parent).setChild(child);
-            return parent;
-        }
-
-    }
-*/
 
     private Node convertAnd(final AndNode node, final State state) {
         logger.entering(getClass().getName(), "convertAnd");
@@ -264,37 +244,23 @@ class DNFConvTree {
             final Node and = parent; // and node
             final Node or = node; // or node
 
-         //   for (Node node1 : n2.getChildren()) {
-         //
-         //   }
-
             validate();
 
             final Node newOrNode = new OrNode(n0);
-
-            //System.out.println("n0=" + n0);
 
             n0.addChild(newOrNode);
 
             n0.removeChild(and); // remove the old 'and' node from the grandparent
 
-            //System.out.println("n0=" + n0);
-
-            //validate();
 
             for (final Object orChildObj : or.getChildren().toArray()) {
                 Node orChild = (Node) orChildObj;
-                //final Set<Node> n1ChildrenToRemove = new HashSet<Node>();
-
-                //validate();
 
                 final Node newAndNode = new AndNode(newOrNode, false);
                 newAndNode.setParent(newOrNode);
                 newOrNode.addChild(newAndNode);
 
                 {
-                    //System.out.println("root=" + root);
-
                     final Node orChildClone = (Node) orChild.clone();
                     newAndNode.addChild(orChildClone);
                     orChildClone.setParent(newAndNode);
@@ -306,13 +272,11 @@ class DNFConvTree {
                     validate();
 
                     if (orChildClone.hasChildren()) {
-                        //if (!(orChildClone instanceof Leaf)) {
+                        assert(orChildClone instanceof Leaf);
                         orChildClone.removeChild(and, true);
 
                         for (Node n : orChildClone.getChildren()) {
-                            //if (n instanceof InNode) {
                             n.setParent(orChildClone);
-                            //}
                             validate(n);
                         }
                     }
@@ -333,87 +297,29 @@ class DNFConvTree {
 
                     if (andChild.equals(or)) continue;
 
-                    //validate();
-
-                    //System.out.println("it's okay! " + i++);
-
                     {
                         final Node andChildClone = (Node) andChild.clone();
                         newAndNode.addChild(andChildClone);
                         andChildClone.setParent(newAndNode);
 
                         if (andChildClone.hasChildren()) {
-                        //if (!(andChildClone instanceof Leaf)) {
+                            assert(andChildClone instanceof Leaf);
                             andChildClone.removeChild(or, true);
 
                             for (Node n : andChildClone.getChildren()) {
-                                //if (n instanceof InNode) {
                                 n.setParent(andChildClone);
-                                //}
                             }
                         }
 
                         validate();
                     }
-
-                    //System.out.println("newAndNode: " + newAndNode);
-
-                    //System.out.println("id= ," + "id=");
-
-                    //n1ChildrenToRemove.add(or);
-                    //newOrNode.addChild(newAndNode);
                     validate();
                 }
                 validate();
-                //for (Node n1ChildToRemove : n1ChildrenToRemove) and.removeChild(n1ChildToRemove);
-                //validate();
             }
-
-            //System.out.println("root = " + getRoot());
 
             validate();
             return newOrNode;
-
-/*
-
-            final Node grandparent = parent.getParent();
-
-            final OrNode topOrNode;
-            if (grandparent instanceof OrNode) {
-                topOrNode = (OrNode) grandparent;
-            } else {
-                topOrNode = new OrNode(grandparent);
-                grandparent.addChild(topOrNode);
-            }
-
-            grandparent.removeChild(parent);
-
-            parent.removeChild(node);
-            //node.setParent(grandparent);
-
-            for (final Node l0 : node.getChildren()) {
-                final AndNode newAndNode = new AndNode(topOrNode);
-                topOrNode.addChild(newAndNode);
-                newAndNode.addChild(l0);
-                l0.setParent(newAndNode);
-
-                for (final Node l1 : parent.getChildren()) {
-                    assert(l1 != null);
-                    assert(l1 != node);
-                    assert(!l1.equals(node));
-                    newAndNode.addChild(l1);
-                    l1.setParent(newAndNode);
-                }
-            }
-
-            //parent.removeAllChildren(); // old parent will be destroyed
-
-            state.setModified(true);
-            logOutputNode(topOrNode);
-
-            validate();
-            return topOrNode;
-            */
 
         } else if (parent instanceof OrNode) { // de-dup
             validate();
@@ -558,7 +464,7 @@ class DNFConvTree {
     }
 
     private void trackHistory() {
-        
+
     }
 
     private static class State {
