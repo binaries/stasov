@@ -3,8 +3,7 @@ package com.pocketmath.stasov.util;
 import it.unimi.dsi.fastutil.longs.LongArrays;
 import it.unimi.dsi.fastutil.longs.LongComparator;
 
-import java.util.Arrays;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Created by etucker on 4/4/15.
@@ -138,6 +137,21 @@ public class StasovArrays {
                 array[j] = x;
             }
         }
+    }
+
+    public static long[] toPrimitiveLongArray(Long[] array) {
+        long[] newArray = new long[array.length];
+        for (int i = 0; i < array.length; i++) { newArray[i] = array[i]; }
+        return newArray;
+    }
+
+    public static long[] toSortedArray(Collection<Long> collection) {
+        Set<Long> set = new HashSet<Long>();
+        set.addAll(collection);
+        Long[] objectLongArray = set.toArray(new Long[set.size()]);
+        long[] primitiveLongArray = toPrimitiveLongArray(objectLongArray);
+        Arrays.sort(primitiveLongArray);
+        return primitiveLongArray;
     }
 
 }
