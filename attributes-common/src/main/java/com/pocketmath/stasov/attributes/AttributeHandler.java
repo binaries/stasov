@@ -11,7 +11,10 @@ public abstract class AttributeHandler {
      * To facilitate testing.
      *
      * @return
+     * @param order
      */
-    public abstract Iterable<String> sampleValues(final Order order);
+    public Iterable<String> sampleValues(final Order order) throws UnsupportedOperationException {
+        throw new UnsupportedOperationException();
+    }
 
 }

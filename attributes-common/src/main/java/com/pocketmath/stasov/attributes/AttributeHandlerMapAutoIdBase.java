@@ -40,7 +40,7 @@ public class  AttributeHandlerMapAutoIdBase extends AttributeHandler {
     }
 
     @Override
-    public Iterable<String> sampleValues(final Order order) {
+    public Iterable<String> sampleValues(final Order order) throws UnsupportedOperationException {
         if (order == null) throw new IllegalArgumentException("order was null");
         switch (order) {
             case UNDEFINED: {

@@ -26,4 +26,5 @@ public class AttributeHandlerMapBase extends AttributeHandler {
     public final long find(final String input) {
         return map.getLong(input.toLowerCase());
     }
+
 }
