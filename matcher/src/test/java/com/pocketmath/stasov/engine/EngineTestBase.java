@@ -147,13 +147,19 @@ public class EngineTestBase {
         return query(engine, opportunityAttributes, expectedResults);
     }
 
-    private static String fill(final Engine engine, final String template, final Order attributeTypesOrder, final Order attributeValuesOrder, final Map<String,String> opportunityAttributes) {
+    private static String fill(
+            final Engine engine,
+            final String template,
+            final Order attributeTypesOrder,
+            final Order attributeValuesOrder,
+            final Collection<Map<String,String>> opportunities) {
+
         if (engine == null) throw new IllegalArgumentException();
         if (template == null) throw new IllegalArgumentException();
         if (template.isEmpty()) throw new IllegalArgumentException();
         if (attributeTypesOrder == null) throw new IllegalArgumentException();
         if (attributeValuesOrder == null) throw new IllegalArgumentException();
-        if (opportunityAttributes == null) throw new IllegalArgumentException();
+        if (opportunities == null) throw new IllegalArgumentException();
 
         String spec = new String(template); // copy
 
@@ -175,6 +181,8 @@ public class EngineTestBase {
 
         int seq = 1;
 
+        final Map<String,String> opp = new HashMap<String, String>();
+
         for (final long attrTypeId : attrTypeIds) {
             final Iterable<String> attrValues;
             try {
@@ -191,7 +199,7 @@ public class EngineTestBase {
                 //Logger.getAnonymousLogger().log(Level.INFO, "k={0}", k);
                 final String v = attrValue;
 
-                opportunityAttributes.put(k,v);
+                opp.put(k, v); // TODO: this is repetitive here -- instead select this randomly only once
 
                 //if (random.nextDouble() < matchRate) {
                 spec = spec.replace("${k" + seq + "}", k);
@@ -201,7 +209,10 @@ public class EngineTestBase {
 
                 //System.out.println(specifications.toString());
             }
+
         }
+
+        if (!opp.isEmpty()) opportunities.add(opp);
 
         return spec;
     }
@@ -225,7 +236,7 @@ public class EngineTestBase {
             final Order attributeValuesOrder,
             final Collection<Weighted<String>> templates,
             final Map<Long,String> specifications,
-            final Map<String,String> opportunityAttributes) {
+            final Collection<Map<String,String>> opportunities) {
 
         if (ioId < 1) throw new IllegalArgumentException();
         if (maxValuesPerAttr < 1) throw new IllegalArgumentException();
@@ -236,13 +247,13 @@ public class EngineTestBase {
         if (templates == null) throw new IllegalArgumentException();
         if (templates.isEmpty()) throw new IllegalArgumentException();
         if (specifications == null) throw new IllegalArgumentException();
-        if (opportunityAttributes == null) throw new IllegalArgumentException();
+        if (opportunities == null) throw new IllegalArgumentException();
 
         final Engine engine = new Engine();
 
         final String template = StasovArrays.chooseRandomWeightedValue(templates);
 
-        final String spec = fill(engine, template, attributeTypesOrder, attributeValuesOrder, opportunityAttributes);
+        final String spec = fill(engine, template, attributeTypesOrder, attributeValuesOrder, opportunities);
 
         specifications.put(ioId, spec);
 
