@@ -27,7 +27,7 @@ class DNFConvTree {
         ConsoleHandler consoleHandler = new ConsoleHandler();
         consoleHandler.setLevel(Level.WARNING);
 
-        logger.setLevel(Level.FINEST);
+        logger.setLevel(Level.WARNING);
         logger.addHandler(consoleHandler);
     }
 
@@ -35,9 +35,9 @@ class DNFConvTree {
     static {
 
         ConsoleHandler consoleHandler = new ConsoleHandler();
-        consoleHandler.setLevel(Level.FINEST);
+        consoleHandler.setLevel(Level.WARNING);
 
-        transformationLogger.setLevel(Level.FINEST);
+        transformationLogger.setLevel(Level.WARNING);
         transformationLogger.addHandler(consoleHandler);
 
     }
@@ -272,7 +272,7 @@ class DNFConvTree {
                     validate();
 
                     if (orChildClone.hasChildren()) {
-                        assert(orChildClone instanceof Leaf);
+                        assert(!(orChildClone instanceof Leaf));
                         orChildClone.removeChild(and, true);
 
                         for (Node n : orChildClone.getChildren()) {
