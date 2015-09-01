@@ -11,7 +11,7 @@ import java.util.*;
 public class StasovArrays {
 
     public static boolean isSorted(long[] array, LongComparator cmp) {
-        long[] tmpArray = LongArrays.copy(array);
+        final long[] tmpArray = LongArrays.copy(array);
         LongArrays.quickSort(tmpArray, cmp);
         return Arrays.equals(array, tmpArray);
     }
@@ -20,7 +20,7 @@ public class StasovArrays {
 
     private static int computeRandomizeIterations(final int arrayLength) {
         if (arrayLength > RANDOMIZE_ARRAY_MAX_INT) throw new UnsupportedOperationException("arrays is too big; length = " + arrayLength + "; max supported value is " + RANDOMIZE_ARRAY_MAX_INT);
-        int n = arrayLength * arrayLength;
+        final int n = arrayLength * arrayLength;
         if (n < 0) throw new IllegalStateException(new ArithmeticException("overflow"));
         return arrayLength;
     }
@@ -37,7 +37,7 @@ public class StasovArrays {
             final int j = random.nextInt(array.length);
             if (i != j) {
                 // swap
-                Object x = array[i];
+                final Object x = array[i];
                 array[i] = array[j];
                 array[j] = x;
             }
@@ -56,7 +56,7 @@ public class StasovArrays {
             final int j = random.nextInt(array.length);
             if (i != j) {
                 // swap
-                long x = array[i];
+                final long x = array[i];
                 array[i] = array[j];
                 array[j] = x;
             }
@@ -75,7 +75,7 @@ public class StasovArrays {
             final int j = random.nextInt(array.length);
             if (i != j) {
                 // swap
-                int x = array[i];
+                final int x = array[i];
                 array[i] = array[j];
                 array[j] = x;
             }
@@ -94,7 +94,7 @@ public class StasovArrays {
             final int j = random.nextInt(array.length);
             if (i != j) {
                 // swap
-                short x = array[i];
+                final short x = array[i];
                 array[i] = array[j];
                 array[j] = x;
             }
@@ -113,7 +113,7 @@ public class StasovArrays {
             final int j = random.nextInt(array.length);
             if (i != j) {
                 // swap
-                boolean x = array[i];
+                final boolean x = array[i];
                 array[i] = array[j];
                 array[j] = x;
             }
@@ -132,7 +132,7 @@ public class StasovArrays {
             final int j = random.nextInt(array.length);
             if (i != j) {
                 // swap
-                char x = array[i];
+                final char x = array[i];
                 array[i] = array[j];
                 array[j] = x;
             }
@@ -140,18 +140,41 @@ public class StasovArrays {
     }
 
     public static long[] toPrimitiveLongArray(Long[] array) {
-        long[] newArray = new long[array.length];
+        final long[] newArray = new long[array.length];
         for (int i = 0; i < array.length; i++) { newArray[i] = array[i]; }
         return newArray;
     }
 
     public static long[] toSortedArray(Collection<Long> collection) {
-        Set<Long> set = new HashSet<Long>();
+        final Set<Long> set = new HashSet<Long>();
         set.addAll(collection);
-        Long[] objectLongArray = set.toArray(new Long[set.size()]);
-        long[] primitiveLongArray = toPrimitiveLongArray(objectLongArray);
+        final Long[] objectLongArray = set.toArray(new Long[set.size()]);
+        final long[] primitiveLongArray = toPrimitiveLongArray(objectLongArray);
         Arrays.sort(primitiveLongArray);
         return primitiveLongArray;
+    }
+
+    private static <V extends Comparable<V>> Weighted<V> chooseRandomWeightedPresorted(SortedSet<Weighted<V>> items) {
+        final Random random = new Random();
+        int n = (int) Math.floor((double)(random.nextDouble() * items.size()));
+        final Iterator<Weighted<V>> itr = items.iterator();
+        Weighted<V> item = null;
+        for (int i = 0; i <= n && itr.hasNext(); i++) {
+            item = itr.next();
+        }
+        return item;
+    }
+
+    public static <V extends Comparable<V>> Weighted<V> chooseRandomWeighted(Collection<Weighted<V>> items) {
+        final TreeSet<Weighted<V>> ts = new TreeSet<Weighted<V>>();
+        ts.addAll(items);
+        return chooseRandomWeightedPresorted(ts);
+    }
+
+    public static <V extends Comparable<V>> V chooseRandomWeightedValue(Collection<Weighted<V>> items) {
+        final Weighted<V> item = chooseRandomWeighted(items);
+        if (item == null) return null;
+        return item.getValue();
     }
 
 }
