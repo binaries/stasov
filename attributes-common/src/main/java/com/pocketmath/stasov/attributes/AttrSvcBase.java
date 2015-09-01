@@ -20,6 +20,8 @@ import java.util.logging.Logger;
  */
 public abstract class AttrSvcBase {
 
+    private static final boolean silent = true;
+
     private long[] attrTypeIds = null;
     private final Weights weights;
     private final AttrTypeIdWeightComparator attrComparator;
@@ -106,7 +108,7 @@ public abstract class AttrSvcBase {
      * @return
      */
     public String getAttrName(final long attrTypeId) {
-        Logger.getAnonymousLogger().log(Level.WARNING, "Testing/debugging method only!  Not for production use.");
+        if (!silent) Logger.getAnonymousLogger().log(Level.WARNING, "Testing/debugging method only!  Not for production use.");
 
         return typeIdToName.get(attrTypeId);
     }
@@ -115,7 +117,7 @@ public abstract class AttrSvcBase {
      * For testing/debugging use only.
      */
     public Iterable<String> sampleValues(final long attrTypeId, final Order order) {
-        Logger.getAnonymousLogger().log(Level.WARNING, "Testing/debugging method only!  Not for production use.");
+        if (!silent) Logger.getAnonymousLogger().log(Level.WARNING, "Testing/debugging method only!  Not for production use.");
 
         final AttributeHandler attributeHandler = lookupHandler(attrTypeId);
         if (attributeHandler == null) return null;
