@@ -20,13 +20,13 @@ public class EngineLogicTest extends EngineTestBase {
     @Test
     public void test1_in() throws IndexingException {
         testIndexAndQuery(
-                ImmutableMap.<Long,String>of(
+                ImmutableMap.<Long, String>of(
                         1L, "devicetype in (\"iphone\")"
                 ),
-                ImmutableMap.<String,String>of(
+                ImmutableMap.<String, String>of(
                         "devicetype", "iphone"
                 ),
-                new long[]{ 1L }
+                new long[]{1L}
         );
     }
 
@@ -328,6 +328,22 @@ public class EngineLogicTest extends EngineTestBase {
                         "creativesize", "300x250"
                 ),
                 new long[]{1L}
+        );
+    }
+
+    @Test
+    public void test302() throws IndexingException {
+        testIndexAndQuery(
+                ImmutableMap.<Long,String>of(
+                        1L, "city IN (\"austin\", NOT \"london\") AND creativesize = \"300x250\"",
+                        2L, "devicetype = \"iphone\""
+                ),
+                ImmutableMap.<String,String>of(
+                        "devicetype", "android",
+                        "city", "london",
+                        "creativesize", "300x250"
+                ),
+                new long[]{}
         );
     }
 
