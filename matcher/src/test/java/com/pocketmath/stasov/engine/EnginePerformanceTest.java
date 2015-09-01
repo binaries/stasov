@@ -7,6 +7,8 @@ import com.pocketmath.stasov.util.Weighted;
 import it.unimi.dsi.fastutil.longs.LongSortedSet;
 import org.testng.annotations.Test;
 
+import org.testng.Assert;
+
 import java.lang.reflect.Array;
 import java.util.*;
 
@@ -24,7 +26,7 @@ public class EnginePerformanceTest extends EngineTestBase {
      *
      * @throws IndexingException
      */
-    @Test
+ /*   @Test
     public void test1() throws IndexingException {
 
         final Set<Weighted<String>> templates = new HashSet<Weighted<String>>(Collections.unmodifiableList(Arrays.asList(new Template[]{new Template("${k1}=\"${v1}\"", 1d)})));
@@ -152,7 +154,160 @@ public class EnginePerformanceTest extends EngineTestBase {
             final LongSortedSet results = query(engine, opportunityAttributes, null);
         }
         long endTime = System.currentTimeMillis();
-        System.out.println("Avg query time: " + (endTime - startTime) / i + "ms");
+
+        double avgTime = (endTime - startTime) / i;
+        Assert.assertTrue(avgTime < 10d);
+
+        System.out.println("Avg query time: " + avgTime + "ms");
+    }
+
+    @Test
+    public void test6() throws IndexingException, InterruptedException {
+
+        final Set<Weighted<String>> templates = new HashSet<Weighted<String>>(Collections.unmodifiableList(Arrays.asList(new Template[]{
+                //new Template("${k1}=\"${v1}\"", 1d),
+                //new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\"", 1d),
+                new Template("${k1}=\"${v1}\" OR ${k2}=\"${v2}\" OR ${k3}=\"${v3}\"", 1d),
+              //  new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\" AND ${k3}=\"${v3}\" OR ${k4}=\"${v4}\"", 1d),
+                //new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\" AND ${k3}=\"${v3}\" AND ${k4}=\"${v4}\" AND ${k5}=\"${v5}\"", 1d),
+                //new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\"", 1d),
+                //new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\"", 1d),
+                //new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\"", 1d),
+        })));
+        final Map<Long,String> specifications = new HashMap<Long,String>();
+        final Map<String,String> opportunityAttributes = new HashMap<String, String>();
+
+        for (int i = 1; i <= 20; i++) {
+            if (i % 100 == 0) System.out.println("i=" + i);
+            generateRandomParameters(i, 100, 100, 1d, Order.UNDEFINED, Order.RANDOM, templates, specifications, opportunityAttributes);
+        }
+
+        final Engine engine = new Engine();
+        index(engine, specifications);
+
+        System.out.println(engine.prettyPrint());
+
+        //System.gc();
+        //Thread.sleep(5000); // give garbage collection some time to operate
+
+        long startTime = System.currentTimeMillis();
+        int i = 0;
+        for (; i < 10; i++) {
+            final LongSortedSet results = query(engine, opportunityAttributes, null);
+            if (results != null) {
+                System.out.println("opp: " + opportunityAttributes);
+                System.out.println("results: " + results);
+            }
+        }
+        long endTime = System.currentTimeMillis();
+
+        double avgTime = (endTime - startTime) / i;
+        Assert.assertTrue(avgTime < 10d);
+
+        System.out.println("Avg query time: " + avgTime + "ms");
+    }
+*/
+
+    @Test
+    public void test7() throws IndexingException, InterruptedException {
+
+        final Set<Weighted<String>> templates = new HashSet<Weighted<String>>(Collections.unmodifiableList(Arrays.asList(new Template[]{
+                //new Template("${k1}=\"${v1}\"", 1d),
+                //new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\"", 1d),
+                new Template("${k1}=\"${v1}\" OR ${k2}=\"${v2}\" OR ${k3}=\"${v3}\" OR ${k4}=\"${v4}\" OR ${k5}=\"${v5}\" OR ${k6}=\"${v6}\" OR ${k7}=\"${v7}\" OR ${k8}=\"${v8}\" OR ${k9}=\"${v9}\"", 1d), // OR ${k10}=\"${v10}\" OR ${k11}=\"${v11}\" OR ${k12}=\"${v12}\" OR ${k13}=\"${v13}\" OR ${k14}=\"${v14}\" OR ${k15}=\"${v15}\" OR ${k16}=\"${v16}\" OR ${k17}=\"${v17}\" OR ${k18}=\"${v18}\" OR ${k19}=\"${v19}\" OR ${k20}=\"${v20}\" OR ${k21}=\"${v21}\"", 1d),
+                //  new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\" AND ${k3}=\"${v3}\" OR ${k4}=\"${v4}\"", 1d),
+                //new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\" AND ${k3}=\"${v3}\" AND ${k4}=\"${v4}\" AND ${k5}=\"${v5}\"", 1d),
+                //new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\"", 1d),
+                //new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\"", 1d),
+                //new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\"", 1d),
+        })));
+        final Map<Long,String> specifications = new HashMap<Long,String>();
+        final Collection<Map<String,String>> opportunities = new HashSet<Map<String,String>>();
+
+        for (int i = 1; i <= 20; i++) {
+            if (i % 100 == 0) System.out.println("i=" + i);
+            generateRandomParameters(i, 100, 100, 1d, Order.RANDOM, Order.RANDOM, templates, specifications, opportunities);
+        }
+
+        final Map[] oppsArray = opportunities.toArray(new Map[opportunities.size()]);
+
+        final Engine engine = new Engine();
+        index(engine, specifications);
+
+        System.out.println(engine.prettyPrint());
+
+        //System.gc();
+        //Thread.sleep(5000); // give garbage collection some time to operate
+
+        final Random random = new Random();
+
+        long startTime = System.currentTimeMillis();
+        int i = 0;
+        for (; i < 10; i++) {
+            final Map<String,String> opp = oppsArray[random.nextInt(oppsArray.length)];
+            final LongSortedSet results = query(engine, opp, null);
+            if (results != null) {
+                System.out.println("opp: " + opp);
+                System.out.println("results: " + results);
+            }
+        }
+        long endTime = System.currentTimeMillis();
+
+        double avgTime = (endTime - startTime) / i;
+        Assert.assertTrue(avgTime < 10d);
+
+        System.out.println("Avg query time: " + avgTime + "ms");
+    }
+
+    @Test
+    public void test8() throws IndexingException, InterruptedException {
+
+        final Set<Weighted<String>> templates = new HashSet<Weighted<String>>(Collections.unmodifiableList(Arrays.asList(new Template[]{
+                //new Template("${k1}=\"${v1}\"", 1d),
+                //new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\"", 1d),
+                new Template("${k1}=\"${v1}\" OR ${k2}=\"${v2}\" OR ${k3}=\"${v3}\" OR ${k4}=\"${v4}\" OR ${k5}=\"${v5}\" OR ${k6}=\"${v6}\" OR ${k7}=\"${v7}\" OR ${k8}=\"${v8}\" OR ${k9}=\"${v9}\"", 1d), // OR ${k10}=\"${v10}\" OR ${k11}=\"${v11}\" OR ${k12}=\"${v12}\" OR ${k13}=\"${v13}\" OR ${k14}=\"${v14}\" OR ${k15}=\"${v15}\" OR ${k16}=\"${v16}\" OR ${k17}=\"${v17}\" OR ${k18}=\"${v18}\" OR ${k19}=\"${v19}\" OR ${k20}=\"${v20}\" OR ${k21}=\"${v21}\"", 1d),
+                //  new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\" AND ${k3}=\"${v3}\" OR ${k4}=\"${v4}\"", 1d),
+                //new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\" AND ${k3}=\"${v3}\" AND ${k4}=\"${v4}\" AND ${k5}=\"${v5}\"", 1d),
+                //new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\"", 1d),
+                //new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\"", 1d),
+                //new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\"", 1d),
+        })));
+        final Map<Long,String> specifications = new HashMap<Long,String>();
+        final Collection<Map<String,String>> opportunities = new HashSet<Map<String,String>>();
+
+        for (int i = 1; i <= 10000; i++) {
+            if (i % 100 == 0) System.out.println("i=" + i);
+            generateRandomParameters(i, 100, 100, 1d, Order.RANDOM, Order.RANDOM, templates, specifications, opportunities);
+        }
+
+        final Map[] oppsArray = opportunities.toArray(new Map[opportunities.size()]);
+
+        final Engine engine = new Engine();
+        index(engine, specifications);
+
+        System.out.println(engine.prettyPrint());
+
+        //System.gc();
+        //Thread.sleep(5000); // give garbage collection some time to operate
+
+        final Random random = new Random();
+
+        long startTime = System.currentTimeMillis();
+        int i = 0;
+        for (; i < 1000; i++) {
+            final Map<String,String> opp = oppsArray[random.nextInt(oppsArray.length)];
+            final LongSortedSet results = query(engine, opp, null);
+            //if (results != null) {
+            //    System.out.println("opp: " + opp);
+            //    System.out.println("results: " + results);
+            //}
+        }
+        long endTime = System.currentTimeMillis();
+
+        double avgTime = (endTime - startTime) / i;
+        Assert.assertTrue(avgTime < 10d);
+
+        System.out.println("Avg query time: " + avgTime + "ms");
     }
 
 }
