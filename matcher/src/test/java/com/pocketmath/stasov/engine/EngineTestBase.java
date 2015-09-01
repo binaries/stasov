@@ -7,6 +7,7 @@ import com.pocketmath.stasov.util.StasovArrays;
 import com.pocketmath.stasov.util.Weighted;
 import com.sun.tools.doclint.HtmlTag;
 import it.unimi.dsi.fastutil.longs.LongSortedSet;
+import org.apache.commons.lang.ArrayUtils;
 import org.testng.Assert;
 
 import java.util.*;
@@ -60,6 +61,7 @@ public class EngineTestBase {
         for (final Map.Entry<Long, String> spec : specifications.entrySet()) {
             final long id = spec.getKey();
             final String pmtl = spec.getValue();
+            System.out.println("PMTL: " + pmtl);
             assert(pmtl != null);
             engine.index(pmtl, id);
         }
@@ -145,10 +147,11 @@ public class EngineTestBase {
         return query(engine, opportunityAttributes, expectedResults);
     }
 
-    private static String fill(final Engine engine, final String template, final Order attributeValuesOrder, final Map<String,String> opportunityAttributes) {
+    private static String fill(final Engine engine, final String template, final Order attributeTypesOrder, final Order attributeValuesOrder, final Map<String,String> opportunityAttributes) {
         if (engine == null) throw new IllegalArgumentException();
         if (template == null) throw new IllegalArgumentException();
         if (template.isEmpty()) throw new IllegalArgumentException();
+        if (attributeTypesOrder == null) throw new IllegalArgumentException();
         if (attributeValuesOrder == null) throw new IllegalArgumentException();
         if (opportunityAttributes == null) throw new IllegalArgumentException();
 
@@ -156,8 +159,19 @@ public class EngineTestBase {
 
         final AttrSvcBase attrSvc = engine.attrSvc;
 
-        final long[] attrTypeIds = attrSvc.getAttrTypeIds();
-        Arrays.sort(attrTypeIds);
+        final long[] attrTypeIds = attrSvc.getAttrTypeIds().clone();
+        switch (attributeTypesOrder) {
+            case UNDEFINED: { break; }
+            case RANDOM: { StasovArrays.randomizeOrder(attrTypeIds); break; }
+            case ASCENDING: { Arrays.sort(attrTypeIds); break; }
+            case DESCENDING: {
+                Arrays.sort(attrTypeIds);
+                ArrayUtils.reverse(attrTypeIds);
+                break;
+            }
+            default: throw new IllegalStateException();
+        }
+
 
         int seq = 1;
 
@@ -207,7 +221,7 @@ public class EngineTestBase {
             final int maxValuesPerAttr,
             final int maxAttrs,
             final double matchRate,
-            final Order attributesOrder,
+            final Order attributeTypesOrder,
             final Order attributeValuesOrder,
             final Collection<Weighted<String>> templates,
             final Map<Long,String> specifications,
@@ -217,8 +231,7 @@ public class EngineTestBase {
         if (maxValuesPerAttr < 1) throw new IllegalArgumentException();
         if (maxAttrs < 1) throw new IllegalArgumentException();
         if (matchRate != 1.0d) throw new UnsupportedOperationException("probabilistic matching not yet supported");
-        if (attributesOrder == null) throw new IllegalArgumentException();
-        if (attributesOrder != Order.UNDEFINED) throw new UnsupportedOperationException("Attribute orders other than Order.UNDEFINED are not yet supported.  Specified order was: " + attributesOrder);
+        if (attributeTypesOrder == null) throw new IllegalArgumentException();
         if (attributeValuesOrder == null) throw new IllegalArgumentException();
         if (templates == null) throw new IllegalArgumentException();
         if (templates.isEmpty()) throw new IllegalArgumentException();
@@ -229,7 +242,7 @@ public class EngineTestBase {
 
         final String template = StasovArrays.chooseRandomWeightedValue(templates);
 
-        final String spec = fill(engine, template, attributeValuesOrder, opportunityAttributes);
+        final String spec = fill(engine, template, attributeTypesOrder, attributeValuesOrder, opportunityAttributes);
 
         specifications.put(ioId, spec);
 
