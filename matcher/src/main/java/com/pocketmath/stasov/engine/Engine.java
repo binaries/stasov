@@ -19,9 +19,9 @@ public class Engine {
         // shameless hard coded logging setup
 
         ConsoleHandler consoleHandler = new ConsoleHandler();
-        consoleHandler.setLevel(Level.FINEST);
+        consoleHandler.setLevel(Level.WARNING);
 
-        logger.setLevel(Level.FINEST);
+        logger.setLevel(Level.WARNING);
         logger.addHandler(consoleHandler);
     }
 
