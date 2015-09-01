@@ -112,7 +112,7 @@ class MatchTree {
             w.println(t+inclusionary.prettyPrint(t + "  ", "typeId  ", "valueId ", "|       "));
             w.println(t+"exclusionary=");
             w.println(t+exclusionary.prettyPrint(t + "  ", "typeId  ", "valueId ", "|       "));
-            w.println(t+"matches=" + matches);
+            if (matches != null) w.println(t+"matches.cardinality()=" + matches.cardinality());
             w.println(t+"}");
 
             return sw.toString();
