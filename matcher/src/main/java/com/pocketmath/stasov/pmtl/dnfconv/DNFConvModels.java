@@ -524,7 +524,10 @@ public class DNFConvModels {
                 final Iterator posItr = positiveValues.iterator();
                 while(posItr.hasNext()) {
                     posChild = posItr.next();
-                    out.print(posChild);
+                    if (posChild instanceof CharSequence)
+                        out.print("\"" + posChild + "\"");
+                    else
+                        out.print(posChild);
                     if (posItr.hasNext())
                         out.print(", ");
                 }
@@ -542,7 +545,10 @@ public class DNFConvModels {
                 final Iterator negItr = negativeValues.iterator();
                 while(negItr.hasNext()) {
                     negChild = negItr.next();
-                    out.print(negChild);
+                    if (negChild instanceof CharSequence)
+                        out.print("\"" + negChild + "\"");
+                    else
+                        out.print(negChild);
                     if (negItr.hasNext())
                         out.print(", ");
                 }

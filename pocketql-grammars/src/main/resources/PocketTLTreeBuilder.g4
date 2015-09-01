@@ -47,6 +47,6 @@ TRUE : [tT][rR][uU][eE];
 FALSE : [fF][aA][lL][sS][eE];
 INT : (('-'|'+') [0-9]+) | [0-9]+;
 FLOAT : (('-'|'+') [0-9]+ '.' [0-9]*) | ([0-9]+ '.' [0-9]*);
-STRING : '"' ([a-zA-Z0-9]|'_')* '"';
+STRING : ('"' ([a-zA-Z0-9]|'_'|' ')* '"') {setText(getText().substring(1, getText().length()-1));}; // strip the quotes;
 ID : ([a-zA-Z]|'_') ([a-zA-Z0-9]|'_')*;
-WS : ' ';
+WS : (' '|'\t'|'\n'|'\r') ;
