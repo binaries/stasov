@@ -1,18 +1,15 @@
 package com.pocketmath.stasov.engine;
 
-import com.google.common.collect.Sets;
 import com.pocketmath.stasov.attributes.AttrSvcBase;
 import com.pocketmath.stasov.attributes.Order;
 import com.pocketmath.stasov.util.StasovArrays;
 import com.pocketmath.stasov.util.Weighted;
-import com.sun.tools.doclint.HtmlTag;
 import it.unimi.dsi.fastutil.longs.LongSortedSet;
 import org.apache.commons.lang.ArrayUtils;
 import org.testng.Assert;
 
+import java.io.PrintWriter;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Created by etucker on 8/27/15.
@@ -259,6 +256,138 @@ public class EngineTestBase {
 
         engine.prettyPrint();
 
+    }
+
+    static class TestData {
+        private Map<Long,String> specifications = new HashMap<Long,String>();
+        private List<Map<String,String>> opportunities = new ArrayList<Map<String,String>>();
+        private final Engine engine = new Engine();
+        private boolean frozen = false;
+
+        public void freeze() {
+            specifications = Collections.<Long,String>unmodifiableMap(specifications);
+            opportunities = Collections.<Map<String,String>>unmodifiableList(opportunities);
+            frozen = true;
+        }
+
+        public Map<String,String> getOpportunityByIndex(final int index) {
+            return opportunities.get(index);
+        }
+
+        public int getOpportunitiesCount() {
+            return opportunities.size();
+        }
+
+        public boolean isFrozen() {
+            return frozen;
+        }
+
+        public Engine getEngine() {
+            return engine;
+        }
+    }
+
+    static TestData buildTest(final Collection<Weighted<String>> templates, final int ordersCount, final int opportunitiesCount, final PrintWriter progressWriter) throws IndexingException {
+        final TestData data = new TestData();
+
+        for (int i = 1; i <= ordersCount; i++) {
+            if (i % 100 == 0 && progressWriter != null) progressWriter.println("i=" + i);
+            generateRandomParameters(i, 100, 100, 1d, Order.RANDOM, Order.RANDOM, templates, data.specifications, data.opportunities);
+        }
+
+        final Engine engine = new Engine();
+        index(engine, data.specifications);
+
+        return data;
+    }
+
+    static TestData buildTest(final Collection<Weighted<String>> templates, final int ordersCount, final int opportunitiesCount) throws IndexingException {
+        return buildTest(templates, ordersCount, opportunitiesCount, null);
+    }
+
+    static LongSortedSet randomQuery(final TestData data, final long[] expectedResults, final Random random) {
+        final int r = random.nextInt(data.getOpportunitiesCount());
+        final LongSortedSet results = query(data.engine, data.getOpportunityByIndex(r), expectedResults);
+        return results;
+    }
+
+    TestResult randomQueries(final TestData data, long n) {
+        Runnable runnable = new Runnable() {
+            public void run() {
+                randomQuery(data, null, random);
+            }
+        };
+        TestResult result = new TestResult(runnable);
+        result.invoke(n);
+        return result;
+    }
+
+    protected Random random = new Random();
+
+    static class TestResult {
+        private Runnable runnable;
+
+        private long startTime = -1;
+        private long invocations = 0;
+        private long endTime = -1;
+        private long maxTime = Long.MIN_VALUE;
+        private long minTime = Long.MAX_VALUE;
+
+        public TestResult(Runnable thread) {
+            this.runnable = thread;
+        }
+
+        public void invoke() {
+            final long start = System.currentTimeMillis();
+            runnable.run();
+            final long end = System.currentTimeMillis();
+            final long time = end - start;
+            if (time > maxTime) maxTime = time;
+            if (time < minTime) minTime = time;
+            invocations++;
+        }
+
+        public void invoke(final long invocations) {
+            startTime = System.currentTimeMillis();
+            for (int i = 0; i < invocations; i++) invoke();
+            endTime = System.currentTimeMillis();
+        }
+
+        public long getTime() {
+            if (invocations <= 0) throw new IllegalStateException();
+            return endTime - startTime;
+        }
+
+        public long getInvocations() {
+            return invocations;
+        }
+
+        public double averageTime() {
+            if (invocations < 0) throw new IllegalStateException();
+            return getTime() / getInvocations();
+        }
+
+        public long getMaxTime() {
+            if (invocations < 0) throw new IllegalStateException();
+            return maxTime;
+        }
+
+        public long getMinTime() {
+            if (invocations < 0) throw new IllegalStateException();
+            return minTime;
+        }
+
+        @Override
+        public String toString() {
+            return "TestResult{" +
+                    "endTime=" + endTime +
+                    ", runnable=" + runnable +
+                    ", startTime=" + startTime +
+                    ", invocations=" + invocations +
+                    ", maxTime=" + maxTime +
+                    ", minTime=" + minTime +
+                    '}';
+        }
     }
 
 }
