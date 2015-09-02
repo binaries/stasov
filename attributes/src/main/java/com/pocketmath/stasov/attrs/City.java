@@ -39,5 +39,27 @@ public class City extends AttributeHandlerMapAutoIdBase {
         add("Barcelona");
         add("Geneva");
         add("Havana");
+        add("Lagos");
+        add("Cape Town");
+        add("Cairo");
+        add("Tehran");
+        add("Sydney");
+        add("Seattle");
+        add("Yerevan");
+        add("Jerusalem");
+        add("Baghdad");
+        add("Tel Aviv");
+        add("Sao Paulo");
+        add("Caracas");
+        add("Charleston");
+        add("York");
+        add("Leeds");
+        add("Cannes");
+        add("Reykjavik");
+        add("Baltimore");
+        add("Cupertino");
+        add("Palo Alto");
+        add("San Diego");
+        add("Menlo Park");
     }
 }
