@@ -10,6 +10,7 @@ import com.pocketmath.stasov.pmtl.PocketTLDataException;
 import com.pocketmath.stasov.pmtl.PocketTLLanguageException;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.DiagnosticErrorListener;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -105,6 +106,14 @@ class PocketTLIndexer {
         CommonTokenStream nftokens = new CommonTokenStream(nflexer);
 
         PocketQLNormalFormParser nfparser = new PocketQLNormalFormParser(nftokens);
+
+        final DiagnosticErrorListener diagnosticErrorListener = new DiagnosticErrorListener(true);
+
+        nflexer.removeErrorListeners();
+        nflexer.addErrorListener(diagnosticErrorListener);
+
+        nfparser.removeErrorListeners();
+        nflexer.addErrorListener(diagnosticErrorListener);
 
         BranchBuilder branch = new BranchBuilder(tree, matches);
 
