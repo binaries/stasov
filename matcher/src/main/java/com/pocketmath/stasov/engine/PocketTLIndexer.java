@@ -113,7 +113,7 @@ class PocketTLIndexer {
         nflexer.addErrorListener(diagnosticErrorListener);
 
         nfparser.removeErrorListeners();
-        nflexer.addErrorListener(diagnosticErrorListener);
+        nfparser.addErrorListener(diagnosticErrorListener);
 
         BranchBuilder branch = new BranchBuilder(tree, matches);
 
