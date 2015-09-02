@@ -17,5 +17,27 @@ public class City extends AttributeHandlerMapAutoIdBase {
         add("Los Angeles");
         add("London");
         add("Tokyo");
+        add("Langkawi");
+        add("Hong Kong");
+        add("Bellaire");
+        add("Newark");
+        add("Paris");
+        add("Berlin");
+        add("Frankfurt");
+        add("Kuala Lumpur");
+        add("Taipei");
+        add("Beijing");
+        add("Moscow");
+        add("Mumbai");
+        add("Ho Chi Minh City");
+        add("Little Rock");
+        add("Miami");
+        add("Guadalajara");
+        add("Puerto Vallarta");
+        add("Rio de Janeiro");
+        add("Madrid");
+        add("Barcelona");
+        add("Geneva");
+        add("Havana");
     }
 }
