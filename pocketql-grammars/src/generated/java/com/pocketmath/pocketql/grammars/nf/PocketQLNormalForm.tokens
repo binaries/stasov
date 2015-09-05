@@ -6,8 +6,8 @@ AND=5
 OR=6
 NOT=7
 IN=8
-WS=9
-ALPHANUM=10
+ALPHANUM=9
+WS=10
 '='=1
 '('=2
 ','=3
