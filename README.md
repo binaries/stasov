@@ -72,7 +72,11 @@ The following plugins are recommended:
 ANTLR and FreeMarker support in the IDE require the commercial (non-free) version of IDEA.
 
 # MAVEN
-TODO
+
+You must compile before running tests.  This is a workaroudn for some code generation funkiness.
+
+mvn compile
+mvn test
 
 # MODULES + SOURCE ORGANIZATION
 
