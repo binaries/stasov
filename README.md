@@ -73,10 +73,11 @@ ANTLR and FreeMarker support in the IDE require the commercial (non-free) versio
 
 # MAVEN
 
-You must compile before running tests.  This is a workaroudn for some code generation funkiness.
-
+You must compile before running tests.  This is a workaround for some code generation funkiness.
+```
 mvn compile
 mvn test
+```
 
 # MODULES + SOURCE ORGANIZATION
 
