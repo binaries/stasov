@@ -5,6 +5,6 @@ package com.pocketmath.stasov.util;
  */
 public interface PrettyPrintable {
 
-    String prettyPrint(String prefix);
+    public String prettyPrint(String prefix);
 
 }

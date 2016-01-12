@@ -10,11 +10,13 @@
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>attributes</module>
-        <module>stasov-util</module>
+        <module>attributes-common</module>
+        <module>attributes-devel</module>
         <module>attributes-generated-glue</module>
         <module>pocketql-grammars</module>
         <module>matcher</module>
         <module>stasov-common</module>
+        <module>stasov-util</module>
     </modules>
 
     <dependencies>
@@ -24,11 +26,5 @@
             <version>2.3.22</version>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-
-        </plugins>
-    </build>
 
 </project>

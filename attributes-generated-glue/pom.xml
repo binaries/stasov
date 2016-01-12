@@ -6,10 +6,101 @@
         <artifactId>com.pocketmath.stasov</artifactId>
         <groupId>com.pocketmath</groupId>
         <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>attributes-generated-glue</artifactId>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.4.0</version>
+                <configuration>
+                    <!--<executable>java</executable>-->
+                    <mainClass>com.pocketmath.stasov.attributes.AttrSvcGenerator</mainClass>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <phase>compile</phase>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.build.directory}/generated-sources</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>com.pocketmath</groupId>
+            <artifactId>attributes-devel</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.pocketmath</groupId>
+            <artifactId>attributes</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.pocketmath</groupId>
+            <artifactId>attributes-common</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.pocketmath</groupId>
+            <artifactId>stasov-common</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+    <!--    <dependency>
+            <groupId>com.pocketmath</groupId>
+            <artifactId>stasov-common</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.pocketmath</groupId>
+            <artifactId>stasov-util</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.pocketmath</groupId>
+            <artifactId>attributes-common</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.pocketmath</groupId>
+            <artifactId>attributes</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        -->
+    </dependencies>
 
 </project>

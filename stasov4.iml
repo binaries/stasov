@@ -13,7 +13,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="com.google.guava:guava:18.0" level="project" />
-    <orderEntry type="library" name="it.unimi.dsi:fastutil:6.6.4" level="project" />
     <orderEntry type="library" name="org.reflections:reflections:0.9.9" level="project" />
     <orderEntry type="library" name="com.webguys:string-template-maven-plugin:1.1" level="project" />
     <orderEntry type="library" name="commons-lang:commons-lang:2.6" level="project" />
@@ -27,6 +26,7 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="org.antlr:antlr4:4.5" level="project" />
+    <orderEntry type="library" name="it.unimi.dsi:fastutil:6.5.11" level="project" />
     <orderEntry type="library" name="Maven: org.freemarker:freemarker:2.3.22" level="project" />
   </component>
 </module>

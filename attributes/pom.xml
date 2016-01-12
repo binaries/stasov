@@ -6,15 +6,18 @@
         <artifactId>com.pocketmath.stasov</artifactId>
         <groupId>com.pocketmath</groupId>
         <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>attributes</artifactId>
-    <packaging>pom</packaging>
-    <modules>
-        <module>../attributes-devel</module>
-        <module>../attributes-common</module>
-    </modules>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.pocketmath</groupId>
+            <artifactId>attributes-common</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 
 </project>

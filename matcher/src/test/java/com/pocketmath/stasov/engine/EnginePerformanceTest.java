@@ -16,6 +16,7 @@ import java.util.*;
 /**
  * Created by etucker on 8/27/15.
  */
+@Test(singleThreaded = true)
 public class EnginePerformanceTest extends EngineTestBase {
 
     private static long[] arrayify(Collection<Long> collection) {
@@ -378,7 +379,7 @@ public class EnginePerformanceTest extends EngineTestBase {
 
         final TestResult result = randomQueries(testData, 10000L);
 
-        System.out.println("Result: " + result);
+        System.out.println("Result test100: " + result);
 
         Assert.assertTrue(result.averageTime() < 10);
         Assert.assertTrue(result.getMaxTime() < 20);
@@ -393,7 +394,7 @@ public class EnginePerformanceTest extends EngineTestBase {
 
         final TestResult result = randomQueries(testData, 10000L);
 
-        System.out.println("Result: " + result);
+        System.out.println("Result test101: " + result);
 
         Assert.assertTrue(result.averageTime() < 10);
         Assert.assertTrue(result.getMaxTime() < 20);
@@ -404,11 +405,11 @@ public class EnginePerformanceTest extends EngineTestBase {
         final Collection<Weighted<String>> templates = new HashSet<Weighted<String>>(Collections.unmodifiableList(Arrays.asList(new Template[]{
                 new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\" AND ${k3}=\"${v3}\" AND ${k4}=\"${v4}\" AND ${k5}=\"${v5}\" AND ${k6}=\"${v6}\" AND ${k7}=\"${v7}\" AND ${k8}=\"${v8}\" AND ${k9}=\"${v9}\"", 1d), // OR ${k10}=\"${v10}\" OR ${k11}=\"${v11}\" OR ${k12}=\"${v12}\" OR ${k13}=\"${v13}\" OR ${k14}=\"${v14}\" OR ${k15}=\"${v15}\" OR ${k16}=\"${v16}\" OR ${k17}=\"${v17}\" OR ${k18}=\"${v18}\" OR ${k19}=\"${v19}\" OR ${k20}=\"${v20}\" OR ${k21}=\"${v21}\"", 1d),
         })));
-        final TestData testData = buildTest(templates, 200000, 10000);
+        final TestData testData = buildTest(templates, 20000, 10000);
 
         final TestResult result = randomQueries(testData, 10000L);
 
-        System.out.println("Result: " + result);
+        System.out.println("Result test102: " + result);
 
         Assert.assertTrue(result.averageTime() < 10);
         Assert.assertTrue(result.getMaxTime() < 20);
@@ -419,11 +420,56 @@ public class EnginePerformanceTest extends EngineTestBase {
         final Collection<Weighted<String>> templates = new HashSet<Weighted<String>>(Collections.unmodifiableList(Arrays.asList(new Template[]{
                 new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\" AND ${k3}=\"${v3}\" AND ${k4}=\"${v4}\" AND ${k5}=\"${v5}\" AND ${k6}=\"${v6}\" AND ${k7}=\"${v7}\" AND ${k8}=\"${v8}\" AND ${k9}=\"${v9}\"", 1d), // OR ${k10}=\"${v10}\" OR ${k11}=\"${v11}\" OR ${k12}=\"${v12}\" OR ${k13}=\"${v13}\" OR ${k14}=\"${v14}\" OR ${k15}=\"${v15}\" OR ${k16}=\"${v16}\" OR ${k17}=\"${v17}\" OR ${k18}=\"${v18}\" OR ${k19}=\"${v19}\" OR ${k20}=\"${v20}\" OR ${k21}=\"${v21}\"", 1d),
         })));
-        final TestData testData = buildTest(templates, 10000, 1000000);
+        final TestData testData = buildTest(templates, 20000, 1000000);
 
         final TestResult result = randomQueries(testData, 1000000L);
 
-        System.out.println("Result: " + result);
+        System.out.println("Result test103: " + result);
+
+        Assert.assertTrue(result.averageTime() < 10);
+        Assert.assertTrue(result.getMaxTime() < 20);
+    }
+
+    @Test(enabled = false)
+    public void test104() throws IndexingException {
+        final Collection<Weighted<String>> templates = new HashSet<Weighted<String>>(Collections.unmodifiableList(Arrays.asList(new Template[]{
+                new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\" AND ${k3}=\"${v3}\" AND ${k4}=\"${v4}\" AND ${k5}=\"${v5}\" AND ${k6}=\"${v6}\" AND ${k7}=\"${v7}\" AND ${k8}=\"${v8}\" AND ${k9}=\"${v9}\"", 1d), // OR ${k10}=\"${v10}\" OR ${k11}=\"${v11}\" OR ${k12}=\"${v12}\" OR ${k13}=\"${v13}\" OR ${k14}=\"${v14}\" OR ${k15}=\"${v15}\" OR ${k16}=\"${v16}\" OR ${k17}=\"${v17}\" OR ${k18}=\"${v18}\" OR ${k19}=\"${v19}\" OR ${k20}=\"${v20}\" OR ${k21}=\"${v21}\"", 1d),
+        })));
+        final TestData testData = buildTest(templates, 50000, 1000000);
+
+        final TestResult result = randomQueries(testData, 1000000L);
+
+        System.out.println("Result test104: " + result);
+
+        Assert.assertTrue(result.averageTime() < 10);
+        Assert.assertTrue(result.getMaxTime() < 20);
+    }
+
+    @Test(enabled = false)
+    public void test105() throws IndexingException {
+        final Collection<Weighted<String>> templates = new HashSet<Weighted<String>>(Collections.unmodifiableList(Arrays.asList(new Template[]{
+                new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\" AND ${k3}=\"${v3}\" AND ${k4}=\"${v4}\" AND ${k5}=\"${v5}\" AND ${k6}=\"${v6}\" AND ${k7}=\"${v7}\" AND ${k8}=\"${v8}\" AND ${k9}=\"${v9}\"", 1d), // OR ${k10}=\"${v10}\" OR ${k11}=\"${v11}\" OR ${k12}=\"${v12}\" OR ${k13}=\"${v13}\" OR ${k14}=\"${v14}\" OR ${k15}=\"${v15}\" OR ${k16}=\"${v16}\" OR ${k17}=\"${v17}\" OR ${k18}=\"${v18}\" OR ${k19}=\"${v19}\" OR ${k20}=\"${v20}\" OR ${k21}=\"${v21}\"", 1d),
+        })));
+        final TestData testData = buildTest(templates, 100000, 1000000);
+
+        final TestResult result = randomQueries(testData, 1000000L);
+
+        System.out.println("Result test105: " + result);
+
+        Assert.assertTrue(result.averageTime() < 10);
+        Assert.assertTrue(result.getMaxTime() < 20);
+    }
+
+    @Test(enabled = false)
+    public void test200() throws IndexingException {
+        final Collection<Weighted<String>> templates = new HashSet<Weighted<String>>(Collections.unmodifiableList(Arrays.asList(new Template[]{
+                new Template("${k1}=\"${v1}\" OR ${k2}=\"${v2}\" OR ${k3}=\"${v3}\" OR ${k4}=\"${v4}\" OR ${k5}=\"${v5}\" OR ${k6}=\"${v6}\" AND ${k7}=\"${v7}\" AND ${k8}=\"${v8}\" AND ${k9}=\"${v9}\"", 1d), // OR ${k10}=\"${v10}\" OR ${k11}=\"${v11}\" OR ${k12}=\"${v12}\" OR ${k13}=\"${v13}\" OR ${k14}=\"${v14}\" OR ${k15}=\"${v15}\" OR ${k16}=\"${v16}\" OR ${k17}=\"${v17}\" OR ${k18}=\"${v18}\" OR ${k19}=\"${v19}\" OR ${k20}=\"${v20}\" OR ${k21}=\"${v21}\"", 1d),
+        })));
+        final TestData testData = buildTest(templates, 100000, 1000000);
+
+        final TestResult result = randomQueries(testData, 1000000L);
+
+        System.out.println("Result test105: " + result);
 
         Assert.assertTrue(result.averageTime() < 10);
         Assert.assertTrue(result.getMaxTime() < 20);

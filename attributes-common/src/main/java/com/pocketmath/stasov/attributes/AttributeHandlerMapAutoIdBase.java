@@ -8,11 +8,12 @@ import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by etucker on 6/23/15.
  */
-public class  AttributeHandlerMapAutoIdBase extends AttributeHandler {
+public class AttributeHandlerMapAutoIdBase extends AttributeHandler {
 
     private long sequence = 0;
 

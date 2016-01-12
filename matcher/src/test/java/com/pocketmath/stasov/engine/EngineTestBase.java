@@ -4,8 +4,10 @@ import com.pocketmath.stasov.attributes.AttrSvcBase;
 import com.pocketmath.stasov.attributes.Order;
 import com.pocketmath.stasov.util.StasovArrays;
 import com.pocketmath.stasov.util.Weighted;
+
 import it.unimi.dsi.fastutil.longs.LongSortedSet;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.IllegalClassException;
 import org.testng.Assert;
 
 import java.io.PrintWriter;
@@ -58,7 +60,7 @@ public class EngineTestBase {
         for (final Map.Entry<Long, String> spec : specifications.entrySet()) {
             final long id = spec.getKey();
             final String pmtl = spec.getValue();
-            System.out.println("PMTL: " + pmtl);
+            //System.out.println("PMTL: " + pmtl);
             assert(pmtl != null);
             engine.index(pmtl, id);
         }
@@ -140,6 +142,8 @@ public class EngineTestBase {
         System.out.println("expect: " + Arrays.toString(expectedResults));
 
         index(engine, specifications);
+
+        System.out.println("Engine: " + engine.prettyPrint());
 
         return query(engine, opportunityAttributes, expectedResults);
     }
@@ -364,7 +368,7 @@ public class EngineTestBase {
 
         public double averageTime() {
             if (invocations < 0) throw new IllegalStateException();
-            return getTime() / getInvocations();
+            return getTime() / (double)getInvocations();
         }
 
         public long getMaxTime() {
@@ -377,15 +381,23 @@ public class EngineTestBase {
             return minTime;
         }
 
+        public double getInvocationsPerSecond() {
+            if (invocations < 0) throw new IllegalStateException();
+            return ((double)invocations) * ( ((double)1000) / getTime() );
+        }
+
         @Override
         public String toString() {
             return "TestResult{" +
-                    "endTime=" + endTime +
-                    ", runnable=" + runnable +
-                    ", startTime=" + startTime +
+                    "time=" + getTime() + "ms" +
+                  //  "endTime=" + endTime +
+                  //  ", runnable=" + runnable +
+                  //  ", startTime=" + startTime +
                     ", invocations=" + invocations +
-                    ", maxTime=" + maxTime +
-                    ", minTime=" + minTime +
+                    ", maxTime=" + maxTime + "ms" +
+                    ", minTime=" + minTime + "ms" +
+                    ", avgTime=" + averageTime() + "ms" +
+                    ", invocations/s=" + getInvocationsPerSecond() +
                     '}';
         }
     }

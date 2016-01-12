@@ -317,6 +317,7 @@ public class EngineLogicTest extends EngineTestBase {
 
     @Test
     public void test301() throws IndexingException {
+        System.out.println("hello");
         testIndexAndQuery(
                 ImmutableMap.<Long,String>of(
                         1L, "city IN (\"austin\", NOT \"london\") AND creativesize = \"300x250\"",

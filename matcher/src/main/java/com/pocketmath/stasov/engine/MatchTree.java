@@ -1,7 +1,6 @@
 package com.pocketmath.stasov.engine;
 
 import com.pocketmath.stasov.attributes.AttrSvcBase;
-import com.pocketmath.stasov.attributes.AttributeHandlers;
 import com.pocketmath.stasov.util.*;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
@@ -25,7 +24,7 @@ class MatchTree {
         }
     }
 
-    static final NodeComparator NODE_COMPARATOR = new NodeComparator();
+    static final Comparator NODE_COMPARATOR = new NodeComparator();
 
     static class Node implements Comparable<Node>, PrettyPrintable {
 

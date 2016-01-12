@@ -59,13 +59,16 @@ public class AttrSvcGenerator {
             data.put("imports", imports);
             data.put("attrs", attrs);
 
-            final String oppDataGenOutput = "attributes-generated-glue/src/generated/java/com/pocketmath/stasov/OpportunityData.java";
+            File f = new File("attributes-generated-glue/target/generated-sources/java/com/pocketmath/stasov/attributes");
+            f.mkdirs();
+
+            final String oppDataGenOutput = "attributes-generated-glue/target/generated-sources/java/com/pocketmath/stasov/OpportunityData.java";
             data.put("package", "com.pocketmath.stasov");
             data.put("className", "OpportunityData");
             write(data, "attributes-devel/src/main/resources/templates/OpportunityData.ftl", oppDataGenOutput, cfg);
             System.out.println("generated source written to: " + oppDataGenOutput);
 
-            final String attributeHandlersGenOutput = "attributes-generated-glue/src/generated/java/com/pocketmath/stasov/attributes/AttributeHandlers.java";
+            final String attributeHandlersGenOutput = "attributes-generated-glue/target/generated-sources/java/com/pocketmath/stasov/attributes/AttributeHandlers.java";
             data.put("package", "com.pocketmath.stasov.attributes");
             data.put("className", "AttributeHandlers");
             write(data, "attributes-devel/src/main/resources/templates/AttributeHandlers.ftl", attributeHandlersGenOutput, cfg);

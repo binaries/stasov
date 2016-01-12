@@ -6,9 +6,9 @@ import com.pocketmath.pocketql.grammars.anytree.PocketTLTreeBuilderLexer;
 import com.pocketmath.pocketql.grammars.anytree.PocketTLTreeBuilderParser;
 import com.pocketmath.pocketql.grammars.anytree.PocketTLTreeBuilderParser.*;
 import com.pocketmath.stasov.pmtl.PocketTLLanguageException;
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.atn.ATNConfigSet;
+import org.antlr.v4.runtime.dfa.DFA;
 
 import java.util.*;
 import java.util.logging.ConsoleHandler;

@@ -7,7 +7,7 @@ import java.util.Objects;
  */
 public abstract class Weighted<V extends Comparable<V>> implements Comparable<Weighted<V>> {
 
-    private final double weight;
+    private double weight;
 
     public Weighted(final double weight) {
         if (weight < 0d) throw new IllegalArgumentException();
