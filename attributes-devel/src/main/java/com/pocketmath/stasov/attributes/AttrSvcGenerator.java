@@ -3,6 +3,7 @@ package com.pocketmath.stasov.attributes;
 import freemarker.template.*;
 
 import java.io.*;
+import java.lang.annotation.Annotation;
 import java.net.InetAddress;
 import java.util.*;
 
@@ -31,6 +32,9 @@ public class AttrSvcGenerator {
 
             final SortedSet<String> imports = new TreeSet<String>();
 
+            imports.add(AttributeHandler.class.getName());
+            imports.add(AttributeHandlerConcurrentCachingProxy.class.getName());
+
             final Map<String, Object> data = new HashMap<String, Object>();
 
             data.put("datetime", new Date().toString() + " on host " + InetAddress.getLocalHost().getHostName() + " by user " + System.getProperty("user.name"));
@@ -45,19 +49,45 @@ public class AttrSvcGenerator {
                 imports.add(entry.getValue().getName());
             }
 
-            final List<AttrMeta> attrs = new ArrayList<AttrMeta>();
+            final List<AttrMeta> allAttrs = new ArrayList<AttrMeta>();
             for (Map.Entry<String,Class> entry : attrNames.entrySet()) {
+                final Class cl = entry.getValue();
+                boolean cached = false;
+                int cacheSize = -1;
+                final Annotation anno = cl.getAnnotation(AttributeType.class);
+                System.out.println("entry: " + entry);
+                System.out.println("anno: " + anno);
+                System.out.println("entryvalue: " + entry.getValue().getAnnotations().length);
+                if (anno != null) {
+                    final AttributeType attrTypeAnno = (AttributeType) anno;
+                    cached = attrTypeAnno.cached();
+                    cacheSize = attrTypeAnno.cacheSize();
+                }
                 String name = entry.getKey();
-                AttrMeta attr = new AttrMeta(name, name.toLowerCase(), attrTypeIds.get(name));
-                attrs.add(attr);
+                AttrMeta attr = new AttrMeta(name, name.toLowerCase(), attrTypeIds.get(name), cached, cacheSize);
+                allAttrs.add(attr);
             }
 
-            if (attrs.isEmpty()) {
+            if (allAttrs.isEmpty()) {
                 throw new IllegalStateException("no attrs found");
             }
 
+            final List<AttrMeta> attrs = new ArrayList<AttrMeta>();
+            final List<AttrMeta> cacheAttrs = new ArrayList<AttrMeta>();
+
+            for (AttrMeta attr : allAttrs) {
+                if (attr.isCached())
+                    cacheAttrs.add(attr);
+                else
+                    attrs.add(attr);
+            }
+
             data.put("imports", imports);
+            data.put("allAttrs", allAttrs);
             data.put("attrs", attrs);
+            data.put("cacheAttrs", cacheAttrs);
+
+            data.put("cacheClass", AttributeHandlerConcurrentCachingProxy.class.getSimpleName());
 
             File f = new File("attributes-generated-glue/target/generated-sources/java/com/pocketmath/stasov/attributes");
             f.mkdirs();

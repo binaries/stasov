@@ -5,17 +5,26 @@ import it.unimi.dsi.fastutil.objects.Object2LongLinkedOpenHashMap;
 /**
  * Created by etucker on 3/29/15.
  */
-public class Object2LongCacheMap<K> {
+public class Object2LongFIFOCacheMap<K> {
 
     private final Object2LongLinkedOpenHashMap<K> map = new Object2LongLinkedOpenHashMap<K>();
     private final int capacity;
 
-    public Object2LongCacheMap(final int capacity) {
+    public Object2LongFIFOCacheMap(final int capacity, final long defaultReturnValue) {
+        this.capacity = capacity;
+        map.defaultReturnValue(defaultReturnValue);
+    }
+
+    public Object2LongFIFOCacheMap(final int capacity) {
         this.capacity = capacity;
     }
 
-    public Object2LongCacheMap() {
+    public Object2LongFIFOCacheMap() {
         this(1024*1024);
+    }
+
+    public void defaultReturnValue(long value) {
+        map.defaultReturnValue(value);
     }
 
     public void put(final K key, final long value) {
@@ -28,6 +37,8 @@ public class Object2LongCacheMap<K> {
     public long get(final K key) {
         return map.get(key);
     }
+
+
 
     public int capacity() {
         return capacity;
@@ -47,5 +58,17 @@ public class Object2LongCacheMap<K> {
 
     public void clear() {
         map.clear();
+    }
+
+    public boolean containsKey(K name) {
+        return map.containsKey(name);
+    }
+
+    public boolean containsValue(long id) {
+        return map.containsValue(id);
+    }
+
+    public long getLong(K s) {
+        return map.getLong(s);
     }
 }

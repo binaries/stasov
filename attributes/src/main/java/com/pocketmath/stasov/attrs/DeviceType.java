@@ -1,10 +1,12 @@
 package com.pocketmath.stasov.attrs;
 
 import com.pocketmath.stasov.attributes.AttributeHandler;
+import com.pocketmath.stasov.attributes.AttributeType;
 
 /**
  * Created by etucker on 3/14/15.
  */
+@AttributeType
 public class DeviceType extends AttributeHandler {
 
     @Override

@@ -1,12 +1,13 @@
 package com.pocketmath.stasov.attrs;
 
-import com.pocketmath.stasov.attributes.AttributeHandler;
-import com.pocketmath.stasov.attributes.AttributeHandlerMapAutoIdBase;
+import com.pocketmath.stasov.attributes.AttributeHandlerMapAutoId;
+import com.pocketmath.stasov.attributes.AttributeType;
 
 /**
  * Created by etucker on 3/13/15.
  */
-public class City extends AttributeHandlerMapAutoIdBase {
+@AttributeType(cached=true, cacheSize=8)
+public class City extends AttributeHandlerMapAutoId {
 
     public City() {
         add("Austin");

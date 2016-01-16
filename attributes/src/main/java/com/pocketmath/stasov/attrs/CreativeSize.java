@@ -1,13 +1,13 @@
 package com.pocketmath.stasov.attrs;
 
-import com.pocketmath.stasov.attributes.AttributeHandler;
-import com.pocketmath.stasov.attributes.AttributeHandlerMapAutoIdBase;
-import com.pocketmath.stasov.attributes.AttributeHandlerMapBase;
+import com.pocketmath.stasov.attributes.AttributeHandlerMapAutoId;
+import com.pocketmath.stasov.attributes.AttributeType;
 
 /**
  * Created by etucker on 6/23/15.
  */
-public class CreativeSize extends AttributeHandlerMapAutoIdBase {
+@AttributeType
+public class CreativeSize extends AttributeHandlerMapAutoId {
 
     public CreativeSize() {
         add("300x250");

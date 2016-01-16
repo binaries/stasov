@@ -27,20 +27,39 @@
         <module name="attributes-devel" />
         <module name="attributes-generated-glue" />
         <module name="matcher" />
-        <module name="pocketql-grammars" />
         <module name="stasov-common" />
+      </profile>
+      <profile default="false" name="Annotation profile for pocketql-grammars" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="pocketql-grammars" />
+      </profile>
+      <profile default="false" name="Annotation profile for stasov-util" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
         <module name="stasov-util" />
+      </profile>
+      <profile default="false" name="Annotation profile for attributes" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="attributes" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="attributes" target="1.5" />
+      <module name="attributes" target="1.8" />
       <module name="attributes-common" target="1.5" />
       <module name="attributes-devel" target="1.5" />
       <module name="attributes-generated-glue" target="1.5" />
       <module name="matcher" target="1.5" />
-      <module name="pocketql-grammars" target="1.5" />
+      <module name="pocketql-grammars" target="1.8" />
       <module name="stasov-common" target="1.5" />
-      <module name="stasov-util" target="1.5" />
+      <module name="stasov-util" target="1.8" />
       <module name="stasov4" target="1.5" />
     </bytecodeTargetLevel>
   </component>

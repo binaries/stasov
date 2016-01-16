@@ -13,18 +13,17 @@ import java.util.List;
 /**
  * Created by etucker on 6/23/15.
  */
-public class AttributeHandlerMapAutoIdBase extends AttributeHandler {
+public abstract class AttributeHandlerMapAutoId extends AttributeHandler {
 
     private long sequence = 0;
-
-    private static final long NOT_FOUND = -1;
 
     private final Object2LongMap<String> map = new Object2LongOpenHashMap<String>();
     {
         map.defaultReturnValue(NOT_FOUND);
     }
 
-    private void put(final String name, final long id) {
+    @Override
+    public void put(final String name, final long id) {
         final String _name = name.toLowerCase();
         if (map.containsKey(_name)) throw new IllegalArgumentException("duplicate: " + name);
         if (map.containsValue(id)) throw new IllegalArgumentException("duplicate: " + id);
