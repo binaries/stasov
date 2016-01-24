@@ -53,6 +53,13 @@ public class Long2ObjectMultiValueMap<V extends Comparable<V>> extends AbstractM
         return set.contains(value);
     }
 
+    public int occurrences(final long key) {
+        final ObjectSet<V> set = map.get(key);
+        if (set == null) return 0;
+        if (set.isEmpty()) throw new IllegalStateException("empty set is not supposed to exist");
+        return set.size();
+    }
+
     public boolean containsKey(final long key) {
         return map.containsKey(key);
     }
@@ -67,7 +74,7 @@ public class Long2ObjectMultiValueMap<V extends Comparable<V>> extends AbstractM
         return true;
     }
 
-    public void remove(final long key, final long value) {
+    public void remove(final long key, final V value) {
         final ObjectSet set = map.get(key);
         if (set != null) set.remove(value);
         else return;
