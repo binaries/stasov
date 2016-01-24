@@ -74,6 +74,13 @@ public class Long2ObjectMultiValueMap<V extends Comparable<V>> extends AbstractM
         return true;
     }
 
+    public void remove(final long key, final long value) {
+        final ObjectSet set = map.get(key);
+        if (set != null) set.remove(value);
+        else return;
+        if (set.isEmpty()) map.remove(key);
+    }
+
     public void remove(final long key, final V value) {
         final ObjectSet set = map.get(key);
         if (set != null) set.remove(value);
