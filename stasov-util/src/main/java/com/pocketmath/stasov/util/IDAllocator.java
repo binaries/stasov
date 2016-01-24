@@ -1,9 +1,11 @@
 package com.pocketmath.stasov.util;
 
+import it.unimi.dsi.fastutil.longs.LongComparators;
 import it.unimi.dsi.fastutil.longs.LongRBTreeSet;
 import it.unimi.dsi.fastutil.longs.LongSortedSet;
 
 import java.util.ArrayDeque;
+import java.util.Iterator;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
@@ -15,7 +17,7 @@ import java.util.Queue;
 public class IDAllocator {
 
     private volatile PriorityQueue<Long> freeList = new PriorityQueue<Long>(); // prefer lower numbers
-    private volatile LongSortedSet allocated = new LongRBTreeSet();
+    private volatile PriorityQueue<Long> allocated = new PriorityQueue<Long>(LongComparators.OPPOSITE_COMPARATOR); // prefer higher numbers when iterating or force deallocating
 
     private final long maxId;
 
@@ -55,6 +57,21 @@ public class IDAllocator {
     public synchronized void deallocateId(final long id) {
         freeList.add(id);
         allocated.remove(id);
+    }
+
+    /**
+     *
+     * @return from largest ID down
+     */
+    public synchronized Iterator<Long> allocatedIdsDescendingIterator() {
+        return allocated.iterator();
+    }
+
+    public synchronized long deallocate() {
+        final Long id = allocated.poll();
+        if (id == null) return -1l;
+        freeList.add(id);
+        return id.longValue();
     }
 
 }
