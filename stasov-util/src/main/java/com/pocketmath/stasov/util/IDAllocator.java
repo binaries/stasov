@@ -25,6 +25,7 @@ public class IDAllocator {
 
     protected IDAllocator(final long maxId) {
         this.maxId = maxId;
+        checkInvariants();
     }
 
     @Deprecated
@@ -44,19 +45,35 @@ public class IDAllocator {
         return newIDAllocator(Integer.MAX_VALUE);
     }
 
+    private void checkInvariants() {
+        if (freeList == null) throw new IllegalStateException();
+        if (allocated == null) throw new IllegalStateException();
+        if (maxId < 1) throw new IllegalStateException();
+        if (seq >= maxId) throw new IllegalStateException();
+    }
+
     public synchronized long allocateId() {
+        checkInvariants();
+
         if (!freeList.isEmpty()) return freeList.poll();
         do
             if (seq >= maxId)
                 throw new IllegalStateException("no more available internal IDs");
         while (allocated.contains(seq++));
         allocated.add(seq);
+
+        checkInvariants();
+
         return seq;
     }
 
     public synchronized void deallocateId(final long id) {
+        checkInvariants();
+
         freeList.add(id);
         allocated.remove(id);
+
+        checkInvariants();
     }
 
     /**
@@ -64,13 +81,19 @@ public class IDAllocator {
      * @return from largest ID down
      */
     public synchronized Iterator<Long> allocatedIdsDescendingIterator() {
+        checkInvariants();
         return allocated.iterator();
     }
 
     public synchronized long deallocate() {
+        checkInvariants();
+
         final Long id = allocated.poll();
         if (id == null) return -1l;
         freeList.add(id);
+
+        checkInvariants();
+
         return id.longValue();
     }
 
