@@ -6,6 +6,8 @@ import com.pocketmath.stasov.pmtl.PocketTLLanguageException;
 import it.unimi.dsi.fastutil.longs.LongSortedSet;
 
 import java.io.Serializable;
+import java.util.BitSet;
+import java.util.function.Consumer;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -151,8 +153,12 @@ class EngineBase<ObjectType extends Serializable & Comparable> extends Engine<Ob
     */
 
     public void remove(final ObjectType id) throws IndexingException {
-        //final long internalId = idTranslator.toId(id);
-        throw new UnsupportedOperationException();
+        checkInvariants();
+        final long internalId = idTranslator.toId(id);
+        tree.remove(internalId);
+        tracker.diassociate(internalId);
+        idTranslator.remove(id);
+        checkInvariants();
     }
 
     public Object[] query(final OpportunityDataBase opportunity) {

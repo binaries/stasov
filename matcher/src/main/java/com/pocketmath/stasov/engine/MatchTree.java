@@ -11,6 +11,7 @@ import it.unimi.dsi.fastutil.objects.ObjectSortedSet;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Created by etucker on 3/16/15.
@@ -468,6 +469,28 @@ class MatchTree {
         if (bitSet == null) return null;
         final LongSortedSet ids = bitSetTranslator.toIds(bitSet, LongComparators.NATURAL_COMPARATOR);
         return ids;
+    }
+
+   private class RemoveConsumer implements Consumer<MatchTree.Node> {
+        private long id = -1l;
+
+        public void setId(final long id) {
+            this.id = id;
+        }
+
+        @Override
+        public void accept(MatchTree.Node node) {
+            final BitSet matches = node.getMatches();
+            matches.clear((int)id);
+        }
+    };
+
+    private final RemoveConsumer REMOVE_CONSUMER = new RemoveConsumer();
+
+    public void remove(final long id) {
+        if (!tracker.inUse(id)) throw new IllegalStateException("attempt to remove an id not in use");
+        REMOVE_CONSUMER.setId(id);
+        tracker.operateOnNodes(id, REMOVE_CONSUMER);
     }
 
     @Override

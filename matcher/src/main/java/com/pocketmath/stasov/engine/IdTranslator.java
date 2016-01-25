@@ -32,6 +32,8 @@ class IdTranslator<IDT> {
         if (idAllocator == null) throw new IllegalStateException();
         if (ido == null) throw new IllegalStateException();
         if (oid == null) throw new IllegalStateException();
+        if (ido.size() != oid.size()) throw new IllegalStateException();
+        if (ido.size() != idAllocator.allocatedCount()) throw new IllegalStateException();
     }
 
     /**
@@ -79,6 +81,17 @@ class IdTranslator<IDT> {
         final IDT o = fastToO(id);
         checkInvariants();
         return o;
+    }
+
+    public void remove(final IDT o) {
+        checkInvariants();
+        long id = oid.getLong(o);
+        if (id == oid.defaultReturnValue())
+            throw new IllegalStateException("attempting to remove non-existent object: " + o);
+        oid.remove(o);
+        ido.remove(id);
+        idAllocator.deallocateId(id);
+        checkInvariants();
     }
 
     private static void refactorBitSet(final Long2LongMap m, final BitSet oldBS, final BitSet newBS) {
@@ -160,6 +173,14 @@ class IdTranslator<IDT> {
         updateObjectMappings(map);
         checkInvariants();
         return map.size();
+    }
+
+    int objectsCount() {
+        return oid.size();
+    }
+
+    int idsCount() {
+        return ido.size();
     }
 
 }

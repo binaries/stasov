@@ -1,10 +1,15 @@
 package com.pocketmath.stasov.engine;
 
 import com.pocketmath.stasov.util.Long2ObjectMultiValueMap;
+import it.unimi.dsi.fastutil.objects.ObjectSortedSet;
 
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
 import java.util.BitSet;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 
 /**
  * Created by etucker on 1/23/16.
@@ -16,12 +21,21 @@ class Tracker {
 
     private final Set<MatchTree.Node> allNodes = new TreeSet<MatchTree.Node>(MatchTree.NODE_COMPARATOR);
 
-    public void associate(final long id, final MatchTree.Node node) {
+    public void associate(@Nonnegative final long id, @Nonnull final MatchTree.Node node) {
+        if (id < 1) throw new IllegalArgumentException();
+        if (node == null) throw new IllegalArgumentException();
         activeIds.put(id, node);
     }
 
-    public void disassociate(final long id, final MatchTree.Node node) {
+    public void disassociate(@Nonnegative final long id, @Nonnull final MatchTree.Node node) {
+        if (id < 1) throw new IllegalArgumentException();
+        if (node == null) throw new IllegalArgumentException();
         activeIds.remove(id, node);
+    }
+
+    public void diassociate(@Nonnegative final long id) {
+        if (id < 1) throw new IllegalArgumentException();
+        activeIds.remove(id);
     }
 
     public void setMatches(final BitSet matchIds, final MatchTree.Node node) {
@@ -31,6 +45,11 @@ class Tracker {
 
             if (i == Integer.MAX_VALUE) break; // or (i+1) would overflow
         }
+    }
+
+    public void operateOnNodes(final long id, Consumer<MatchTree.Node> consumer) {
+        final ObjectSortedSet<MatchTree.Node> nodes = activeIds.get(id);
+        nodes.forEach(consumer);
     }
 
     public boolean inUse(final long id) {
