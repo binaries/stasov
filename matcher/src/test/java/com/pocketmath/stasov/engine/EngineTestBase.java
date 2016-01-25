@@ -5,11 +5,10 @@ import com.pocketmath.stasov.attributes.Order;
 import com.pocketmath.stasov.util.StasovArrays;
 import com.pocketmath.stasov.util.Weighted;
 
-import it.unimi.dsi.fastutil.longs.LongSortedSet;
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.IllegalClassException;
 import org.testng.Assert;
 
+import javax.annotation.Nullable;
 import java.io.PrintWriter;
 import java.util.*;
 
@@ -57,28 +56,34 @@ public class EngineTestBase {
             final Engine engine,
             Map<Long,String> specifications) throws IndexingException {
 
+        if (engine == null) throw new IllegalArgumentException("engine was null");
+        if (specifications == null) throw new IllegalArgumentException("specifications was null");
+
         for (final Map.Entry<Long, String> spec : specifications.entrySet()) {
-            final long id = spec.getKey();
+            final Long id = spec.getKey();
             final String pmtl = spec.getValue();
             //System.out.println("PMTL: " + pmtl);
-            assert(pmtl != null);
+            if (id == null) throw new IllegalStateException("id was null");
+            if (pmtl == null) throw new IllegalStateException("PMTL was null");
             engine.index(pmtl, id);
         }
     }
 
-    static LongSortedSet query(
-            final Engine engine,
+    static @Nullable Object[] query(
+            final EngineBase engine,
             Map<String,String> opportunityAttributes,
-            final long[] expectedResults) {
+            @Nullable final long[] expectedResults) {
 
+        if (engine == null) throw new IllegalArgumentException("engine was null");
+        if (opportunityAttributes == null) throw new IllegalArgumentException("opportunity attributes was null");
 
         final MapOpportunityData opp = new MapOpportunityData(engine.attrSvc);
 
         for (final Map.Entry<String, String> attribute : opportunityAttributes.entrySet()) {
             final String name = attribute.getKey();
             final String value = attribute.getValue();
-            assert(name != null);
-            assert(value != null);
+            if (name == null) throw new IllegalStateException();
+            if (value == null) throw new IllegalStateException();
             opp.put(name, value);
         }
 
@@ -86,7 +91,7 @@ public class EngineTestBase {
 
         //System.out.println("engine: " + engine.prettyPrint());
 
-        final LongSortedSet results = engine.query(opp);
+        final Object[] results = engine.query(opp);
 
         if (expectedResults != null) {
 
@@ -104,19 +109,24 @@ public class EngineTestBase {
             { // assert that each result exists in the expected results
                 long[] sortedExpectedResults = expectedResults.clone();
                 Arrays.sort(sortedExpectedResults);
-                for (final Long result : results) {
-                    final int found = Arrays.binarySearch(sortedExpectedResults, result.longValue());
+                for (final Object result : results) {
+                    final int found;
+                    if (result instanceof Long)
+                        found = Arrays.binarySearch(sortedExpectedResults, (Long)result);
+                    else
+                        throw new UnsupportedOperationException();
                     Assert.assertTrue(found > -1);
                 }
             }
 
             { // assert that each expected result exists in the actual results
                 for (final long expectedResult : expectedResults) {
-                    Assert.assertTrue(results.contains(expectedResult));
+                    Assert.assertTrue(Arrays.binarySearch(results, expectedResult) >= 0);
+                    //Assert.assertTrue(results.contains(expectedResult));
                 }
             }
 
-            Assert.assertTrue(results.size() == expectedResults.length);
+            Assert.assertTrue(results.length == expectedResults.length);
 
         }
 
@@ -131,8 +141,8 @@ public class EngineTestBase {
      * @param expectedResults The expected IO ids.
      * @throws IndexingException
      */
-    private static LongSortedSet testIndexAndQuery(
-            final Engine engine,
+    private static Object[] testIndexAndQuery(
+            final EngineBase engine,
             final Map<Long,String> specifications,
             final Map<String,String> opportunityAttributes,
             final long[] expectedResults) throws IndexingException {
@@ -145,11 +155,12 @@ public class EngineTestBase {
 
         System.out.println("Engine: " + engine.prettyPrint());
 
-        return query(engine, opportunityAttributes, expectedResults);
+        final Object[] result = query(engine, opportunityAttributes, expectedResults);
+        return result;
     }
 
     private static String fill(
-            final Engine engine,
+            final EngineBase engine,
             final String template,
             final Order attributeTypesOrder,
             final Order attributeValuesOrder,
@@ -218,12 +229,12 @@ public class EngineTestBase {
         return spec;
     }
 
-    static LongSortedSet testIndexAndQuery(
+    static Object[] testIndexAndQuery(
             final Map<Long,String> specifications,
             final Map<String,String> opportunityAttributes,
             final long[] expectedResults) throws IndexingException {
 
-        final Engine engine = new Engine();
+        final EngineBase engine = new EngineBase();
 
         return testIndexAndQuery(engine, specifications, opportunityAttributes, expectedResults);
     }
@@ -250,7 +261,7 @@ public class EngineTestBase {
         if (specifications == null) throw new IllegalArgumentException();
         if (opportunities == null) throw new IllegalArgumentException();
 
-        final Engine engine = new Engine();
+        final EngineBase engine = new EngineBase();
 
         final String template = StasovArrays.chooseRandomWeightedValue(templates);
 
@@ -265,7 +276,7 @@ public class EngineTestBase {
     static class TestData {
         private Map<Long,String> specifications = new HashMap<Long,String>();
         private List<Map<String,String>> opportunities = new ArrayList<Map<String,String>>();
-        private final Engine engine = new Engine();
+        private final EngineBase engine = new EngineBase();
         private boolean frozen = false;
 
         public void freeze() {
@@ -292,6 +303,10 @@ public class EngineTestBase {
     }
 
     static TestData buildTest(final Collection<Weighted<String>> templates, final int ordersCount, final int opportunitiesCount, final PrintWriter progressWriter) throws IndexingException {
+        if (templates == null) throw new IllegalArgumentException("templates was null");
+        if (ordersCount < 1) throw new IllegalArgumentException("no orders");
+        if (opportunitiesCount < 0) throw new IllegalArgumentException("opportunities less than 0");
+
         final TestData data = new TestData();
 
         for (int i = 1; i <= ordersCount; i++) {
@@ -299,7 +314,7 @@ public class EngineTestBase {
             generateRandomParameters(i, 100, 100, 1d, Order.RANDOM, Order.RANDOM, templates, data.specifications, data.opportunities);
         }
 
-        final Engine engine = new Engine();
+        final Engine engine = new EngineBase();
         index(engine, data.specifications);
 
         return data;
@@ -309,9 +324,9 @@ public class EngineTestBase {
         return buildTest(templates, ordersCount, opportunitiesCount, null);
     }
 
-    static LongSortedSet randomQuery(final TestData data, final long[] expectedResults, final Random random) {
+    static Object[] randomQuery(final TestData data, final long[] expectedResults, final Random random) {
         final int r = random.nextInt(data.getOpportunitiesCount());
-        final LongSortedSet results = query(data.engine, data.getOpportunityByIndex(r), expectedResults);
+        final Object[] results = query(data.engine, data.getOpportunityByIndex(r), expectedResults);
         return results;
     }
 

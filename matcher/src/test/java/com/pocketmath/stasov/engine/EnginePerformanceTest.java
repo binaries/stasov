@@ -1,16 +1,12 @@
 package com.pocketmath.stasov.engine;
 
-import com.google.common.collect.ImmutableMap;
 import com.pocketmath.stasov.attributes.Order;
 import com.pocketmath.stasov.util.StasovArrays;
 import com.pocketmath.stasov.util.Weighted;
-import it.unimi.dsi.fastutil.longs.LongSortedSet;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.testng.Assert;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 /**
@@ -233,7 +229,7 @@ public class EnginePerformanceTest extends EngineTestBase {
 
         final Map[] oppsArray = opportunities.toArray(new Map[opportunities.size()]);
 
-        final Engine engine = new Engine();
+        final EngineBase engine = new EngineBase();
         index(engine, specifications);
 
         System.out.println(engine.prettyPrint());
@@ -247,7 +243,7 @@ public class EnginePerformanceTest extends EngineTestBase {
         int i = 0;
         for (; i < 10; i++) {
             final Map<String,String> opp = oppsArray[random.nextInt(oppsArray.length)];
-            final LongSortedSet results = query(engine, opp, null);
+            final Object[] results = query(engine, opp, null);
             if (results != null) {
                 System.out.println("opp: " + opp);
                 System.out.println("results: " + results);
@@ -284,7 +280,7 @@ public class EnginePerformanceTest extends EngineTestBase {
 
         final Map[] oppsArray = opportunities.toArray(new Map[opportunities.size()]);
 
-        final Engine engine = new Engine();
+        final EngineBase engine = new EngineBase();
         index(engine, specifications);
 
         System.out.println(engine.prettyPrint());
@@ -298,7 +294,7 @@ public class EnginePerformanceTest extends EngineTestBase {
         int i = 0;
         for (; i < 1000; i++) {
             final Map<String,String> opp = oppsArray[random.nextInt(oppsArray.length)];
-            final LongSortedSet results = query(engine, opp, null);
+            final Object[] results = query(engine, opp, null);
             //if (results != null) {
             //    System.out.println("opp: " + opp);
             //    System.out.println("results: " + results);
@@ -335,7 +331,7 @@ public class EnginePerformanceTest extends EngineTestBase {
 
         final Map[] oppsArray = opportunities.toArray(new Map[opportunities.size()]);
 
-        final Engine engine = new Engine();
+        final EngineBase engine = new EngineBase();
         index(engine, specifications);
 
         System.out.println(engine.prettyPrint());
@@ -349,7 +345,7 @@ public class EnginePerformanceTest extends EngineTestBase {
         int i = 0;
         for (; i < 1000; i++) {
             final Map<String,String> opp = oppsArray[random.nextInt(oppsArray.length)];
-            final LongSortedSet results = query(engine, opp, null);
+            final Object[] results = query(engine, opp, null);
             //if (results != null) {
             //    System.out.println("opp: " + opp);
             //    System.out.println("results: " + results);

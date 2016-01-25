@@ -10,7 +10,7 @@ public class EngineLogicTest extends EngineTestBase {
 
     @Test
     public void simpleIndexTest1() throws IndexingException {
-        Engine engine = new Engine();
+        EngineBase engine = new EngineBase();
 
         String spec = "DeviceType in (\"iPhone\")";
         long id = 1;
