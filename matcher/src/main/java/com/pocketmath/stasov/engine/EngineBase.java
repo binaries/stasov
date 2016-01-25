@@ -151,8 +151,8 @@ class EngineBase<ObjectType extends Serializable & Comparable> extends Engine<Ob
     */
 
     public void remove(final ObjectType id) throws IndexingException {
-        final long internalId = idTranslator.toId(id);
-
+        //final long internalId = idTranslator.toId(id);
+        throw new UnsupportedOperationException();
     }
 
     public Object[] query(final OpportunityDataBase opportunity) {
