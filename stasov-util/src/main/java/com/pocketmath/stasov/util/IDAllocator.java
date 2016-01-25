@@ -12,7 +12,7 @@ import java.util.Queue;
 /**
  * Created by etucker on 3/23/15.
  *
- * This class is fully threadsafe.
+ * This class is threadsafe.
  */
 public class IDAllocator {
 
@@ -50,6 +50,9 @@ public class IDAllocator {
         if (allocated == null) throw new IllegalStateException();
         if (maxId < 1) throw new IllegalStateException();
         if (seq >= maxId) throw new IllegalStateException();
+        if (freeList.size() > maxId - allocated.size()) throw new IllegalStateException("maxId=" + maxId + ", allocated.size()=" + allocated.size() + ", freeList.size()=" + freeList.size() + ", maxId - allocated.size() = " + (maxId - allocated.size()));
+        if (freeList.size() > maxId) throw new IllegalStateException();
+        if (allocated.size() > maxId) throw new IllegalStateException();
     }
 
     public synchronized long allocateId() {
@@ -95,6 +98,14 @@ public class IDAllocator {
         checkInvariants();
 
         return id.longValue();
+    }
+
+    public synchronized long allocatedCount() {
+        return allocated.size();
+    }
+
+    public synchronized long availableCount() {
+        return maxId - allocated.size();
     }
 
 }
