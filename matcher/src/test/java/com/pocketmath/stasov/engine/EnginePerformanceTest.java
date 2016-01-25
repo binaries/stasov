@@ -251,7 +251,7 @@ public class EnginePerformanceTest extends EngineTestBase {
         }
         long endTime = System.currentTimeMillis();
 
-        double avgTime = (endTime - startTime) / i;
+        double avgTime = (endTime - startTime) / (double)i;
         Assert.assertTrue(avgTime < 10d);
 
         System.out.println("Avg query time: " + avgTime + "ms");
@@ -302,7 +302,7 @@ public class EnginePerformanceTest extends EngineTestBase {
         }
         long endTime = System.currentTimeMillis();
 
-        double avgTime = (endTime - startTime) / i;
+        double avgTime = (endTime - startTime) / (double)i;
         Assert.assertTrue(avgTime < 10d);
 
         System.out.println("Avg query time: " + avgTime + "ms");
@@ -353,7 +353,7 @@ public class EnginePerformanceTest extends EngineTestBase {
         }
         long endTime = System.currentTimeMillis();
 
-        double avgTime = (endTime - startTime) / i;
+        double avgTime = (endTime - startTime) / (double)i;
         Assert.assertTrue(avgTime < 10d);
 
         System.out.println("Avg query time: " + avgTime + "ms");
