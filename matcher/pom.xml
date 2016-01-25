@@ -136,7 +136,8 @@
                 <version>2.19</version>
                 <configuration>
                     <forkCount>1</forkCount>
-                    <argLine>-Xmx16384m -XX:MaxPermSize=256m</argLine>
+                    <!-- Following for Java 8 Oracle VM -->
+                    <argLine>-Xmx16384m -Xfuture -XX:+AggressiveOpts -XX:+OptimizeStringConcat -XX:+UseBiasedLocking -XX:+UseFastAccessorMethods</argLine>
                 </configuration>
             </plugin>
 <!--
