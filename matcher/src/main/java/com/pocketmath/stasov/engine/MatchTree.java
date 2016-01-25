@@ -46,7 +46,7 @@ class MatchTree {
 
         private BitSet matches;
 
-        public Node(final BitSet matches) {
+        private Node(final BitSet matches) {
             this.id = idAllocator.allocateId();
             this.matches = matches;
         }
@@ -121,6 +121,8 @@ class MatchTree {
     private final Node root = new Node();
 
     private final Weights attrWeights = new Weights();
+
+    protected final Tracker tracker;
 
     private final AttrSvcBase attrSvc;
 
@@ -317,8 +319,9 @@ class MatchTree {
         }
     }
 
-    public MatchTree(final AttrSvcBase attrSvc) {
+    public MatchTree(final AttrSvcBase attrSvc, final Tracker tracker) {
         this.attrSvc = attrSvc;
+        this.tracker = tracker;
     }
 
     public AndGroupBuilder newAndGroupBuilder(final long[] matches) {
@@ -405,6 +408,7 @@ class MatchTree {
             if (bitSet == null) {
                 bitSet = new BitSet();
                 node.setMatches(bitSet);
+                tracker.setMatches(bitSet, node);
             }
             bitSet.or(onBits);
         }

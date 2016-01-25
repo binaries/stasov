@@ -1,79 +1,39 @@
 package com.pocketmath.stasov.engine;
 
-import com.pocketmath.stasov.attributes.AttrSvcBase;
-import com.pocketmath.stasov.pmtl.dnfconv.DNFConv;
-import com.pocketmath.stasov.pmtl.PocketTLLanguageException;
-import it.unimi.dsi.fastutil.longs.LongSortedSet;
-
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.io.Serializable;
 
 /**
- * Created by etucker on 4/5/15.
+ * Created by etucker on 1/24/16.
  */
-public class Engine {
+public abstract class Engine<ObjectType extends Serializable & Comparable> {
 
-    private Logger logger = Logger.getLogger(getClass().getName());
-    {
-        // shameless hard coded logging setup
+    abstract void index(String pmtl, ObjectType id) throws IndexingException;
 
-        ConsoleHandler consoleHandler = new ConsoleHandler();
-        consoleHandler.setLevel(Level.WARNING);
+    abstract Object[] query(OpportunityDataBase opportunity);
 
-        logger.setLevel(Level.WARNING);
-        logger.addHandler(consoleHandler);
+    abstract void remove(final ObjectType id) throws IndexingException;
+
+    abstract String prettyPrint();
+
+    public static <ObjectType extends Serializable & Comparable> Engine newSafeEngine() {
+        return new EngineBase<ObjectType>();
     }
 
-    protected final AttrSvcBase attrSvc;
-    protected final MatchTree tree;
-
-    protected final PocketTLIndexer indexer;
-
-    public Engine() {
-        try {
-            this.attrSvc = (AttrSvcBase) Class.forName("com.pocketmath.stasov.attributes.AttributeHandlers").newInstance();
-        } catch (Exception e) {
-            throw new IllegalStateException(e); // TODO: Exception handling.
-        }
-        this.tree = new MatchTree(attrSvc);
-        this.indexer = new PocketTLIndexer(attrSvc);
+    public static <ObjectType extends Serializable & Comparable> Engine newFastEngine() {
+        final boolean SAFE = false;
+        return new EngineBase<ObjectType>(SAFE);
     }
 
-    public void index(final String pmtl, final long id) throws IndexingException {
-        final String dnfSpec;
-        try {
-            dnfSpec = DNFConv.convertToDNF(pmtl); // BNF --> DNF translation
-        } catch (PocketTLLanguageException e) {
-           throw new IndexingException(e);
-        }
-        logger.log(Level.FINE, "DNF converted :: {0}", dnfSpec);
-        if (dnfSpec == null) throw new IndexingException("DNF converted string was null.");
-        if (dnfSpec.isEmpty()) throw new IndexingException("DNF converted string was empty.");
-        if (dnfSpec.trim().isEmpty()) throw new IndexingException("DNF converted string was only whitespace.");
-        indexer.index(tree, dnfSpec, new long[]{id});
+    public static Engine<Long> newLongEngine() {
+        return new EngineBase<Long>();
     }
 
-    public LongSortedSet query(final OpportunityDataBase opportunity) {
-        final OpportunityQueryBase query = new OpportunityQueryBase(attrSvc);
-        query.load(opportunity);
-        return tree.query(query);
+    public static Engine<String> newStringEngine() {
+        return new EngineBase<String>();
     }
 
-    public MapOpportunityData mapOpportunityData() {
-        return new MapOpportunityData(attrSvc);
+    public static <ObjectType extends Serializable & Comparable> Engine newDefaultEngine() {
+        return newSafeEngine();
     }
 
-    @Override
-    public String toString() {
-        return "Engine{" +
-                "attrSvc=" + attrSvc +
-                ", tree=" + tree +
-                ", indexer=" + indexer +
-                '}';
-    }
-
-    public String prettyPrint() {
-        return "Engine: tree: " + tree.prettyPrint();
-    }
 }
