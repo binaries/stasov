@@ -15,10 +15,6 @@ import java.util.*;
 @Test(singleThreaded = true)
 public class EnginePerformanceTest extends EngineTestBase {
 
-    private static long[] arrayify(Collection<Long> collection) {
-        return StasovArrays.toSortedArray(collection);
-    }
-
     /**
      * The most rudimentary test.
      *
