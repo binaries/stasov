@@ -1,5 +1,8 @@
 package com.pocketmath.stasov.engine;
 
+import com.pocketmath.stasov.attributes.AttrSvcBase;
+
+import javax.sql.rowset.serial.SerialArray;
 import java.io.Serializable;
 
 /**
@@ -7,13 +10,15 @@ import java.io.Serializable;
  */
 public abstract class Engine<ObjectType extends Serializable & Comparable> {
 
-    abstract void index(String pmtl, ObjectType id) throws IndexingException;
+    public abstract void index(String pmtl, ObjectType id) throws IndexingException;
 
-    abstract Object[] query(OpportunityDataBase opportunity);
+    public abstract Object[] query(OpportunityDataBase opportunity);
 
-    abstract void remove(final ObjectType id) throws IndexingException;
+    public abstract void remove(final ObjectType id) throws IndexingException;
 
     abstract String prettyPrint();
+
+    abstract AttrSvcBase getAttrSvc();
 
     public static <ObjectType extends Serializable & Comparable> Engine newSafeEngine() {
         return new EngineBase<ObjectType>();
@@ -32,8 +37,23 @@ public abstract class Engine<ObjectType extends Serializable & Comparable> {
         return new EngineBase<String>();
     }
 
-    public static <ObjectType extends Serializable & Comparable> Engine newDefaultEngine() {
-        return newSafeEngine();
+    public static <ObjectType extends Serializable & Comparable> Engine newConcurrentEngine() {
+        return new ConcurrentEngineWrapper<ObjectType>(newSafeEngine());
     }
 
+    public static <ObjectType extends Serializable & Comparable> Engine newConcurrentFastEngine() {
+        return new ConcurrentEngineWrapper<ObjectType>(newFastEngine());
+    }
+
+    public static Engine<Long> newLongConcurrentEngineEngine() {
+        return new ConcurrentEngineWrapper<Long>(newSafeEngine());
+    }
+
+    public static Engine<String> newLongConcurrentStringEngine() {
+        return new ConcurrentEngineWrapper<String>(newStringEngine());
+    }
+
+    public static <ObjectType extends Serializable & Comparable> Engine newDefaultEngine() {
+        return newConcurrentEngine();
+    }
 }

@@ -192,7 +192,13 @@ class EngineBase<ObjectType extends Serializable & Comparable> extends Engine<Ob
                 '}';
     }
 
+    @Override
     public String prettyPrint() {
         return "Engine: tree: " + tree.prettyPrint();
+    }
+
+    @Override
+    AttrSvcBase getAttrSvc() {
+        return attrSvc;
     }
 }
