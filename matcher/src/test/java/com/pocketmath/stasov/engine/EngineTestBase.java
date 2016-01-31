@@ -70,14 +70,14 @@ public class EngineTestBase {
     }
 
     static @Nullable Object[] query(
-            final EngineBase engine,
+            final Engine engine,
             Map<String,String> opportunityAttributes,
             @Nullable final long[] expectedResults) {
 
         if (engine == null) throw new IllegalArgumentException("engine was null");
         if (opportunityAttributes == null) throw new IllegalArgumentException("opportunity attributes was null");
 
-        final MapOpportunityData opp = new MapOpportunityData(engine.attrSvc);
+        final MapOpportunityData opp = new MapOpportunityData(engine.getAttrSvc());
 
         for (final Map.Entry<String, String> attribute : opportunityAttributes.entrySet()) {
             final String name = attribute.getKey();
@@ -141,8 +141,8 @@ public class EngineTestBase {
      * @param expectedResults The expected IO ids.
      * @throws IndexingException
      */
-    private static Object[] testIndexAndQuery(
-            final EngineBase engine,
+    static Object[] testIndexAndQuery(
+            final Engine engine,
             final Map<Long,String> specifications,
             final Map<String,String> opportunityAttributes,
             final long[] expectedResults) throws IndexingException {
