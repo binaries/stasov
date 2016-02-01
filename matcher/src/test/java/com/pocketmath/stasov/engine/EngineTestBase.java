@@ -6,9 +6,13 @@ import com.pocketmath.stasov.util.StasovArrays;
 import com.pocketmath.stasov.util.Weighted;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.checkerframework.checker.igj.qual.ReadOnly;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.testng.Assert;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
 import java.io.PrintWriter;
 import java.util.*;
 
@@ -53,8 +57,8 @@ public class EngineTestBase {
     }
 
     static void index(
-            final Engine engine,
-            Map<Long,String> specifications) throws IndexingException {
+            final @NonNull @ReadOnly Engine engine,
+            final @NonNull @ReadOnly Map<Long,String> specifications) throws IndexingException {
 
         if (engine == null) throw new IllegalArgumentException("engine was null");
         if (specifications == null) throw new IllegalArgumentException("specifications was null");
@@ -70,9 +74,9 @@ public class EngineTestBase {
     }
 
     static @Nullable Object[] query(
-            final Engine engine,
-            Map<String,String> opportunityAttributes,
-            @Nullable final long[] expectedResults) {
+            final @NonNull @ReadOnly Engine engine,
+            final @NonNull @ReadOnly Map<String,String> opportunityAttributes,
+            final @Nullable @ReadOnly long[] expectedResults) {
 
         if (engine == null) throw new IllegalArgumentException("engine was null");
         if (opportunityAttributes == null) throw new IllegalArgumentException("opportunity attributes was null");
@@ -142,10 +146,10 @@ public class EngineTestBase {
      * @throws IndexingException
      */
     static Object[] testIndexAndQuery(
-            final Engine engine,
-            final Map<Long,String> specifications,
-            final Map<String,String> opportunityAttributes,
-            final long[] expectedResults) throws IndexingException {
+            final @Nonnull @ReadOnly Engine engine,
+            final @Nonnull @ReadOnly Map<Long,String> specifications,
+            final @Nonnull @ReadOnly Map<String,String> opportunityAttributes,
+            final @Nullable @ReadOnly long[] expectedResults) throws IndexingException {
 
         System.out.println("specs:  " + specifications.toString());
         System.out.println("opp:    " + opportunityAttributes.toString());
@@ -160,11 +164,11 @@ public class EngineTestBase {
     }
 
     private static String fill(
-            final EngineBase engine,
-            final String template,
-            final Order attributeTypesOrder,
-            final Order attributeValuesOrder,
-            final Collection<Map<String,String>> opportunities) {
+            final @Nonnull EngineBase engine,
+            final @Nonnull String template,
+            final @Nonnull Order attributeTypesOrder,
+            final @Nonnull Order attributeValuesOrder,
+            final @Nonnull Collection<Map<String,String>> opportunities) {
 
         if (engine == null) throw new IllegalArgumentException();
         if (template == null) throw new IllegalArgumentException();
@@ -230,9 +234,9 @@ public class EngineTestBase {
     }
 
     static Object[] testIndexAndQuery(
-            final Map<Long,String> specifications,
-            final Map<String,String> opportunityAttributes,
-            final long[] expectedResults) throws IndexingException {
+            final @Nonnull @ReadOnly Map<Long,String> specifications,
+            final @Nonnull @ReadOnly Map<String,String> opportunityAttributes,
+            final @Nullable @ReadOnly long[] expectedResults) throws IndexingException {
 
         final EngineBase engine = new EngineBase();
 
@@ -240,7 +244,7 @@ public class EngineTestBase {
     }
 
     static void generateRandomParameters(
-            final long ioId,
+            final @Nonnegative long ioId,
             final int maxValuesPerAttr,
             final int maxAttrs,
             final double matchRate,
