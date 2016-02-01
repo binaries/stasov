@@ -1,13 +1,9 @@
 package com.pocketmath.stasov.util;
 
 import it.unimi.dsi.fastutil.longs.LongComparators;
-import it.unimi.dsi.fastutil.longs.LongRBTreeSet;
-import it.unimi.dsi.fastutil.longs.LongSortedSet;
 
-import java.util.ArrayDeque;
 import java.util.Iterator;
 import java.util.PriorityQueue;
-import java.util.Queue;
 
 /**
  * Created by etucker on 3/23/15.
@@ -58,16 +54,24 @@ public class IDAllocator {
     public synchronized long allocateId() {
         checkInvariants();
 
-        if (!freeList.isEmpty()) return freeList.poll();
-        do
-            if (seq >= maxId)
-                throw new IllegalStateException("no more available internal IDs");
-        while (allocated.contains(seq++));
-        allocated.add(seq);
+        if (!freeList.isEmpty()) {
+            final Long id = freeList.poll();
+            if (id == null) throw new IllegalStateException();
+            allocated.add(id);
 
-        checkInvariants();
+            checkInvariants();
+            return id;
 
-        return seq;
+        } else {
+            do
+                if (seq >= maxId)
+                    throw new IllegalStateException("no more available internal IDs");
+            while (allocated.contains(++seq));
+            allocated.add(seq);
+
+            checkInvariants();
+            return seq;
+        }
     }
 
     public synchronized void deallocateId(final long id) {
