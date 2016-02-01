@@ -12,11 +12,28 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created by etucker on 3/16/15.
  */
 class MatchTree {
+
+    private Logger logger = Logger.getLogger(getClass().getName());
+    {
+        // shameless hard coded logging setup
+
+        final EngineConfig cfg = EngineConfig.getConfig();
+        final Level level = cfg.getLogLevel();
+
+        final ConsoleHandler consoleHandler = new ConsoleHandler();
+        consoleHandler.setLevel(level);
+
+        logger.setLevel(level);
+        logger.addHandler(consoleHandler);
+    }
 
     static class NodeComparator implements Comparator<Node> {
 
@@ -29,7 +46,7 @@ class MatchTree {
 
     static class Node implements Comparable<Node>, PrettyPrintable {
 
-        private static volatile IDAllocator idAllocator = new IDAllocator();
+        private static volatile IDAllocator idAllocator = IDAllocator.newIDAllocatorLongMax();
 
         private long id;
 
@@ -112,7 +129,8 @@ class MatchTree {
             w.println(t+inclusionary.prettyPrint(t + "  ", "typeId  ", "valueId ", "|       "));
             w.println(t+"exclusionary=");
             w.println(t+exclusionary.prettyPrint(t + "  ", "typeId  ", "valueId ", "|       "));
-            if (matches != null) w.println(t+"matches.cardinality()=" + matches.cardinality());
+            //if (matches != null) w.println(t+"matches.cardinality()=" + matches.cardinality());
+            if (matches != null) w.println(t+"matches=" + matches);
             w.println(t+"}");
 
             return sw.toString();
@@ -127,7 +145,9 @@ class MatchTree {
 
     private final AttrSvcBase attrSvc;
 
-    static class BitSetTranslator {
+    private final IdTranslator idTranslator;
+/*
+    static class BitSetTranslator0 {
         private final Seq sequence = new Seq(TreeAlgorithm.AVL);
         public void addToBitSet(final long[] keys, final BitSet bitSet) {
             for(final long key : keys) {
@@ -149,8 +169,7 @@ class MatchTree {
             return set;
         }
     }
-
-    private final BitSetTranslator bitSetTranslator = new BitSetTranslator();
+*/
 
     class AttrVals implements Comparable<AttrVals> {
         final long attrTypeId;
@@ -320,9 +339,25 @@ class MatchTree {
         }
     }
 
-    public MatchTree(final AttrSvcBase attrSvc, final Tracker tracker) {
+    public MatchTree(final AttrSvcBase attrSvc, final Tracker tracker, final IdTranslator idTranslator) {
+        if (attrSvc == null) throw new IllegalArgumentException();
+        if (tracker == null) throw new IllegalArgumentException();
+        if (idTranslator == null) throw new IllegalArgumentException();
+
         this.attrSvc = attrSvc;
         this.tracker = tracker;
+        this.idTranslator = idTranslator;
+    }
+
+    private void addToBitSet(final long[] ids, final BitSet bitSet) {
+        for(final long idl : ids) {
+
+            final int id = (int) idl;
+            if (idl > id) throw new IllegalStateException();
+            if (id <= 0) throw new IllegalStateException();
+
+            bitSet.set(id);
+        }
     }
 
     public AndGroupBuilder newAndGroupBuilder(final long[] matches) {
@@ -337,6 +372,8 @@ class MatchTree {
     void addAndGroup(final AndGroup ag) {
         if (ag == null) throw new IllegalArgumentException("ag was null");
         if (ag.isEmpty()) throw new IllegalArgumentException("attempting to add empty AndGroup");
+
+        logger.log(Level.FINEST, "adding AndGroup: " + ag);
 
         final ObjectSet<Node> layerNodes = new ObjectLinkedOpenHashSet<Node>();
         layerNodes.add(root);
@@ -402,16 +439,20 @@ class MatchTree {
         } // end while (componentsItr.hasNext())
 
         final BitSet onBits = new BitSet();
-        bitSetTranslator.addToBitSet(ag.getMatches(), onBits);
+        //idTranslator.addToBitSet(ag.getMatches(), onBits);
+        addToBitSet(ag.getMatches(), onBits);
+
+
+        //bitSetTranslator.addToBitSet(ag.getMatches(), onBits);
 
         for (Node node: layerNodes) {
             BitSet bitSet = node.getMatches();
             if (bitSet == null) {
                 bitSet = new BitSet();
                 node.setMatches(bitSet);
-                tracker.setMatches(bitSet, node);
             }
             bitSet.or(onBits);
+            tracker.setMatches(bitSet, node);
         }
     }
 
@@ -420,7 +461,7 @@ class MatchTree {
      * @param query index 0 is attrTypeId, index 1 is value
      * @return
      */
-    public LongSortedSet query(final OpportunityQueryBase query) {
+    public SortedSet query(final OpportunityQueryBase query) {
         // step 1: multiValueMap attrs into sort order by weights
         final long[] attrTypeIds = attrSvc.getAttrTypeIds();
         assert(StasovArrays.isSorted(attrTypeIds, attrSvc.getAttrsComparator()));
@@ -467,7 +508,9 @@ class MatchTree {
         }
 
         if (bitSet == null) return null;
-        final LongSortedSet ids = bitSetTranslator.toIds(bitSet, LongComparators.NATURAL_COMPARATOR);
+        //final LongSortedSet ids = bitSetTranslator.toIds(bitSet, LongComparators.NATURAL_COMPARATOR);
+
+        final SortedSet ids = idTranslator.toOs(bitSet);
         return ids;
     }
 
@@ -488,17 +531,18 @@ class MatchTree {
     private final RemoveConsumer REMOVE_CONSUMER = new RemoveConsumer();
 
     public void remove(final long id) {
-        if (!tracker.inUse(id)) throw new IllegalStateException("attempt to remove an id not in use");
+        if (!tracker.inUse(id))
+            throw new IllegalStateException("attempt to remove an id not in use; (internal) id=" + id);
         REMOVE_CONSUMER.setId(id);
         tracker.operateOnNodes(id, REMOVE_CONSUMER);
     }
 
     @Override
     public String toString() {
-        return "com.pocketmath.stasov.pocketql.Tree{" +
+        return "com.pocketmath.stasov.engine.MatchTree{" +
                 "root=" + root +
                 ", attrWeights=" + attrWeights +
-                ", bitSetTranslator=" + bitSetTranslator +
+                ", idTranslator=" + idTranslator +
                 '}';
     }
 

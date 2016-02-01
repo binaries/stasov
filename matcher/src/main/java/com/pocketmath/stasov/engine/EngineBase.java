@@ -7,6 +7,7 @@ import it.unimi.dsi.fastutil.longs.LongSortedSet;
 
 import java.io.Serializable;
 import java.util.BitSet;
+import java.util.SortedSet;
 import java.util.function.Consumer;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
@@ -21,10 +22,13 @@ class EngineBase<ObjectType extends Serializable & Comparable> extends Engine<Ob
     {
         // shameless hard coded logging setup
 
-        ConsoleHandler consoleHandler = new ConsoleHandler();
-        consoleHandler.setLevel(Level.WARNING);
+        final EngineConfig cfg = EngineConfig.getConfig();
+        final Level level = cfg.getLogLevel();
 
-        logger.setLevel(Level.WARNING);
+        final ConsoleHandler consoleHandler = new ConsoleHandler();
+        consoleHandler.setLevel(level);
+
+        logger.setLevel(level);
         logger.addHandler(consoleHandler);
     }
 
@@ -49,7 +53,7 @@ class EngineBase<ObjectType extends Serializable & Comparable> extends Engine<Ob
         }
         this.tracker = new Tracker();
         this.idTranslator = new IdTranslator(tracker);
-        this.tree = new MatchTree(attrSvc, tracker);
+        this.tree = new MatchTree(attrSvc, tracker, idTranslator);
         this.indexer = new PocketTLIndexer(attrSvc);
 
         checkInvariants();
@@ -155,24 +159,25 @@ class EngineBase<ObjectType extends Serializable & Comparable> extends Engine<Ob
     public void remove(final ObjectType id) throws IndexingException {
         checkInvariants();
         final long internalId = idTranslator.toId(id);
+        logger.log(Level.FINE, "Removing id: " + id + " (translated to internal id: " + internalId + ")");
         tree.remove(internalId);
         tracker.diassociate(internalId);
         idTranslator.remove(id);
         checkInvariants();
     }
 
-    public Object[] query(final OpportunityDataBase opportunity) {
+    public ObjectType[] query(final OpportunityDataBase opportunity) {
         final OpportunityQueryBase query = new OpportunityQueryBase(attrSvc);
         query.load(opportunity);
-        final LongSortedSet internalIds = tree.query(query);
-        if (internalIds == null) return null;
-        ObjectType[] ids = (ObjectType[]) new Serializable[internalIds.size()];
+        final SortedSet<ObjectType> objects = tree.query(query);
+        if (objects == null) return null;
+        final ObjectType[] results = (ObjectType[]) new Serializable[objects.size()];
         int i = 0;
-        for (final long internalId : internalIds) {
-            ids[i] = idTranslator.fastToO(internalId); // use fast, less safe method for fast queries
+        for (final ObjectType o : objects) {
+            results[i] = o; // use fast, less safe method for fast queries
             i++;
         }
-        return ids;
+        return results;
     }
 
     //public MapOpportunityData mapOpportunityData() {

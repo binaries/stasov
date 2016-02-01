@@ -25,6 +25,7 @@ class Tracker {
         if (id < 1) throw new IllegalArgumentException();
         if (node == null) throw new IllegalArgumentException();
         activeIds.put(id, node);
+        allNodes.add(node);
     }
 
     public void disassociate(@Nonnegative final long id, @Nonnull final MatchTree.Node node) {
@@ -45,6 +46,7 @@ class Tracker {
 
             if (i == Integer.MAX_VALUE) break; // or (i+1) would overflow
         }
+        allNodes.add(node);
     }
 
     public void operateOnNodes(final long id, Consumer<MatchTree.Node> consumer) {
@@ -70,6 +72,14 @@ class Tracker {
 
     public Set<MatchTree.Node> allNodes() {
         return allNodes;
+    }
+
+    @Override
+    public String toString() {
+        return "Tracker{" +
+                "activeIds=" + activeIds +
+                ", allNodes=" + allNodes +
+                '}';
     }
 
 }
