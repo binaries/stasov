@@ -30,7 +30,7 @@ public class EngineConcurrencyTest extends EngineTestBase {
                 ImmutableMap.<String, String>of(
                         "devicetype", "iphone"
                 ),
-                new long[]{1L}
+                new Long[]{1L}
         );
     }
 
@@ -45,7 +45,7 @@ public class EngineConcurrencyTest extends EngineTestBase {
                         "devicetype", "iphone",
                         "city", "austin"
                 ),
-                new long[]{ 1L }
+                new Long[]{ 1L }
         );
     }
 
@@ -60,7 +60,7 @@ public class EngineConcurrencyTest extends EngineTestBase {
                         "devicetype", "iphone",
                         "city", "austin"
                 ),
-                new long[]{ 1L }
+                new Long[]{ 1L }
         );
     }
 
@@ -75,7 +75,7 @@ public class EngineConcurrencyTest extends EngineTestBase {
                         "devicetype", "iphone",
                         "city", "austin"
                 ),
-                new long[]{}
+                new Long[]{}
         );
     }
 
@@ -90,7 +90,7 @@ public class EngineConcurrencyTest extends EngineTestBase {
                         "devicetype", "iphone",
                         "city", "austin"
                 ),
-                new long[]{1L}
+                new Long[]{1L}
         );
     }
 
@@ -105,7 +105,7 @@ public class EngineConcurrencyTest extends EngineTestBase {
                         "devicetype", "iphone",
                         "city", "austin"
                 ),
-                new long[]{}
+                new Long[]{}
         );
     }
 
@@ -121,7 +121,7 @@ public class EngineConcurrencyTest extends EngineTestBase {
                         "devicetype", "iphone",
                         "city", "austin"
                 ),
-                new long[]{2L}
+                new Long[]{2L}
         );
     }
 
@@ -137,7 +137,7 @@ public class EngineConcurrencyTest extends EngineTestBase {
                         "devicetype", "iphone",
                         "city", "austin"
                 ),
-                new long[]{2L}
+                new Long[]{2L}
         );
     }
 
@@ -166,7 +166,7 @@ public class EngineConcurrencyTest extends EngineTestBase {
                         "city", "austin",
                         "creativesize", "300x250"
                 ),
-                new long[]{1,2}
+                new Long[]{1L,2L}
         );
     }
 
@@ -181,7 +181,7 @@ public class EngineConcurrencyTest extends EngineTestBase {
                 ImmutableMap.<String,String>of(
                         "devicetype", "iphone"
                 ),
-                new long[]{2}
+                new Long[]{2L}
         );
     }
 
@@ -198,7 +198,7 @@ public class EngineConcurrencyTest extends EngineTestBase {
                         "city", "austin",
                         "creativesize", "300x250"
                 ),
-                new long[]{1}
+                new Long[]{1L}
         );
     }
 
@@ -215,7 +215,7 @@ public class EngineConcurrencyTest extends EngineTestBase {
                         "city", "austin",
                         "creativesize", "300x250"
                 ),
-                new long[]{1}
+                new Long[]{1L}
         );
     }
 
@@ -232,7 +232,7 @@ public class EngineConcurrencyTest extends EngineTestBase {
                         "city", "austin",
                         "creativesize", "300x250"
                 ),
-                new long[]{}
+                new Long[]{}
         );
     }
 
@@ -249,7 +249,7 @@ public class EngineConcurrencyTest extends EngineTestBase {
                         "city", "austin",
                         "creativesize", "300x250"
                 ),
-                new long[]{}
+                new Long[]{}
         );
     }
 
@@ -266,7 +266,7 @@ public class EngineConcurrencyTest extends EngineTestBase {
                         "city", "austin",
                         "creativesize", "300x250"
                 ),
-                new long[]{}
+                new Long[]{}
         );
     }
 
@@ -282,7 +282,7 @@ public class EngineConcurrencyTest extends EngineTestBase {
                         "city", "austin",
                         "creativesize", "300x250"
                 ),
-                new long[]{}
+                new Long[]{}
         );
     }
 
@@ -299,7 +299,7 @@ public class EngineConcurrencyTest extends EngineTestBase {
                         "city", "austin",
                         "creativesize", "300x250"
                 ),
-                new long[]{1}
+                new Long[]{1L}
         );
     }
 
@@ -316,7 +316,7 @@ public class EngineConcurrencyTest extends EngineTestBase {
                         "city", "austin",
                         "creativesize", "300x250"
                 ),
-                new long[]{}
+                new Long[]{}
         );
     }
 
@@ -333,7 +333,7 @@ public class EngineConcurrencyTest extends EngineTestBase {
                         "city", "austin",
                         "creativesize", "300x250"
                 ),
-                new long[]{1L}
+                new Long[]{1L}
         );
     }
 
@@ -351,7 +351,7 @@ public class EngineConcurrencyTest extends EngineTestBase {
                         "city", "austin",
                         "creativesize", "300x250"
                 ),
-                new long[]{1L}
+                new Long[]{1L}
         );
     }
 
@@ -368,7 +368,7 @@ public class EngineConcurrencyTest extends EngineTestBase {
                         "city", "london",
                         "creativesize", "300x250"
                 ),
-                new long[]{}
+                new Long[]{}
         );
     }
 
