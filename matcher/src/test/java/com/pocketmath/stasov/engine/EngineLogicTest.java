@@ -1,6 +1,7 @@
 package com.pocketmath.stasov.engine;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.testng.annotations.Test;
 
 /**
@@ -10,9 +11,9 @@ public class EngineLogicTest extends EngineTestBase {
 
     @Test
     public void simpleIndexTest1() throws IndexingException {
-        EngineBase engine = new EngineBase();
+        Engine engine = Engine.newLongEngine();
 
-        String spec = "DeviceType in (\"iPhone\")";
+        final String spec = "DeviceType in (\"iPhone\")";
         long id = 1;
         engine.index(spec, id);
     }
@@ -20,19 +21,21 @@ public class EngineLogicTest extends EngineTestBase {
     @Test
     public void test1_in() throws IndexingException {
         testIndexAndQuery(
+                Engine.newLongEngine(),
                 ImmutableMap.<Long, String>of(
                         1L, "devicetype in (\"iphone\")"
                 ),
                 ImmutableMap.<String, String>of(
                         "devicetype", "iphone"
                 ),
-                new long[]{1L}
+                new Long[]{1L}
         );
     }
 
     @Test
     public void test2_in() throws IndexingException {
         testIndexAndQuery(
+                Engine.newLongEngine(),
                 ImmutableMap.<Long,String>of(
                         1L, "devicetype in (\"iphone\")"
                 ),
@@ -40,13 +43,14 @@ public class EngineLogicTest extends EngineTestBase {
                         "devicetype", "iphone",
                         "city", "austin"
                 ),
-                new long[]{ 1L }
+                new Long[]{ 1L }
         );
     }
 
     @Test
     public void test3_in() throws IndexingException {
         testIndexAndQuery(
+                Engine.newLongEngine(),
                 ImmutableMap.<Long,String>of(
                         1L, "devicetype in (\"iphone\") and city in (\"austin\")"
                 ),
@@ -54,13 +58,14 @@ public class EngineLogicTest extends EngineTestBase {
                         "devicetype", "iphone",
                         "city", "austin"
                 ),
-                new long[]{ 1L }
+                new Long[]{ 1L }
         );
     }
 
     @Test
     public void test4_in() throws IndexingException {
         testIndexAndQuery(
+                Engine.newLongEngine(),
                 ImmutableMap.<Long,String>of(
                         1L, "devicetype in (\"android\")"
                 ),
@@ -68,13 +73,14 @@ public class EngineLogicTest extends EngineTestBase {
                         "devicetype", "iphone",
                         "city", "austin"
                 ),
-                new long[]{}
+                new Long[]{}
         );
     }
 
     @Test
     public void test5_eq() throws IndexingException {
         testIndexAndQuery(
+                Engine.newLongEngine(),
                 ImmutableMap.<Long,String>of(
                         1L, "devicetype = \"iphone\""
                 ),
@@ -82,13 +88,14 @@ public class EngineLogicTest extends EngineTestBase {
                         "devicetype", "iphone",
                         "city", "austin"
                 ),
-                new long[]{1L}
+                new Long[]{1L}
         );
     }
 
     @Test
     public void test6_eq() throws IndexingException {
         testIndexAndQuery(
+                Engine.newLongEngine(),
                 ImmutableMap.<Long,String>of(
                         1L, "devicetype = \"android\""
                 ),
@@ -96,13 +103,14 @@ public class EngineLogicTest extends EngineTestBase {
                         "devicetype", "iphone",
                         "city", "austin"
                 ),
-                new long[]{}
+                new Long[]{}
         );
     }
 
     @Test
     public void test100_eq() throws IndexingException {
         testIndexAndQuery(
+                Engine.newLongEngine(),
                 ImmutableMap.<Long,String>of(
                         1L, "devicetype = \"android\"",
                         2L, "devicetype = \"iphone\""
@@ -111,13 +119,14 @@ public class EngineLogicTest extends EngineTestBase {
                         "devicetype", "iphone",
                         "city", "austin"
                 ),
-                new long[]{2L}
+                new Long[]{2L}
         );
     }
 
     @Test
     public void test101_eq() throws IndexingException {
         testIndexAndQuery(
+                Engine.newLongEngine(),
                 ImmutableMap.<Long,String>of(
                         1L, "devicetype = \"android\" AND city = \"london\" AND creativesize = \"300x250\"",
                         2L, "devicetype = \"iphone\""
@@ -126,7 +135,7 @@ public class EngineLogicTest extends EngineTestBase {
                         "devicetype", "iphone",
                         "city", "austin"
                 ),
-                new long[]{2L}
+                new Long[]{2L}
         );
     }
 
@@ -145,6 +154,7 @@ public class EngineLogicTest extends EngineTestBase {
         // OR creativesize IN ("300x250") AND devicetype IN ("iphone"))
 
         testIndexAndQuery(
+                Engine.newLongEngine(),
                 ImmutableMap.<Long,String>of(
                         1L, "(devicetype = \"android\" OR devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
                         2L, "devicetype = \"iphone\""
@@ -154,13 +164,14 @@ public class EngineLogicTest extends EngineTestBase {
                         "city", "austin",
                         "creativesize", "300x250"
                 ),
-                new long[]{1,2}
+                new Long[]{1L,2L}
         );
     }
 
     @Test
     public void test103_eq() throws IndexingException {
         testIndexAndQuery(
+                Engine.newLongEngine(),
                 ImmutableMap.<Long,String>of(
                         1L, "(devicetype = \"android\" OR devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
                         2L, "devicetype = \"iphone\""
@@ -168,13 +179,14 @@ public class EngineLogicTest extends EngineTestBase {
                 ImmutableMap.<String,String>of(
                         "devicetype", "iphone"
                 ),
-                new long[]{2}
+                new Long[]{2L}
         );
     }
 
     @Test
     public void test104_eq() throws IndexingException {
         testIndexAndQuery(
+                Engine.newLongEngine(),
                 ImmutableMap.<Long,String>of(
                         1L, "(devicetype = \"android\" OR devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
                         2L, "devicetype = \"iphone\""
@@ -184,13 +196,14 @@ public class EngineLogicTest extends EngineTestBase {
                         "city", "austin",
                         "creativesize", "300x250"
                 ),
-                new long[]{1}
+                new Long[]{1L}
         );
     }
 
     @Test(enabled=false)
     public void test200_eq() throws IndexingException {
         testIndexAndQuery(
+                Engine.newLongEngine(),
                 ImmutableMap.<Long,String>of(
                         1L, "(devicetype = \"android\" AND NOT devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
                         2L, "devicetype = \"iphone\""
@@ -200,13 +213,14 @@ public class EngineLogicTest extends EngineTestBase {
                         "city", "austin",
                         "creativesize", "300x250"
                 ),
-                new long[]{1}
+                new Long[]{1L}
         );
     }
 
     @Test(enabled=false)
     public void test201_eq() throws IndexingException {
         testIndexAndQuery(
+                Engine.newLongEngine(),
                 ImmutableMap.<Long,String>of(
                         1L, "(NOT devicetype = \"android\" AND devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
                         2L, "devicetype = \"iphone\""
@@ -216,13 +230,14 @@ public class EngineLogicTest extends EngineTestBase {
                         "city", "austin",
                         "creativesize", "300x250"
                 ),
-                new long[]{}
+                new Long[]{}
         );
     }
 
     @Test(enabled=false)
     public void test201b_eq() throws IndexingException {
         testIndexAndQuery(
+                Engine.newLongEngine(),
                 ImmutableMap.<Long,String>of(
                         1L, "NOT (devicetype = \"android\" AND devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
                         2L, "devicetype = \"iphone\""
@@ -232,13 +247,14 @@ public class EngineLogicTest extends EngineTestBase {
                         "city", "austin",
                         "creativesize", "300x250"
                 ),
-                new long[]{}
+                new Long[]{}
         );
     }
 
     @Test(enabled=false)
     public void test202_eq() throws IndexingException {
         testIndexAndQuery(
+                Engine.newLongEngine(),
                 ImmutableMap.<Long,String>of(
                         1L, "NOT (devicetype = \"android\" OR devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
                         2L, "devicetype = \"iphone\""
@@ -248,13 +264,14 @@ public class EngineLogicTest extends EngineTestBase {
                         "city", "austin",
                         "creativesize", "300x250"
                 ),
-                new long[]{}
+                new Long[]{}
         );
     }
 
     @Test(enabled=false)
     public void test203_eq_first_io_of_202() throws IndexingException {
         testIndexAndQuery(
+                Engine.newLongEngine(),
                 ImmutableMap.<Long,String>of(
                         1L, "NOT (devicetype = \"android\" OR devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\""
                 ),
@@ -263,13 +280,14 @@ public class EngineLogicTest extends EngineTestBase {
                         "city", "austin",
                         "creativesize", "300x250"
                 ),
-                new long[]{}
+                new Long[]{}
         );
     }
 
     @Test(enabled=false)
          public void test204_eq() throws IndexingException {
         testIndexAndQuery(
+                Engine.newLongEngine(),
                 ImmutableMap.<Long,String>of(
                         1L, "NOT (NOT devicetype = \"android\" OR devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
                         2L, "devicetype = \"iphone\""
@@ -279,13 +297,14 @@ public class EngineLogicTest extends EngineTestBase {
                         "city", "austin",
                         "creativesize", "300x250"
                 ),
-                new long[]{1}
+                new Long[]{1L}
         );
     }
 
     @Test(enabled=false)
     public void test205_eq() throws IndexingException {
         testIndexAndQuery(
+                Engine.newLongEngine(),
                 ImmutableMap.<Long, String>of(
                         1L, "NOT (devicetype = \"android\" OR NOT devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
                         2L, "devicetype = \"iphone\""
@@ -295,13 +314,14 @@ public class EngineLogicTest extends EngineTestBase {
                         "city", "austin",
                         "creativesize", "300x250"
                 ),
-                new long[]{}
+                new Long[]{}
         );
     }
 
     @Test
     public void test300() throws IndexingException {
         testIndexAndQuery(
+                Engine.newLongEngine(),
                 ImmutableMap.<Long,String>of(
                         1L, "city IN (\"austin\", \"london\") AND creativesize = \"300x250\"",
                         2L, "devicetype = \"iphone\""
@@ -311,7 +331,7 @@ public class EngineLogicTest extends EngineTestBase {
                         "city", "austin",
                         "creativesize", "300x250"
                 ),
-                new long[]{1L}
+                new Long[]{1L}
         );
     }
 
@@ -319,6 +339,7 @@ public class EngineLogicTest extends EngineTestBase {
     public void test301() throws IndexingException {
         System.out.println("hello");
         testIndexAndQuery(
+                Engine.newLongEngine(),
                 ImmutableMap.<Long,String>of(
                         1L, "city IN (\"austin\", NOT \"london\") AND creativesize = \"300x250\"",
                         2L, "devicetype = \"iphone\""
@@ -328,13 +349,14 @@ public class EngineLogicTest extends EngineTestBase {
                         "city", "austin",
                         "creativesize", "300x250"
                 ),
-                new long[]{1L}
+                new Long[]{1L}
         );
     }
 
     @Test
     public void test302() throws IndexingException {
         testIndexAndQuery(
+                Engine.newLongEngine(),
                 ImmutableMap.<Long,String>of(
                         1L, "city IN (\"austin\", NOT \"london\") AND creativesize = \"300x250\"",
                         2L, "devicetype = \"iphone\""
@@ -344,7 +366,112 @@ public class EngineLogicTest extends EngineTestBase {
                         "city", "london",
                         "creativesize", "300x250"
                 ),
-                new long[]{}
+                new Long[]{}
+        );
+    }
+
+    @Test
+    public void test401() throws IndexingException {
+        testIndexRemoveAndQuery(
+                Engine.newLongEngine(),
+                ImmutableMap.<Long, String>of(
+                        1L, "devicetype in (\"iphone\")"
+                ),
+                ImmutableSet.<Long>of(1L),
+                ImmutableMap.<String, String>of(
+                        "devicetype", "iphone"
+                ),
+                new Long[]{}
+        );
+    }
+
+    @Test
+    public void test402_eq() throws IndexingException {
+        testIndexRemoveAndQuery(
+                Engine.newLongEngine(),
+                ImmutableMap.<Long,String>of(
+                        1L, "(devicetype = \"android\" OR devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
+                        2L, "devicetype = \"iphone\""
+                ),
+                ImmutableSet.<Long>of(1L),
+                ImmutableMap.<String,String>of(
+                        "devicetype", "iphone",
+                        "city", "austin",
+                        "creativesize", "300x250"
+                ),
+                new Long[]{2L}
+        );
+    }
+
+    @Test
+    public void test403_eq() throws IndexingException {
+        testIndexRemoveAndQuery(
+                Engine.newLongEngine(),
+                ImmutableMap.<Long,String>of(
+                        1L, "devicetype = \"android\"",
+                        2L, "devicetype = \"iphone\""
+                ),
+                ImmutableSet.<Long>of(2L),
+                ImmutableMap.<String,String>of(
+                        "devicetype", "iphone",
+                        "city", "austin",
+                        "creativesize", "300x250"
+                ),
+                new Long[]{}
+        );
+    }
+
+    @Test
+    public void test404_eq() throws IndexingException {
+        testIndexRemoveAndQuery(
+                Engine.newLongEngine(),
+                ImmutableMap.<Long,String>of(
+                        1L, "(devicetype = \"android\" OR devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
+                        2L, "devicetype = \"iphone\""
+                ),
+                ImmutableSet.<Long>of(),
+                ImmutableMap.<String,String>of(
+                        "devicetype", "iphone",
+                        "city", "austin",
+                        "creativesize", "300x250"
+                ),
+                new Long[]{1L,2L}
+        );
+    }
+
+    @Test
+    public void test405_eq() throws IndexingException {
+        testIndexRemoveAndQuery(
+                Engine.newLongEngine(),
+                ImmutableMap.<Long,String>of(
+                        1L, "(devicetype = \"android\" OR devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
+                        2L, "devicetype = \"iphone\""
+                ),
+                ImmutableSet.<Long>of(2L),
+                ImmutableMap.<String,String>of(
+                        "devicetype", "android",
+                        "city", "austin",
+                        "creativesize", "300x250"
+                ),
+                new Long[]{1L}
+        );
+    }
+
+    @Test
+    public void test410() throws IndexingException {
+        testIndexRemoveAndQuery(
+                Engine.newLongEngine(),
+                ImmutableMap.<Long,String>of(
+                        1L, "city IN (\"austin\", NOT \"london\") AND creativesize = \"300x250\"",
+                        2L, "devicetype = \"iphone\""
+                ),
+                ImmutableSet.<Long>of(1L),
+                ImmutableMap.<String,String>of(
+                        "devicetype", "android",
+                        "city", "london",
+                        "creativesize", "300x250"
+                ),
+                new Long[]{}
         );
     }
 
