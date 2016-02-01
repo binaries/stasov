@@ -76,7 +76,7 @@ public class EngineTestBase {
     static @Nullable Object[] query(
             final @NonNull @ReadOnly Engine engine,
             final @NonNull @ReadOnly Map<String,String> opportunityAttributes,
-            final @Nullable @ReadOnly long[] expectedResults) {
+            final @Nullable @ReadOnly Object[] expectedResults) {
 
         if (engine == null) throw new IllegalArgumentException("engine was null");
         if (opportunityAttributes == null) throw new IllegalArgumentException("opportunity attributes was null");
@@ -93,27 +93,31 @@ public class EngineTestBase {
 
         //System.out.println("oppObj: " + opp);
 
-        //System.out.println("engine: " + engine.prettyPrint());
+        System.out.println("engine: " + engine.prettyPrint());
 
         final Object[] results = engine.query(opp);
 
+        return results;
+    }
+
+    private static void assertExpectedResult(final @Nullable @ReadOnly Object[] expectedResults, final @Nullable @ReadOnly Object[] actualResults) {
         if (expectedResults != null) {
 
             if (expectedResults.length < 1) {
-                Assert.assertNull(results);
+                Assert.assertNull(actualResults);
             } else {
-                Assert.assertNotNull(results);
+                Assert.assertNotNull(actualResults);
             }
 
-            if (results == null) {
+            if (actualResults == null) {
                 Assert.assertTrue(expectedResults == null || expectedResults.length == 0);
-                return null;
+                return;
             }
 
             { // assert that each result exists in the expected results
-                long[] sortedExpectedResults = expectedResults.clone();
+                Object[] sortedExpectedResults = expectedResults.clone();
                 Arrays.sort(sortedExpectedResults);
-                for (final Object result : results) {
+                for (final Object result : actualResults) {
                     final int found;
                     if (result instanceof Long)
                         found = Arrays.binarySearch(sortedExpectedResults, (Long)result);
@@ -124,19 +128,74 @@ public class EngineTestBase {
             }
 
             { // assert that each expected result exists in the actual results
-                for (final long expectedResult : expectedResults) {
-                    Assert.assertTrue(Arrays.binarySearch(results, expectedResult) >= 0);
+                for (final Object expectedResult : expectedResults) {
+                    Assert.assertTrue(Arrays.binarySearch(actualResults, expectedResult) >= 0);
                     //Assert.assertTrue(results.contains(expectedResult));
                 }
             }
 
-            Assert.assertTrue(results.length == expectedResults.length);
+            Assert.assertTrue(actualResults.length == expectedResults.length);
 
         }
+    }
+
+    /**
+     *
+     * @param specifications The PMTL specification.
+     * @param opportunityAttributes The attributes from a simulated impression opportunity.
+     * @param expectedResults The expected IO ids.
+     * @throws IndexingException
+     */
+    static Object[] testIndexRemoveAndQuery(
+            final @Nonnull @ReadOnly Engine engine,
+            final @Nonnull @ReadOnly Map<Long,String> specifications,
+            final @Nonnull @ReadOnly Collection<Long> removals,
+            final @Nonnull @ReadOnly Map<String,String> opportunityAttributes,
+            final @Nullable @ReadOnly Object[] expectedResults) throws IndexingException {
+
+        System.out.println("specs:  " + specifications.toString());
+        System.out.println("opp:    " + opportunityAttributes.toString());
+        System.out.println("expect: " + Arrays.toString(expectedResults));
+
+        // index
+        index(engine, specifications);
+
+        // remove
+        if (removals != null) {
+            for (final Long removal : removals) {
+                engine.remove(removal);
+            }
+        }
+
+        //System.out.println("Engine: " + engine.prettyPrint());
+
+        // query
+        final Object[] results = query(engine, opportunityAttributes, expectedResults);
+
+        System.out.println("results:  " + Arrays.toString(results));
+
+        // assert output correctness
+        assertExpectedResult(expectedResults, results);
 
         return results;
     }
 
+    /**
+     *
+     * @param specifications The PMTL specification.
+     * @param opportunityAttributes The attributes from a simulated impression opportunity.
+     * @param expectedResults The expected IO ids.
+     * @throws IndexingException
+     */
+    static Object[] testIndexRemoveAndQuery(
+            final @Nonnull @ReadOnly Map<Long,String> specifications,
+            final @Nonnull @ReadOnly Collection<Long> removals,
+            final @Nonnull @ReadOnly Map<String,String> opportunityAttributes,
+            final @Nullable @ReadOnly Object[] expectedResults) throws IndexingException {
+
+        final Engine engine = Engine.newDefaultEngine();
+        return testIndexRemoveAndQuery(engine, specifications, removals, opportunityAttributes, expectedResults);
+    }
 
     /**
      *
@@ -149,25 +208,25 @@ public class EngineTestBase {
             final @Nonnull @ReadOnly Engine engine,
             final @Nonnull @ReadOnly Map<Long,String> specifications,
             final @Nonnull @ReadOnly Map<String,String> opportunityAttributes,
-            final @Nullable @ReadOnly long[] expectedResults) throws IndexingException {
+            final @Nullable @ReadOnly Object[] expectedResults) throws IndexingException {
 
-        System.out.println("specs:  " + specifications.toString());
-        System.out.println("opp:    " + opportunityAttributes.toString());
-        System.out.println("expect: " + Arrays.toString(expectedResults));
+        return testIndexRemoveAndQuery(engine, specifications, null, opportunityAttributes, expectedResults);
+    }
 
-        index(engine, specifications);
+    static Object[] testIndexAndQuery(
+            final @Nonnull @ReadOnly Map<Long,String> specifications,
+            final @Nonnull @ReadOnly Map<String,String> opportunityAttributes,
+            final @Nullable @ReadOnly Object[] expectedResults) throws IndexingException {
 
-        System.out.println("Engine: " + engine.prettyPrint());
-
-        final Object[] result = query(engine, opportunityAttributes, expectedResults);
-        return result;
+        final Engine engine = Engine.newDefaultEngine();
+        return testIndexRemoveAndQuery(engine, specifications, null, opportunityAttributes, expectedResults);
     }
 
     private static String fill(
-            final @Nonnull EngineBase engine,
-            final @Nonnull String template,
-            final @Nonnull Order attributeTypesOrder,
-            final @Nonnull Order attributeValuesOrder,
+            final @Nonnull @ReadOnly EngineBase engine,
+            final @Nonnull @ReadOnly String template,
+            final @Nonnull @ReadOnly Order attributeTypesOrder,
+            final @Nonnull @ReadOnly Order attributeValuesOrder,
             final @Nonnull Collection<Map<String,String>> opportunities) {
 
         if (engine == null) throw new IllegalArgumentException();
@@ -231,16 +290,6 @@ public class EngineTestBase {
         if (!opp.isEmpty()) opportunities.add(opp);
 
         return spec;
-    }
-
-    static Object[] testIndexAndQuery(
-            final @Nonnull @ReadOnly Map<Long,String> specifications,
-            final @Nonnull @ReadOnly Map<String,String> opportunityAttributes,
-            final @Nullable @ReadOnly long[] expectedResults) throws IndexingException {
-
-        final EngineBase engine = new EngineBase();
-
-        return testIndexAndQuery(engine, specifications, opportunityAttributes, expectedResults);
     }
 
     static void generateRandomParameters(
@@ -328,7 +377,7 @@ public class EngineTestBase {
         return buildTest(templates, ordersCount, opportunitiesCount, null);
     }
 
-    static Object[] randomQuery(final TestData data, final long[] expectedResults, final Random random) {
+    static Object[] randomQuery(final TestData data, final Object[] expectedResults, final Random random) {
         final int r = random.nextInt(data.getOpportunitiesCount());
         final Object[] results = query(data.engine, data.getOpportunityByIndex(r), expectedResults);
         return results;
