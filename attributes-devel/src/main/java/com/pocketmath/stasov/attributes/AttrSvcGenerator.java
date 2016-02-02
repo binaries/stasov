@@ -21,7 +21,7 @@ public class AttrSvcGenerator {
     private void write(final Map<String,Object> data, final String templatePath, final String outputPath, final Configuration cfg) throws IOException, TemplateException {
         Template template = cfg.getTemplate(templatePath);
         Writer out = new FileWriter(outputPath);
-        out.write("// GENERATED FILE.  EDITING NOT RECOMMENDED.\n\r");
+        out.write("// GENERATED FILE.  EDITING IS NOT RECOMMENDED.\n\r");
         template.process(data, out);
         out.flush();
     }

@@ -18,14 +18,21 @@ public abstract class ${className} extends OpportunityDataBase {
         assert(attrTypeId < Integer.MAX_VALUE);
         assert(attrTypeId > 0);
         switch ((int)attrTypeId) {
-<#list attrs as attr>
+    <#list attrs as attr>
             case ${attr.typeId} : { return get${attr.className}(); }
-</#list>
+    </#list>
+    <#list cacheAttrs as attr>
+            case ${attr.typeId} : { return get${attr.className}(); } // (attribute uses cache)
+    </#list>
             default : throw new UnsupportedOperationException("The attribute type was not found for attrTypeId=" + attrTypeId);
         }
     }
 
-<#list attrs as attr>
+    <#list attrs as attr>
     protected abstract Set<String> get${attr.className}();
-</#list>
+    </#list>
+    <#list cacheAttrs as attr>
+    protected abstract Set<String> get${attr.className}(); // (attribute uses cache)
+    </#list>
+
 }
