@@ -1,21 +1,16 @@
-package com.pocketmath.stasov.util;
+package com.pocketmath.stasov.util.multimaps;
 
+import com.pocketmath.stasov.util.TreeAlgorithm;
 import it.unimi.dsi.fastutil.longs.*;
-import it.unimi.dsi.fastutil.objects.ObjectAVLTreeSet;
-import it.unimi.dsi.fastutil.objects.ObjectRBTreeSet;
-import it.unimi.dsi.fastutil.objects.ObjectSet;
-import it.unimi.dsi.fastutil.objects.ObjectSortedSet;
-
-import java.util.Comparator;
 
 /**
  * Created by etucker on 3/26/15.
  */
-public class Long2LongMultiValueMap<V extends Comparable<V>> extends AbstractMultiValueMap<V> {
+public class Long2LongSortedMultiValueMap<V extends Comparable<V>> extends AbstractSortedMultiValueMap<V> {
 
     private final Long2ObjectMap<LongSortedSet> map;
 
-    public Long2LongMultiValueMap(final TreeAlgorithm treeAlgorithm) {
+    public Long2LongSortedMultiValueMap(final TreeAlgorithm treeAlgorithm) {
         super(null, treeAlgorithm);
         switch (treeAlgorithm) {
             case REDBLACK:  { map = new Long2ObjectRBTreeMap<LongSortedSet>(); break; }
@@ -24,7 +19,7 @@ public class Long2LongMultiValueMap<V extends Comparable<V>> extends AbstractMul
         }
     }
 
-    public Long2LongMultiValueMap() {
+    public Long2LongSortedMultiValueMap() {
         this(TreeAlgorithm.AVL);
     }
 
@@ -45,7 +40,7 @@ public class Long2LongMultiValueMap<V extends Comparable<V>> extends AbstractMul
         map.put(key, set);
     }
 
-    public LongSortedSet get(final long key) {
+    public LongSortedSet getSorted(final long key) {
         return map.get(key);
     }
 
