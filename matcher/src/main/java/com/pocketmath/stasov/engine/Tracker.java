@@ -1,13 +1,12 @@
 package com.pocketmath.stasov.engine;
 
-import com.pocketmath.stasov.util.Long2ObjectMultiValueMap;
+import com.pocketmath.stasov.util.multimaps.Long2ObjectSortedMultiValueMap;
 import it.unimi.dsi.fastutil.objects.ObjectSortedSet;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import java.util.BitSet;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 
@@ -16,19 +15,19 @@ import java.util.function.Consumer;
  */
 class Tracker {
 
-    private final Long2ObjectMultiValueMap<MatchTree.Node> activeIds =
-            new Long2ObjectMultiValueMap<MatchTree.Node>(MatchTree.NODE_COMPARATOR);
+    private final Long2ObjectSortedMultiValueMap<MatchNode> activeIds =
+            new Long2ObjectSortedMultiValueMap<MatchNode>(MatchTree.NODE_COMPARATOR);
 
-    private final Set<MatchTree.Node> allNodes = new TreeSet<MatchTree.Node>(MatchTree.NODE_COMPARATOR);
+    private final Set<MatchNode> allNodes = new TreeSet<MatchNode>(MatchTree.NODE_COMPARATOR);
 
-    public void associate(@Nonnegative final long id, @Nonnull final MatchTree.Node node) {
+    public void associate(@Nonnegative final long id, @Nonnull final MatchNode node) {
         if (id < 1) throw new IllegalArgumentException();
         if (node == null) throw new IllegalArgumentException();
         activeIds.put(id, node);
         allNodes.add(node);
     }
 
-    public void disassociate(@Nonnegative final long id, @Nonnull final MatchTree.Node node) {
+    public void disassociate(@Nonnegative final long id, @Nonnull final MatchNode node) {
         if (id < 1) throw new IllegalArgumentException();
         if (node == null) throw new IllegalArgumentException();
         activeIds.remove(id, node);
@@ -39,7 +38,7 @@ class Tracker {
         activeIds.remove(id);
     }
 
-    public void setMatches(final BitSet matchIds, final MatchTree.Node node) {
+    public void setMatches(final BitSet matchIds, final MatchNode node) {
         for (int i = matchIds.nextSetBit(0); i >= 0; i = matchIds.nextSetBit(i+1)) {
             // operate on index i here
             associate((long)i, node);
@@ -49,8 +48,8 @@ class Tracker {
         allNodes.add(node);
     }
 
-    public void operateOnNodes(final long id, Consumer<MatchTree.Node> consumer) {
-        final ObjectSortedSet<MatchTree.Node> nodes = activeIds.get(id);
+    public void operateOnNodes(final long id, Consumer<MatchNode> consumer) {
+        final ObjectSortedSet<MatchNode> nodes = activeIds.getSorted(id);
         nodes.forEach(consumer);
     }
 
@@ -70,7 +69,7 @@ class Tracker {
         return activeIds.getKeys();
     }
 
-    public Set<MatchTree.Node> allNodes() {
+    public Set<MatchNode> allNodes() {
         return allNodes;
     }
 

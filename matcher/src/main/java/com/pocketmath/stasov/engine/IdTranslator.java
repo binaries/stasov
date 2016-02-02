@@ -227,7 +227,7 @@ class IdTranslator<IDT> {
 
     private void updateMatches(final Refresh refresh) {
         checkInvariants();
-        for (final MatchTree.Node n : tracker.allNodes()) {
+        for (final MatchNode n : tracker.allNodes()) {
             final BitSet bs = n.getMatches();
             refactorBitSet(refresh, bs);
             n.setMatches(bs); // possibly redundant

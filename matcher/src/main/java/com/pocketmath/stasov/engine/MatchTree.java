@@ -1,15 +1,15 @@
 package com.pocketmath.stasov.engine;
 
 import com.pocketmath.stasov.attributes.AttrSvcBase;
+import com.pocketmath.stasov.attributes.AttributeHandler;
 import com.pocketmath.stasov.util.*;
+import com.pocketmath.stasov.util.multimaps.Long2LongSortedMultiValueMap;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import it.unimi.dsi.fastutil.objects.ObjectSortedSet;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.ConsoleHandler;
@@ -35,109 +35,16 @@ class MatchTree {
         logger.addHandler(consoleHandler);
     }
 
-    static class NodeComparator implements Comparator<Node> {
+    static class NodeComparator implements Comparator<MatchNode> {
 
-        public int compare(Node o1, Node o2) {
+        public int compare(MatchNode o1, MatchNode o2) {
             return Long.compare(o1.id, o2.id);
         }
     }
 
     static final Comparator NODE_COMPARATOR = new NodeComparator();
 
-    static class Node implements Comparable<Node>, PrettyPrintable {
-
-        private static volatile IDAllocator idAllocator = IDAllocator.newIDAllocatorLongMax();
-
-        private long id;
-
-        /**
-         * inclusionary values
-         */
-        final private DualLong2ObjectMultiValueMap<Node> inclusionary =
-                new DualLong2ObjectMultiValueMap<Node>(NODE_COMPARATOR, TreeAlgorithm.AVL);
-
-        /**
-         * exclusionary values
-         */
-        final private DualLong2ObjectMultiValueMap<Node> exclusionary =
-                new DualLong2ObjectMultiValueMap<Node>(NODE_COMPARATOR, TreeAlgorithm.AVL);
-
-        private BitSet matches;
-
-        private Node(final BitSet matches) {
-            this.id = idAllocator.allocateId();
-            this.matches = matches;
-        }
-
-        public Node() {
-            this(null);
-        }
-
-        @Override
-        protected void finalize() {
-            idAllocator.deallocateId(id);
-        }
-
-        public void setMatches(final BitSet matches) {
-            this.matches = matches;
-        }
-
-        public BitSet getMatches() {
-            return matches;
-        }
-
-        void addInclVals(final long attrTypeId, final long[] inclVals, final Node child) {
-            inclusionary.put(attrTypeId, inclVals, child);
-        }
-
-        void addInclVal(final long attrTypeId, final long inclVal, final Node child) {
-            inclusionary.put(attrTypeId, inclVal, child);
-        }
-
-        void addExclVals(final long attrTypeId, final long[] exclVals, final Node child) {
-            exclusionary.put(attrTypeId, exclVals, child);
-        }
-
-        public void addExclVal(final long attrTypeId, final long exclVal, final Node child) {
-            exclusionary.put(attrTypeId, exclVal, child);
-        }
-
-        public int compareTo(Node o) {
-            return Long.compare(id, o.id);
-        }
-
-        @Override
-        public String toString() {
-            return "Node{" +
-                    "id=" + id +
-                    ", inclusionary=" + (inclusionary.isEmpty() ? "EMPTY" : inclusionary) +
-                    ", exclusionary=" + (exclusionary.isEmpty() ? "EMPTY" : exclusionary) +
-                    ", matches=" + matches +
-                    '}';
-        }
-
-        public String prettyPrint(String prefix) {
-            StringWriter sw = new StringWriter();
-            PrintWriter w = new PrintWriter(sw);
-
-            final String t = prefix;
-
-            w.println();
-            w.println(t+"Node{");
-            w.println(t+"id=" + id );
-            w.println(t+"inclusionary=");
-            w.println(t+inclusionary.prettyPrint(t + "  ", "typeId  ", "valueId ", "|       "));
-            w.println(t+"exclusionary=");
-            w.println(t+exclusionary.prettyPrint(t + "  ", "typeId  ", "valueId ", "|       "));
-            //if (matches != null) w.println(t+"matches.cardinality()=" + matches.cardinality());
-            if (matches != null) w.println(t+"matches=" + matches);
-            w.println(t+"}");
-
-            return sw.toString();
-        }
-    }
-
-    private final Node root = new Node();
+    private final MatchNode root = new MatchNode();
 
     private final Weights attrWeights = new Weights();
 
@@ -266,8 +173,8 @@ class MatchTree {
     }
 
     public class AndGroupBuilder {
-        private final Long2LongMultiValueMap<Long> inclVals = new Long2LongMultiValueMap<Long>();
-        private final Long2LongMultiValueMap<Long> exclVals = new Long2LongMultiValueMap<Long>();
+        private final Long2LongSortedMultiValueMap<Long> inclVals = new Long2LongSortedMultiValueMap<Long>();
+        private final Long2LongSortedMultiValueMap<Long> exclVals = new Long2LongSortedMultiValueMap<Long>();
         private final long[] matches;
         public AndGroupBuilder(final long[] matches) {
             this.matches = matches;
@@ -291,8 +198,8 @@ class MatchTree {
             attrTypeIds.addAll(inclVals.getKeys());
             attrTypeIds.addAll(exclVals.getKeys());
             for(final long attrTypeId: attrTypeIds) {
-                final LongSortedSet _inclVals = inclVals.get(attrTypeId);
-                final LongSortedSet _exclVals = exclVals.get(attrTypeId);
+                final LongSortedSet _inclVals = inclVals.getSorted(attrTypeId);
+                final LongSortedSet _exclVals = exclVals.getSorted(attrTypeId);
                 if (_inclVals == null && _exclVals == null) throw new IllegalStateException(); // TODO: refine exception type.
                 if (_inclVals == null && _exclVals.isEmpty()) throw new IllegalStateException(); // TODO: refine exception type.
                 if (_exclVals == null && _inclVals.isEmpty()) throw new IllegalStateException(); // TODO: refine exception type.
@@ -375,7 +282,7 @@ class MatchTree {
 
         logger.log(Level.FINEST, "adding AndGroup: " + ag);
 
-        final ObjectSet<Node> layerNodes = new ObjectLinkedOpenHashSet<Node>();
+        final ObjectSet<MatchNode> layerNodes = new ObjectLinkedOpenHashSet<MatchNode>();
         layerNodes.add(root);
 
         final Iterator<AttrVals> componentsItr = ag.componentsIterator();
@@ -388,21 +295,21 @@ class MatchTree {
             final long[] inclVals = component.getInclVals();
             final long[] exclVals = component.getExclVals();
 
-            for (final Node node: layerNodes) {
+            for (final MatchNode node: layerNodes) {
                 if (node == null) throw new NullPointerException("node was null");
 
-                Node newNextNode = null;
-                final Long2ObjectMap<Node> nextLayerNodes = new Long2ObjectRBTreeMap<Node>();
+                MatchNode newNextNode = null;
+                final Long2ObjectMap<MatchNode> nextLayerNodes = new Long2ObjectRBTreeMap<MatchNode>();
 
                 if (inclVals != null) for (final long inclVal : inclVals) {
 
                     //boolean existing = true;
-                    Long2ObjectMap<Node> possibleExistingNodes = null;
+                    Long2ObjectMap<MatchNode> possibleExistingNodes = null;
                     //final LongSet nonExisting = new LongRBTreeSet();
                     if (node.inclusionary == null) throw new NullPointerException("node.inclusionary was null");
-                    final SortedSet<Node> existingNextNodes = node.inclusionary.get(attrTypeId, inclVal);
+                    final SortedSet<MatchNode> existingNextNodes = node.inclusionary.getSorted(attrTypeId, inclVal);
                     if (existingNextNodes != null) {
-                        existingNodesLoop: for (final Node existingNextNode : existingNextNodes) {
+                        existingNodesLoop: for (final MatchNode existingNextNode : existingNextNodes) {
                             // Great!  We've got inclusion.  Now, look for exclusion ...
                             if (!node.exclusionary.matchesAll(attrTypeId, exclVals, existingNextNode)) {
                                 //existing = false;
@@ -410,7 +317,7 @@ class MatchTree {
                                 break existingNodesLoop;
                             } else {
                                 if (possibleExistingNodes == null)
-                                    possibleExistingNodes = new Long2ObjectRBTreeMap<Node>();
+                                    possibleExistingNodes = new Long2ObjectRBTreeMap<MatchNode>();
                                 possibleExistingNodes.put(inclVal, existingNextNode);
                             }
                         }
@@ -420,14 +327,14 @@ class MatchTree {
                         nextLayerNodes.putAll(possibleExistingNodes);
                     } else {
                         if (newNextNode == null) {
-                            newNextNode = new Node();
+                            newNextNode = new MatchNode();
                             nextLayerNodes.put(inclVal, newNextNode);
                             //for (final long _inclVal : nonExisting) nextLayerNodes.put(_inclVal, newNextNode);
                         }
                     }
                 }
 
-                for (final Long2ObjectMap.Entry<Node> entry : nextLayerNodes.long2ObjectEntrySet()) {
+                for (final Long2ObjectMap.Entry<MatchNode> entry : nextLayerNodes.long2ObjectEntrySet()) {
                     node.inclusionary.put(attrTypeId, entry.getLongKey(), entry.getValue());
                     if (exclVals != null) node.exclusionary.put(attrTypeId, exclVals, entry.getValue());
                 }
@@ -445,7 +352,7 @@ class MatchTree {
 
         //bitSetTranslator.addToBitSet(ag.getMatches(), onBits);
 
-        for (Node node: layerNodes) {
+        for (MatchNode node: layerNodes) {
             BitSet bitSet = node.getMatches();
             if (bitSet == null) {
                 bitSet = new BitSet();
@@ -466,15 +373,15 @@ class MatchTree {
         final long[] attrTypeIds = attrSvc.getAttrTypeIds();
         assert(StasovArrays.isSorted(attrTypeIds, attrSvc.getAttrsComparator()));
 
-        ArrayList<Node> layerNodes = new ArrayList<Node>();
-        ArrayList<Node> nextLayerNodes = new ArrayList<Node>();
+        ArrayList<MatchNode> layerNodes = new ArrayList<MatchNode>();
+        ArrayList<MatchNode> nextLayerNodes = new ArrayList<MatchNode>();
         layerNodes.add(root);
 
         BitSet bitSet = null;
 
         while (!layerNodes.isEmpty()) {
             //System.out.println("layerNodes=" + layerNodes);
-            for (Node node : layerNodes) {
+            for (MatchNode node : layerNodes) {
                 final BitSet matches = node.getMatches();
                 if (matches != null) {
                     if (bitSet == null) bitSet = new BitSet();
@@ -483,17 +390,26 @@ class MatchTree {
                 for (final long attrTypeId : attrTypeIds) {
                     final LongSet nodeValues = node.inclusionary.getKeys2(attrTypeId);
                     if (nodeValues == null) continue;
-                    final LongSet queryValues = query.translateValues(attrTypeId); // multiValueMap.get(attrTypeId);
+                    final LongSet queryValues = query.translateValues(attrTypeId); // multiValueMap.getSorted(attrTypeId);
                     if (queryValues == null) continue;
+
                     for (final long queryValue : queryValues) {
-                        if (nodeValues.contains(queryValue)) {
-                            final ObjectSortedSet<Node> inclNextNodes = node.inclusionary.get(attrTypeId, queryValue);
+                        assert(queryValue >= 0 || queryValue == AttributeHandler.USE_FUZZY_MATCH);
+                        final ObjectSortedSet<MatchNode> inclNextNodes;
+                        final ObjectSortedSet<MatchNode> exclNextNodes;
+
+                        if (queryValue == AttributeHandler.USE_FUZZY_MATCH) {
+                            inclNextNodes = null;
+                            exclNextNodes = null;
+
+                        } else if (nodeValues.contains(queryValue)) {
+                            inclNextNodes = node.inclusionary.getSorted(attrTypeId, queryValue);
                             assert (inclNextNodes != null);
                             assert (!inclNextNodes.isEmpty());
 
-                            final ObjectSortedSet<Node> exclNextNodes = node.exclusionary.get(attrTypeId, queryValue);
+                            exclNextNodes = node.exclusionary.getSorted(attrTypeId, queryValue);
 
-                            final ObjectSet<Node> nextNodes = new ObjectOpenHashSet<Node>(inclNextNodes);
+                            final ObjectSet<MatchNode> nextNodes = new ObjectOpenHashSet<MatchNode>(inclNextNodes);
                             if (exclNextNodes != null) nextNodes.removeAll(exclNextNodes);
 
                             nextLayerNodes.addAll(nextNodes);
@@ -514,7 +430,7 @@ class MatchTree {
         return ids;
     }
 
-   private class RemoveConsumer implements Consumer<MatchTree.Node> {
+   private class RemoveConsumer implements Consumer<MatchNode> {
         private long id = -1l;
 
         public void setId(final long id) {
@@ -522,7 +438,7 @@ class MatchTree {
         }
 
         @Override
-        public void accept(MatchTree.Node node) {
+        public void accept(MatchNode node) {
             final BitSet matches = node.getMatches();
             matches.clear((int)id);
         }

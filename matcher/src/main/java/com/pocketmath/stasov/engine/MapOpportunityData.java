@@ -1,10 +1,8 @@
 package com.pocketmath.stasov.engine;
 
 import com.pocketmath.stasov.attributes.AttrSvcBase;
-import com.pocketmath.stasov.util.Long2ObjectMultiValueMap;
+import com.pocketmath.stasov.util.multimaps.Long2ObjectSortedMultiValueMap;
 import com.pocketmath.stasov.util.TreeAlgorithm;
-import it.unimi.dsi.fastutil.longs.LongComparator;
-import it.unimi.dsi.fastutil.longs.LongComparators;
 
 import java.util.Set;
 
@@ -17,7 +15,7 @@ public class MapOpportunityData extends OpportunityDataBase {
 
     private final AttrSvcBase attrSvc;
 
-    private Long2ObjectMultiValueMap<String> map = new Long2ObjectMultiValueMap<String>(String.CASE_INSENSITIVE_ORDER, TreeAlgorithm.AVL);
+    private Long2ObjectSortedMultiValueMap<String> map = new Long2ObjectSortedMultiValueMap<String>(String.CASE_INSENSITIVE_ORDER, TreeAlgorithm.AVL);
 
     MapOpportunityData(final AttrSvcBase attrSvc) {
         this.attrSvc = attrSvc;
@@ -30,7 +28,7 @@ public class MapOpportunityData extends OpportunityDataBase {
 
     @Override
     public Set<String> getData(final long attrTypeId) {
-        return map.get(attrTypeId);
+        return map.getSorted(attrTypeId);
     }
 
     @Override
