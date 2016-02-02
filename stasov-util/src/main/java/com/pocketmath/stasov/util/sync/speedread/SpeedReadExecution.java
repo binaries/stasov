@@ -105,7 +105,7 @@ public class SpeedReadExecution {
                         // We are in the possible window under which a lock may be owned.
                         // This operation may be expensive, and that's okay as it's a less frequent write.
 
-                        // Let's try to get the lock:
+                        // Let's try to getSorted the lock:
                         synchronized (globalLock) {
                             checkInvariants();
                             now = System.currentTimeMillis();
