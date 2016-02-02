@@ -6,7 +6,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 /**
  * Created by etucker on 1/12/16.
  */
-class AttributeHandlerCaffeineCacheMap extends AttributeHandler {
+class AttributeHandlerCaffeineCacheMap extends ExactMatchAttributeHandler {
 
     private final Cache<String,Long> cache;
 

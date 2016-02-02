@@ -6,13 +6,18 @@ package com.pocketmath.stasov.attributes;
 public abstract class AttributeHandler {
 
     public static final long NOT_FOUND = -1;
-    static long CACHED_NOT_FOUND = -2l;
+    static final long CACHED_NOT_FOUND = -2;
+    public static final long USE_FUZZY_MATCH = -3;
 
-    public void put(final String name, final long id) {
+    public abstract long find(final String input);
+
+    public float[] convert(final String input) {
         throw new UnsupportedOperationException();
     }
 
-    public abstract long find(final String input);
+    public float score(final float[] convertedValues) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * To facilitate testing.

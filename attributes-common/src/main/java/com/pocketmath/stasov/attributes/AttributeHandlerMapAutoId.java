@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * Created by etucker on 6/23/15.
  */
-public abstract class AttributeHandlerMapAutoId extends AttributeHandler {
+public abstract class AttributeHandlerMapAutoId extends ExactMatchAttributeHandler {
 
     private long sequence = 0;
 

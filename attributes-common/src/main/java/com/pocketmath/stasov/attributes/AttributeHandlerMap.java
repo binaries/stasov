@@ -6,7 +6,7 @@ import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 /**
  * Created by etucker on 6/23/15.
  */
-abstract class AttributeHandlerMap extends AttributeHandler {
+abstract class AttributeHandlerMap extends ExactMatchAttributeHandler {
 
     private final Object2LongMap<String> map = new Object2LongOpenHashMap<String>();
     {

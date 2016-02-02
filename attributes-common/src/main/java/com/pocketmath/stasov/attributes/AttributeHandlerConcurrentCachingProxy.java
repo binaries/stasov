@@ -3,29 +3,29 @@ package com.pocketmath.stasov.attributes;
 /**
  * Created by etucker on 1/12/16.
  */
-public class AttributeHandlerConcurrentCachingProxy extends AttributeHandler {
+public class AttributeHandlerConcurrentCachingProxy extends ExactMatchAttributeHandler {
 
-    private AttributeHandler source;
-    private AttributeHandler cache;
+    private ExactMatchAttributeHandler source;
+    private ExactMatchAttributeHandler cache;
 
-    private AttributeHandlerConcurrentCachingProxy(final AttributeHandler source, final AttributeHandler cache) {
+    private AttributeHandlerConcurrentCachingProxy(final ExactMatchAttributeHandler source, final ExactMatchAttributeHandler cache) {
         this.source = source;
         this.cache = cache;
     }
 
-    public final static AttributeHandlerConcurrentCachingProxy newCache(final AttributeHandler source, final AttributeHandler cache) {
+    public final static AttributeHandlerConcurrentCachingProxy newCache(final ExactMatchAttributeHandler source, final ExactMatchAttributeHandler cache) {
         return new AttributeHandlerConcurrentCachingProxy(source, cache);
     }
 
-    public final static AttributeHandlerConcurrentCachingProxy newFIFOMemoryCache(final AttributeHandler source, final int capacity) {
+    public final static AttributeHandlerConcurrentCachingProxy newFIFOMemoryCache(final ExactMatchAttributeHandler source, final int capacity) {
         return new AttributeHandlerConcurrentCachingProxy(source, new AttributeHandlerFIFOCacheMap(capacity){});
     }
 
-    public final static AttributeHandlerConcurrentCachingProxy newCaffeineMemoryCache(final AttributeHandler source, final int capacity) {
+    public final static AttributeHandlerConcurrentCachingProxy newCaffeineMemoryCache(final ExactMatchAttributeHandler source, final int capacity) {
         return new AttributeHandlerConcurrentCachingProxy(source, new AttributeHandlerCaffeineCacheMap(capacity));
     }
 
-    public final static AttributeHandlerConcurrentCachingProxy newDefaultMemoryCache(final AttributeHandler source, final int capacity) {
+    public final static AttributeHandlerConcurrentCachingProxy newDefaultMemoryCache(final ExactMatchAttributeHandler source, final int capacity) {
         return newCaffeineMemoryCache(source, capacity);
     }
 

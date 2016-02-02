@@ -5,7 +5,7 @@ import com.pocketmath.stasov.util.Object2LongFIFOCacheMap;
 /**
  * Created by etucker on 1/12/16.
  */
-class AttributeHandlerFIFOCacheMap extends AttributeHandler {
+class AttributeHandlerFIFOCacheMap extends ExactMatchAttributeHandler {
 
     private final Object2LongFIFOCacheMap<String> map;
 
