@@ -1,4 +1,4 @@
-package com.pocketmath.stasov.util;
+package com.pocketmath.stasov.util.cache;
 
 import java.util.HashMap;
 import java.util.Map;

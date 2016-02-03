@@ -1,4 +1,4 @@
-package com.pocketmath.stasov.util;
+package com.pocketmath.stasov.util.cache;
 
 import it.unimi.dsi.fastutil.objects.Object2LongLinkedOpenHashMap;
 
