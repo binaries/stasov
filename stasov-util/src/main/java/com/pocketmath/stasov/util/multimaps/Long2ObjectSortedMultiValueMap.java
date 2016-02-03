@@ -10,7 +10,8 @@ import java.util.Map;
 /**
  * Created by etucker on 3/21/15.
  */
-public class Long2ObjectSortedMultiValueMap<V extends Comparable<V>> extends AbstractSortedMultiValueMap<V> {
+public class Long2ObjectSortedMultiValueMap<V extends Comparable<V>> extends AbstractSortedMultiValueMap<V>
+    implements ILong2ObjectMultiValueSortedMap<V> {
 
     private final Long2ObjectMap<ObjectSortedSet<V>> map;
 
@@ -25,6 +26,10 @@ public class Long2ObjectSortedMultiValueMap<V extends Comparable<V>> extends Abs
 
     public Long2ObjectSortedMultiValueMap(final Comparator<V> valueComparator) {
         this(valueComparator, TreeAlgorithm.AVL);
+    }
+
+    public Long2ObjectSortedMultiValueMap() {
+        this(Comparator.naturalOrder());
     }
 
     public void put(long key, V value) {
@@ -44,12 +49,17 @@ public class Long2ObjectSortedMultiValueMap<V extends Comparable<V>> extends Abs
         return map.get(key);
     }
 
+    public ObjectSet<V> get(final long key) {
+        return getSorted(key);
+    }
+
     public boolean contains(final long key, final V value) {
         ObjectSortedSet<V> set = map.get(key);
         if (set == null) return false;
         return set.contains(value);
     }
 
+    @Override
     public int occurrences(final long key) {
         final ObjectSet<V> set = map.get(key);
         if (set == null) return 0;
@@ -78,6 +88,7 @@ public class Long2ObjectSortedMultiValueMap<V extends Comparable<V>> extends Abs
         if (set.isEmpty()) map.remove(key);
     }
 
+    @Override
     public void remove(final long key, final V value) {
         final ObjectSet set = map.get(key);
         if (set != null) set.remove(value);
@@ -85,10 +96,12 @@ public class Long2ObjectSortedMultiValueMap<V extends Comparable<V>> extends Abs
         if (set.isEmpty()) map.remove(key);
     }
 
+    @Override
     public void remove(final long key) {
         map.remove(key);
     }
 
+    @Override
     public LongSet getKeys() {
         return map.keySet();
     }
