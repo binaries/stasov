@@ -18,6 +18,8 @@ public interface ILong2Long2ObjectMultiValueMap<V> {
 
     public ObjectSet<V> get(final long key1, final long key2);
 
+    public LongSet getKeys1();
+
     public LongSet getKeys2(final long key1);
 
     public void remove(final long key1);

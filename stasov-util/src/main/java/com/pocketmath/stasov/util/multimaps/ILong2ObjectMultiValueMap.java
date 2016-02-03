@@ -23,5 +23,6 @@ public interface ILong2ObjectMultiValueMap<V> {
 
     public LongSet getKeys();
 
+    public long size();
 
 }
