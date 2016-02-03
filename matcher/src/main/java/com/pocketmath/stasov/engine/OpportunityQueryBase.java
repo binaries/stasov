@@ -2,7 +2,7 @@ package com.pocketmath.stasov.engine;
 
 import com.pocketmath.stasov.attributes.AttrSvcBase;
 import com.pocketmath.stasov.attributes.AttributeHandler;
-import com.pocketmath.stasov.util.multimaps.Long2LongSortedMultiValueMap;
+import com.pocketmath.stasov.util.multimaps.Long2LongMultiValueSortedMap;
 import com.pocketmath.stasov.util.TreeAlgorithm;
 import it.unimi.dsi.fastutil.longs.LongSortedSet;
 import it.unimi.dsi.fastutil.longs.LongSortedSets;
@@ -14,7 +14,7 @@ import java.util.Set;
  */
 public class OpportunityQueryBase {
 
-    private final Long2LongSortedMultiValueMap multiValueMap = new Long2LongSortedMultiValueMap(TreeAlgorithm.REDBLACK);
+    private final Long2LongMultiValueSortedMap multiValueMap = new Long2LongMultiValueSortedMap(TreeAlgorithm.REDBLACK);
 
     private OpportunityDataBase oppData = null;
 

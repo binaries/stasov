@@ -14,29 +14,29 @@ import java.util.Map;
 /**
  * Created by etucker on 3/22/15.
  */
-public class Long2Long2ObjectSortedMultiValueMap<V extends Comparable<V>> extends AbstractSortedMultiValueMap<V>
+public class Long2Long2ObjectMultiValueSortedMap<V extends Comparable<V>> extends AbstractSortedMultiValueMap<V>
         implements ILong2Long2ObjectMultiValueSortedMap<V>, PrettyPrintable {
 
-    private final Long2ObjectMap<Long2ObjectSortedMultiValueMap<V>> map;
+    private final Long2ObjectMap<Long2ObjectMultiValueSortedMap<V>> map;
 
-    public Long2Long2ObjectSortedMultiValueMap(Comparator<V> valueComparator, TreeAlgorithm treeAlg) {
+    public Long2Long2ObjectMultiValueSortedMap(Comparator<V> valueComparator, TreeAlgorithm treeAlg) {
         super(valueComparator, treeAlg);
         switch (treeAlgorithm) {
-            case REDBLACK:  { map = new Long2ObjectRBTreeMap<Long2ObjectSortedMultiValueMap<V>>(); break; }
-            case AVL:       { map = new Long2ObjectAVLTreeMap<Long2ObjectSortedMultiValueMap<V>>(); break; }
+            case REDBLACK:  { map = new Long2ObjectRBTreeMap<Long2ObjectMultiValueSortedMap<V>>(); break; }
+            case AVL:       { map = new Long2ObjectAVLTreeMap<Long2ObjectMultiValueSortedMap<V>>(); break; }
             default:        { throw new IllegalStateException(); }
         }
     }
 
-    public Long2Long2ObjectSortedMultiValueMap(Comparator<V> valueComparator) {
+    public Long2Long2ObjectMultiValueSortedMap(Comparator<V> valueComparator) {
         this(valueComparator, TreeAlgorithm.AVL);
     }
 
     @Override
     public void put(final long key1, final long key2, final V value) {
-        Long2ObjectSortedMultiValueMap<V> subMap = map.get(key1);
+        Long2ObjectMultiValueSortedMap<V> subMap = map.get(key1);
         if (subMap == null) {
-            subMap = new Long2ObjectSortedMultiValueMap<V>(valueComparator, treeAlgorithm);
+            subMap = new Long2ObjectMultiValueSortedMap<V>(valueComparator, treeAlgorithm);
             map.put(key1, subMap);
         }
         subMap.put(key2, value);
@@ -50,9 +50,9 @@ public class Long2Long2ObjectSortedMultiValueMap<V extends Comparable<V>> extend
      * @param value
      */
     public void put(final long key1, final long[] keys2, final V value) {
-        Long2ObjectSortedMultiValueMap<V> subMap = map.get(key1);
+        Long2ObjectMultiValueSortedMap<V> subMap = map.get(key1);
         if (subMap == null) {
-            subMap = new Long2ObjectSortedMultiValueMap<V>(valueComparator, treeAlgorithm);
+            subMap = new Long2ObjectMultiValueSortedMap<V>(valueComparator, treeAlgorithm);
             map.put(key1, subMap);
         }
         for (final long key2: keys2) subMap.put(key2, value);
@@ -60,7 +60,7 @@ public class Long2Long2ObjectSortedMultiValueMap<V extends Comparable<V>> extend
 
     @Override
     public ObjectSortedSet<V> getSorted(final long key1, final long key2) {
-        final Long2ObjectSortedMultiValueMap<V> subMap = map.get(key1);
+        final Long2ObjectMultiValueSortedMap<V> subMap = map.get(key1);
         return (subMap == null) ? null : subMap.getSorted(key2);
     }
 
@@ -71,7 +71,7 @@ public class Long2Long2ObjectSortedMultiValueMap<V extends Comparable<V>> extend
 
     @Override
     public LongSet getKeys2(final long key1) {
-        final Long2ObjectSortedMultiValueMap<V> subMap = map.get(key1);
+        final Long2ObjectMultiValueSortedMap<V> subMap = map.get(key1);
         return (subMap == null) ? null : subMap.getKeys();
     }
 
@@ -82,24 +82,24 @@ public class Long2Long2ObjectSortedMultiValueMap<V extends Comparable<V>> extend
 
     @Override
     public boolean containsKey(final long key1, final long key2) {
-        final Long2ObjectSortedMultiValueMap<V> subMap = map.get(key1);
+        final Long2ObjectMultiValueSortedMap<V> subMap = map.get(key1);
         if (subMap == null) return false;
         return subMap.containsKey(key2);
     }
 
     public boolean matchesAll(final long key1, final long[] keys2, final V value) {
-        final Long2ObjectSortedMultiValueMap subMap = map.get(key1);
+        final Long2ObjectMultiValueSortedMap subMap = map.get(key1);
         return subMap != null ? subMap.matchesAll(keys2, value) : false;
     }
 
     public void remove(final long key1, final long key2, final long value) {
-        final Long2ObjectSortedMultiValueMap<V> subMap = map.get(key1);
+        final Long2ObjectMultiValueSortedMap<V> subMap = map.get(key1);
         if (subMap == null) return;
         subMap.remove(key2, value);
     }
 
     public void remove(final long key1, final long key2) {
-        final Long2ObjectSortedMultiValueMap<V> subMap = map.get(key1);
+        final Long2ObjectMultiValueSortedMap<V> subMap = map.get(key1);
         if (subMap == null) return;
         subMap.remove(key2);
     }
@@ -131,7 +131,7 @@ public class Long2Long2ObjectSortedMultiValueMap<V extends Comparable<V>> extend
         final String t2 = prefix + "    " + key2Prefix;
         final String t3 = prefix + "      " + valuePrefix;
         w.println(prefix + "{");
-        for (final Long2ObjectMap.Entry<Long2ObjectSortedMultiValueMap<V>> entry1 : map.long2ObjectEntrySet()) {
+        for (final Long2ObjectMap.Entry<Long2ObjectMultiValueSortedMap<V>> entry1 : map.long2ObjectEntrySet()) {
             w.println(t1 + entry1.getKey() + " = ");
             for (final Map.Entry<Long, ObjectSortedSet<V>> entry2 : entry1.getValue().entrySet()) {
                 w.println(t2 + entry2.getKey() + " = ");

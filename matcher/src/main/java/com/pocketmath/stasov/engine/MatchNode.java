@@ -2,7 +2,7 @@ package com.pocketmath.stasov.engine;
 
 import com.pocketmath.stasov.attributes.AttributeHandler;
 import com.pocketmath.stasov.attributes.FuzzyMatchAttributeHandler;
-import com.pocketmath.stasov.util.multimaps.Long2Long2ObjectSortedMultiValueMap;
+import com.pocketmath.stasov.util.multimaps.Long2Long2ObjectMultiValueSortedMap;
 import com.pocketmath.stasov.util.IDAllocator;
 import com.pocketmath.stasov.util.PrettyPrintable;
 import com.pocketmath.stasov.util.TreeAlgorithm;
@@ -28,15 +28,15 @@ class MatchNode implements Comparable<MatchNode>, PrettyPrintable {
      * inclusionary values
      * use directly with extreme care
      */
-    final Long2Long2ObjectSortedMultiValueMap<MatchNode> inclusionary =
-            new Long2Long2ObjectSortedMultiValueMap<MatchNode>(MatchTree.NODE_COMPARATOR, TreeAlgorithm.AVL);
+    final Long2Long2ObjectMultiValueSortedMap<MatchNode> inclusionary =
+            new Long2Long2ObjectMultiValueSortedMap<MatchNode>(MatchTree.NODE_COMPARATOR, TreeAlgorithm.AVL);
 
     /**
      * exclusionary values
      * use directly with extreme care
      */
-    final Long2Long2ObjectSortedMultiValueMap<MatchNode> exclusionary =
-            new Long2Long2ObjectSortedMultiValueMap<MatchNode>(MatchTree.NODE_COMPARATOR, TreeAlgorithm.AVL);
+    final Long2Long2ObjectMultiValueSortedMap<MatchNode> exclusionary =
+            new Long2Long2ObjectMultiValueSortedMap<MatchNode>(MatchTree.NODE_COMPARATOR, TreeAlgorithm.AVL);
 
     private BitSet matches;
 

@@ -1,7 +1,7 @@
 package com.pocketmath.stasov.engine;
 
 import com.pocketmath.stasov.attributes.AttrSvcBase;
-import com.pocketmath.stasov.util.multimaps.Long2ObjectSortedMultiValueMap;
+import com.pocketmath.stasov.util.multimaps.Long2ObjectMultiValueSortedMap;
 import com.pocketmath.stasov.util.TreeAlgorithm;
 
 import java.util.Set;
@@ -15,7 +15,7 @@ public class MapOpportunityData extends OpportunityDataBase {
 
     private final AttrSvcBase attrSvc;
 
-    private Long2ObjectSortedMultiValueMap<String> map = new Long2ObjectSortedMultiValueMap<String>(String.CASE_INSENSITIVE_ORDER, TreeAlgorithm.AVL);
+    private Long2ObjectMultiValueSortedMap<String> map = new Long2ObjectMultiValueSortedMap<String>(String.CASE_INSENSITIVE_ORDER, TreeAlgorithm.AVL);
 
     MapOpportunityData(final AttrSvcBase attrSvc) {
         this.attrSvc = attrSvc;

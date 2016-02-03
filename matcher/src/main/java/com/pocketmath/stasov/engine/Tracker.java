@@ -1,6 +1,6 @@
 package com.pocketmath.stasov.engine;
 
-import com.pocketmath.stasov.util.multimaps.Long2ObjectSortedMultiValueMap;
+import com.pocketmath.stasov.util.multimaps.Long2ObjectMultiValueSortedMap;
 import it.unimi.dsi.fastutil.objects.ObjectSortedSet;
 
 import javax.annotation.Nonnegative;
@@ -15,8 +15,8 @@ import java.util.function.Consumer;
  */
 class Tracker {
 
-    private final Long2ObjectSortedMultiValueMap<MatchNode> activeIds =
-            new Long2ObjectSortedMultiValueMap<MatchNode>(MatchTree.NODE_COMPARATOR);
+    private final Long2ObjectMultiValueSortedMap<MatchNode> activeIds =
+            new Long2ObjectMultiValueSortedMap<MatchNode>(MatchTree.NODE_COMPARATOR);
 
     private final Set<MatchNode> allNodes = new TreeSet<MatchNode>(MatchTree.NODE_COMPARATOR);
 

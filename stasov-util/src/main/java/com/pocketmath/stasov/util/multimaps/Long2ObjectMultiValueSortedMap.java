@@ -10,12 +10,12 @@ import java.util.Map;
 /**
  * Created by etucker on 3/21/15.
  */
-public class Long2ObjectSortedMultiValueMap<V extends Comparable<V>> extends AbstractSortedMultiValueMap<V>
+public class Long2ObjectMultiValueSortedMap<V extends Comparable<V>> extends AbstractSortedMultiValueMap<V>
     implements ILong2ObjectMultiValueSortedMap<V> {
 
     private final Long2ObjectMap<ObjectSortedSet<V>> map;
 
-    public Long2ObjectSortedMultiValueMap(final Comparator<V> valueComparator, final TreeAlgorithm treeAlgorithm) {
+    public Long2ObjectMultiValueSortedMap(final Comparator<V> valueComparator, final TreeAlgorithm treeAlgorithm) {
         super(valueComparator, treeAlgorithm);
         switch (treeAlgorithm) {
             case REDBLACK:  { map = new Long2ObjectRBTreeMap<ObjectSortedSet<V>>(); break; }
@@ -24,11 +24,11 @@ public class Long2ObjectSortedMultiValueMap<V extends Comparable<V>> extends Abs
         }
     }
 
-    public Long2ObjectSortedMultiValueMap(final Comparator<V> valueComparator) {
+    public Long2ObjectMultiValueSortedMap(final Comparator<V> valueComparator) {
         this(valueComparator, TreeAlgorithm.AVL);
     }
 
-    public Long2ObjectSortedMultiValueMap() {
+    public Long2ObjectMultiValueSortedMap() {
         this(Comparator.naturalOrder());
     }
 

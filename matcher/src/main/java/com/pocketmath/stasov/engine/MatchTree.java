@@ -3,7 +3,7 @@ package com.pocketmath.stasov.engine;
 import com.pocketmath.stasov.attributes.AttrSvcBase;
 import com.pocketmath.stasov.attributes.AttributeHandler;
 import com.pocketmath.stasov.util.*;
-import com.pocketmath.stasov.util.multimaps.Long2LongSortedMultiValueMap;
+import com.pocketmath.stasov.util.multimaps.Long2LongMultiValueSortedMap;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -173,8 +173,8 @@ class MatchTree {
     }
 
     public class AndGroupBuilder {
-        private final Long2LongSortedMultiValueMap<Long> inclVals = new Long2LongSortedMultiValueMap<Long>();
-        private final Long2LongSortedMultiValueMap<Long> exclVals = new Long2LongSortedMultiValueMap<Long>();
+        private final Long2LongMultiValueSortedMap<Long> inclVals = new Long2LongMultiValueSortedMap<Long>();
+        private final Long2LongMultiValueSortedMap<Long> exclVals = new Long2LongMultiValueSortedMap<Long>();
         private final long[] matches;
         public AndGroupBuilder(final long[] matches) {
             this.matches = matches;

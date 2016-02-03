@@ -6,11 +6,11 @@ import it.unimi.dsi.fastutil.longs.*;
 /**
  * Created by etucker on 3/26/15.
  */
-public class Long2LongSortedMultiValueMap<V extends Comparable<V>> extends AbstractSortedMultiValueMap<V> {
+public class Long2LongMultiValueSortedMap<V extends Comparable<V>> extends AbstractSortedMultiValueMap<V> {
 
     private final Long2ObjectMap<LongSortedSet> map;
 
-    public Long2LongSortedMultiValueMap(final TreeAlgorithm treeAlgorithm) {
+    public Long2LongMultiValueSortedMap(final TreeAlgorithm treeAlgorithm) {
         super(null, treeAlgorithm);
         switch (treeAlgorithm) {
             case REDBLACK:  { map = new Long2ObjectRBTreeMap<LongSortedSet>(); break; }
@@ -19,7 +19,7 @@ public class Long2LongSortedMultiValueMap<V extends Comparable<V>> extends Abstr
         }
     }
 
-    public Long2LongSortedMultiValueMap() {
+    public Long2LongMultiValueSortedMap() {
         this(TreeAlgorithm.AVL);
     }
 

@@ -3,7 +3,7 @@ package com.pocketmath.stasov.util.optimizedrangemap;
 import com.pocketmath.stasov.util.TreeAlgorithm;
 import com.pocketmath.stasov.util.multimaps.ILong2ObjectMultiValueMap;
 import com.pocketmath.stasov.util.multimaps.ILong2ObjectMultiValueSortedMap;
-import com.pocketmath.stasov.util.multimaps.Long2ObjectSortedMultiValueMap;
+import com.pocketmath.stasov.util.multimaps.Long2ObjectMultiValueSortedMap;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 
@@ -23,11 +23,11 @@ public class OptimizedRangeMap<T extends Comparable<T>> {
     public static final int DEFAULT_MAINTENANCE_ITEMS_PER_CALL = 50;
 
     private ILong2ObjectMultiValueSortedMap<OptRMEntry<T>> intervalToEntries =
-            new Long2ObjectSortedMultiValueMap<OptRMEntry<T>>();
+            new Long2ObjectMultiValueSortedMap<OptRMEntry<T>>();
 
     // TODO: Use hashmap for better performance?
     private ILong2ObjectMultiValueMap<T> map =
-            new Long2ObjectSortedMultiValueMap<T>(Comparator.naturalOrder(), TreeAlgorithm.AVL);
+            new Long2ObjectMultiValueSortedMap<T>(Comparator.naturalOrder(), TreeAlgorithm.AVL);
 
     private final double tuneFactor;
 
