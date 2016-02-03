@@ -1,6 +1,6 @@
 package com.pocketmath.stasov.attributes;
 
-import com.pocketmath.stasov.util.Object2LongFIFOCacheMap;
+import com.pocketmath.stasov.util.cache.Object2LongFIFOCacheMap;
 
 /**
  * Created by etucker on 1/12/16.
