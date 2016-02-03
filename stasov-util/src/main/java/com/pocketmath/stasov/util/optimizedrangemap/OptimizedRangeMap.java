@@ -8,7 +8,6 @@ import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 
 import java.util.Comparator;
-import java.util.Deque;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 
@@ -140,6 +139,7 @@ public class OptimizedRangeMap<T extends Comparable<T>> {
         if (newInterval == interval) newInterval *= 1D / tuneFactor;
         if (newInterval == interval) newInterval = (long)(newInterval * 0.75d) + ThreadLocalRandom.current().nextLong(newInterval) / 2;
         if (newInterval == interval) newInterval = (long)(initialInterval * 0.75d) + ThreadLocalRandom.current().nextLong(initialInterval) / 2;
+        if (newInterval == interval) newInterval = initialInterval;
         if (newInterval == interval) throw new IllegalStateException();
 
         newInterval = Math.max(1L, newInterval);
