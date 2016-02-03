@@ -151,8 +151,10 @@ public class OptimizedRangeMap<T extends Comparable<T>> {
     public synchronized void maintain(final int n) {
         if (n <= 0) throw new IllegalArgumentException();
 
-        if (putsSinceLastIntervalCalculation >= newIntervalCalculationAfterNPuts)
+        if (putsSinceLastIntervalCalculation >= newIntervalCalculationAfterNPuts) {
             interval = calculateNewInterval();
+            putsSinceLastIntervalCalculation = 0;
+        }
 
         int i = 0;
         for (final long interval : intervalToEntries.getKeys()) {
