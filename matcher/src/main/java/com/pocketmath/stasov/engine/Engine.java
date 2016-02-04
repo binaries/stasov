@@ -54,6 +54,6 @@ public abstract class Engine<ObjectType extends Serializable & Comparable> {
     }
 
     public static <ObjectType extends Serializable & Comparable> Engine newDefaultEngine() {
-        return newConcurrentEngine();
+        return newLongEngine();
     }
 }

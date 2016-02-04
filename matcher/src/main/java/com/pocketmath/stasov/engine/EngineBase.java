@@ -41,6 +41,9 @@ class EngineBase<ObjectType extends Serializable & Comparable> extends Engine<Ob
 
     protected final boolean safeIndex;
 
+    private long indexSinceLastRefresh = 0;
+    private long removeSinceLastRefresh = 0;
+
     EngineBase(final boolean safeIndex) {
         if (!safeIndex) {
             logger.warning("Safe indexing mode has been turned off.  This is not recommended.  Will conduct fewer safety checks during indexing in exchange for more performance.");
@@ -71,6 +74,20 @@ class EngineBase<ObjectType extends Serializable & Comparable> extends Engine<Ob
         if (idTranslator == null) throw new IllegalStateException();
         if (tree == null) throw new IllegalStateException();
         if (indexer == null) throw new IllegalStateException();
+    }
+
+    public void maintain() {
+        if (removeSinceLastRefresh >= 30) {
+            checkInvariants();
+            final int n = Math.min((int)removeSinceLastRefresh, 256);
+            logger.log(Level.FINE, "refreshing with n=" + n);
+
+            idTranslator.refreshIds(n);
+
+            indexSinceLastRefresh = 0;
+            removeSinceLastRefresh = 0;
+            checkInvariants();
+        }
     }
 
     public void index(final String pmtl, final ObjectType id) throws IndexingException {
@@ -115,6 +132,8 @@ class EngineBase<ObjectType extends Serializable & Comparable> extends Engine<Ob
             }
         }
 
+        indexSinceLastRefresh++;
+
         final String dnfSpec;
         try {
             dnfSpec = DNFConv.convertToDNF(pmtl); // BNF --> DNF translation
@@ -129,7 +148,8 @@ class EngineBase<ObjectType extends Serializable & Comparable> extends Engine<Ob
         final long internalId = idTranslator.toId(id);
 
         indexer.index(tree, dnfSpec, new long[]{internalId});
-        idTranslator.refreshIds(1);
+
+        maintain();
 
         if (safeIndex) {
             try {
@@ -158,11 +178,14 @@ class EngineBase<ObjectType extends Serializable & Comparable> extends Engine<Ob
 
     public void remove(final ObjectType id) throws IndexingException {
         checkInvariants();
+        removeSinceLastRefresh++;
         final long internalId = idTranslator.toId(id);
         logger.log(Level.FINE, "Removing id: " + id + " (translated to internal id: " + internalId + ")");
         tree.remove(internalId);
         tracker.diassociate(internalId);
         idTranslator.remove(id);
+
+        maintain();
         checkInvariants();
     }
 

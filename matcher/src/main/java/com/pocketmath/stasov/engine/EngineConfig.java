@@ -1,5 +1,7 @@
 package com.pocketmath.stasov.engine;
 
+import com.pocketmath.stasov.util.IndexAlgorithm;
+
 import java.util.logging.Level;
 
 /**
@@ -13,8 +15,12 @@ public class EngineConfig {
         return config;
     }
 
+    public IndexAlgorithm getPreferredIndexAlgorithm() {
+        return IndexAlgorithm.HASH;
+    }
+
     public Level getLogLevel() {
-        return Level.FINEST;
+        return Level.WARNING;
     }
 
 }

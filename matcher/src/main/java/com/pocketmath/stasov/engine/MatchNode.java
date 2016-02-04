@@ -1,11 +1,12 @@
 package com.pocketmath.stasov.engine;
 
 import com.pocketmath.stasov.attributes.AttributeHandler;
-import com.pocketmath.stasov.attributes.FuzzyMatchAttributeHandler;
+import com.pocketmath.stasov.util.multimaps.ILong2Long2ObjectMultiValueMap;
+import com.pocketmath.stasov.util.multimaps.Long2Long2ObjectMultiValueHashMap;
 import com.pocketmath.stasov.util.multimaps.Long2Long2ObjectMultiValueSortedMap;
 import com.pocketmath.stasov.util.IDAllocator;
 import com.pocketmath.stasov.util.PrettyPrintable;
-import com.pocketmath.stasov.util.TreeAlgorithm;
+import com.pocketmath.stasov.util.IndexAlgorithm;
 import it.unimi.dsi.fastutil.objects.ObjectSortedSet;
 
 import java.io.PrintWriter;
@@ -19,6 +20,8 @@ class MatchNode implements Comparable<MatchNode>, PrettyPrintable {
 
     private static volatile IDAllocator idAllocator = IDAllocator.newIDAllocatorLongMax();
 
+    private final IndexAlgorithm indexAlgorithm = EngineConfig.getConfig().getPreferredIndexAlgorithm();
+
     /**
      * use directly with extreme care
      */
@@ -28,21 +31,30 @@ class MatchNode implements Comparable<MatchNode>, PrettyPrintable {
      * inclusionary values
      * use directly with extreme care
      */
-    final Long2Long2ObjectMultiValueSortedMap<MatchNode> inclusionary =
-            new Long2Long2ObjectMultiValueSortedMap<MatchNode>(MatchTree.NODE_COMPARATOR, TreeAlgorithm.AVL);
+    final ILong2Long2ObjectMultiValueMap<MatchNode> inclusionary;
 
     /**
      * exclusionary values
      * use directly with extreme care
      */
-    final Long2Long2ObjectMultiValueSortedMap<MatchNode> exclusionary =
-            new Long2Long2ObjectMultiValueSortedMap<MatchNode>(MatchTree.NODE_COMPARATOR, TreeAlgorithm.AVL);
+    final ILong2Long2ObjectMultiValueMap<MatchNode> exclusionary;
 
     private BitSet matches;
 
     private MatchNode(final BitSet matches) {
+        inclusionary = newMultiMapMap();
+        exclusionary = newMultiMapMap();
         this.id = idAllocator.allocateId();
         this.matches = matches;
+    }
+
+    protected  ILong2Long2ObjectMultiValueMap<MatchNode> newMultiMapMap() {
+        switch (indexAlgorithm) {
+            case HASH: return new Long2Long2ObjectMultiValueHashMap<MatchNode>();
+            case AVL: return new Long2Long2ObjectMultiValueSortedMap<MatchNode>(MatchTree.NODE_COMPARATOR, IndexAlgorithm.AVL);
+            case REDBLACK: return new Long2Long2ObjectMultiValueSortedMap<MatchNode>(MatchTree.NODE_COMPARATOR, IndexAlgorithm.REDBLACK);
+            default: throw new IllegalStateException();
+        }
     }
 
     public MatchNode() {
@@ -58,7 +70,7 @@ class MatchNode implements Comparable<MatchNode>, PrettyPrintable {
         assert(attrId > 0);
         assert(valueId >= 0 || valueId == AttributeHandler.USE_FUZZY_MATCH);
 
-        final ObjectSortedSet<MatchNode> matchNodes = inclusionary.getSorted(attrId, valueId);
+       /* final ObjectSortedSet<MatchNode> matchNodes = inclusionary.get(attrId, valueId);
         if (valueId == AttributeHandler.USE_FUZZY_MATCH) {
             final AttributeHandler handler = null;
             final String input = null;
@@ -72,7 +84,8 @@ class MatchNode implements Comparable<MatchNode>, PrettyPrintable {
             throw new UnsupportedOperationException("fuzzy implementation not complete");
         } else {
             return matchNodes;
-        }
+        }*/
+        return null;
     }
 
     public void setMatches(final BitSet matches) {

@@ -307,7 +307,7 @@ class MatchTree {
                     Long2ObjectMap<MatchNode> possibleExistingNodes = null;
                     //final LongSet nonExisting = new LongRBTreeSet();
                     if (node.inclusionary == null) throw new NullPointerException("node.inclusionary was null");
-                    final SortedSet<MatchNode> existingNextNodes = node.inclusionary.getSorted(attrTypeId, inclVal);
+                    final Set<MatchNode> existingNextNodes = node.inclusionary.get(attrTypeId, inclVal);
                     if (existingNextNodes != null) {
                         existingNodesLoop: for (final MatchNode existingNextNode : existingNextNodes) {
                             // Great!  We've got inclusion.  Now, look for exclusion ...
@@ -395,19 +395,19 @@ class MatchTree {
 
                     for (final long queryValue : queryValues) {
                         assert(queryValue >= 0 || queryValue == AttributeHandler.USE_FUZZY_MATCH);
-                        final ObjectSortedSet<MatchNode> inclNextNodes;
-                        final ObjectSortedSet<MatchNode> exclNextNodes;
+                        final ObjectSet<MatchNode> inclNextNodes;
+                        final ObjectSet<MatchNode> exclNextNodes;
 
                         if (queryValue == AttributeHandler.USE_FUZZY_MATCH) {
                             inclNextNodes = null;
                             exclNextNodes = null;
 
                         } else if (nodeValues.contains(queryValue)) {
-                            inclNextNodes = node.inclusionary.getSorted(attrTypeId, queryValue);
+                            inclNextNodes = node.inclusionary.get(attrTypeId, queryValue);
                             assert (inclNextNodes != null);
                             assert (!inclNextNodes.isEmpty());
 
-                            exclNextNodes = node.exclusionary.getSorted(attrTypeId, queryValue);
+                            exclNextNodes = node.exclusionary.get(attrTypeId, queryValue);
 
                             final ObjectSet<MatchNode> nextNodes = new ObjectOpenHashSet<MatchNode>(inclNextNodes);
                             if (exclNextNodes != null) nextNodes.removeAll(exclNextNodes);
