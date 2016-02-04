@@ -7,6 +7,7 @@ import org.testng.annotations.Test;
 
 import org.testng.Assert;
 
+import java.io.PrintWriter;
 import java.util.*;
 
 /**
@@ -424,7 +425,7 @@ public class EnginePerformanceTest extends EngineTestBase {
         })));
         final TestData testData = buildTest(templates, 20000, 1000000);
 
-        final TestResult result = randomQueries(testData, 1000000L);
+        final TestResult result = randomQueries(testData, 10000L);
 
         System.out.println("Result test103: " + result);
 
@@ -439,7 +440,7 @@ public class EnginePerformanceTest extends EngineTestBase {
         })));
         final TestData testData = buildTest(templates, 50000, 1000000);
 
-        final TestResult result = randomQueries(testData, 1000000L);
+        final TestResult result = randomQueries(testData, 10000L);
 
         System.out.println("Result test104: " + result);
 
@@ -454,7 +455,7 @@ public class EnginePerformanceTest extends EngineTestBase {
         })));
         final TestData testData = buildTest(templates, 100000, 1000000);
 
-        final TestResult result = randomQueries(testData, 1000000L);
+        final TestResult result = randomQueries(testData, 10000L);
 
         System.out.println("Result test105: " + result);
 
@@ -469,7 +470,7 @@ public class EnginePerformanceTest extends EngineTestBase {
         })));
         final TestData testData = buildTest(templates, 100000, 1000000);
 
-        final TestResult result = randomQueries(testData, 1000000L);
+        final TestResult result = randomQueries(testData, 10000L);
 
         System.out.println("Result test105: " + result);
 
@@ -483,7 +484,7 @@ public class EnginePerformanceTest extends EngineTestBase {
                 new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\" AND ${k3}=\"${v3}\" AND ${k4}=\"${v4}\" AND ${k5}=\"${v5}\" AND ${k6}=\"${v6}\" AND ${k7}=\"${v7}\" AND ${k8}=\"${v8}\" AND ${k9}=\"${v9}\"", 1d), // OR ${k10}=\"${v10}\" OR ${k11}=\"${v11}\" OR ${k12}=\"${v12}\" OR ${k13}=\"${v13}\" OR ${k14}=\"${v14}\" OR ${k15}=\"${v15}\" OR ${k16}=\"${v16}\" OR ${k17}=\"${v17}\" OR ${k18}=\"${v18}\" OR ${k19}=\"${v19}\" OR ${k20}=\"${v20}\" OR ${k21}=\"${v21}\"", 1d),
         })));
 
-        System.out.println("building test opportunities");
+        System.out.println("building orders and test opportunities");
 
         final TestData testData = buildTest(templates, 10000, 10000);
 
@@ -515,10 +516,10 @@ public class EnginePerformanceTest extends EngineTestBase {
     @Test
     public void test301() throws IndexingException, InterruptedException {
         final Collection<Weighted<String>> templates = new HashSet<Weighted<String>>(Collections.unmodifiableList(Arrays.asList(new Template[]{
-                new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\" AND ${k3}=\"${v3}\" OR ${k4}=\"${v4}\" OR ${k5}=\"${v5}\" OR ${k6}=\"${v6}\" OR ${k7}=\"${v7}\" OR ${k8}=\"${v8}\" OR ${k9}=\"${v9}\"", 1d), // OR ${k10}=\"${v10}\" OR ${k11}=\"${v11}\" OR ${k12}=\"${v12}\" OR ${k13}=\"${v13}\" OR ${k14}=\"${v14}\" OR ${k15}=\"${v15}\" OR ${k16}=\"${v16}\" OR ${k17}=\"${v17}\" OR ${k18}=\"${v18}\" OR ${k19}=\"${v19}\" OR ${k20}=\"${v20}\" OR ${k21}=\"${v21}\"", 1d),
+                new Template("${k1}=\"${v1}\" OR ${k2}=\"${v2}\" OR ${k3}=\"${v3}\" OR ${k4}=\"${v4}\" OR ${k5}=\"${v5}\" OR ${k6}=\"${v6}\" OR ${k7}=\"${v7}\" OR ${k8}=\"${v8}\" OR ${k9}=\"${v9}\"", 1d), // OR ${k10}=\"${v10}\" OR ${k11}=\"${v11}\" OR ${k12}=\"${v12}\" OR ${k13}=\"${v13}\" OR ${k14}=\"${v14}\" OR ${k15}=\"${v15}\" OR ${k16}=\"${v16}\" OR ${k17}=\"${v17}\" OR ${k18}=\"${v18}\" OR ${k19}=\"${v19}\" OR ${k20}=\"${v20}\" OR ${k21}=\"${v21}\"", 1d),
         })));
 
-        System.out.println("building test opportunities");
+        System.out.println("building orders and test opportunities");
 
         final TestData testData = buildTest(templates, 10000, 10000);
 
@@ -531,9 +532,9 @@ public class EnginePerformanceTest extends EngineTestBase {
         final Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                randomQueries(testData, 250L); // warmup
-                final TestResult result = randomQueries(testData, 1000L);
-                randomQueries(testData, 250L); // cooldown -- keeps resource utilization constant for other running threads
+                randomQueries(testData, 1000L); // warmup
+                final TestResult result = randomQueries(testData, 3000L);
+                randomQueries(testData, 1000L); // cooldown -- keeps resource utilization constant for other running threads
                 results.add(result);
                 System.out.println("Result test300: " + result);
                 Assert.assertTrue(result.averageTime() < 10);
@@ -546,5 +547,76 @@ public class EnginePerformanceTest extends EngineTestBase {
 
         System.out.println("COMBINED Results test300: " + TestResult.combineThreads(results) );
     }
+
+    @Test
+    public void test302() throws IndexingException, InterruptedException {
+        final Collection<Weighted<String>> templates = new HashSet<Weighted<String>>(Collections.unmodifiableList(Arrays.asList(new Template[]{
+                new Template("${k1}=\"${v1}\" OR ${k2}=\"${v2}\" OR ${k3}=\"${v3}\" OR ${k4}=\"${v4}\" OR ${k5}=\"${v5}\" OR ${k6}=\"${v6}\" OR ${k7}=\"${v7}\" OR ${k8}=\"${v8}\" OR ${k9}=\"${v9}\"", 1d), // OR ${k10}=\"${v10}\" OR ${k11}=\"${v11}\" OR ${k12}=\"${v12}\" OR ${k13}=\"${v13}\" OR ${k14}=\"${v14}\" OR ${k15}=\"${v15}\" OR ${k16}=\"${v16}\" OR ${k17}=\"${v17}\" OR ${k18}=\"${v18}\" OR ${k19}=\"${v19}\" OR ${k20}=\"${v20}\" OR ${k21}=\"${v21}\"", 1d),
+        })));
+
+        System.out.println("building orders and test opportunities");
+
+        final TestData testData = buildTest(templates, 30000, 10000, new PrintWriter(System.out), 100);
+
+        System.out.println("test opportunities built; querying");
+
+        final int threadsN = Runtime.getRuntime().availableProcessors();
+
+        final Collection<TestResult> results = Collections.synchronizedList(new ArrayList<TestResult>(threadsN));
+
+        final Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                randomQueries(testData, 500L); // warmup
+                final TestResult result = randomQueries(testData, 1000L);
+                randomQueries(testData, 500L); // cooldown -- keeps resource utilization constant for other running threads
+                results.add(result);
+                System.out.println("Result test300: " + result);
+                Assert.assertTrue(result.averageTime() < 10);
+                Assert.assertTrue(result.getMaxTime() < 80);
+                Assert.assertTrue(result.calcPercentOverThreshold() < 1.0d);
+            }
+        };
+
+        ThreadUtil.runThreadsAndWait(runnable, threadsN);
+
+        System.out.println("COMBINED Results test300: " + TestResult.combineThreads(results) );
+    }
+
+    @Test
+    public void test303() throws IndexingException, InterruptedException {
+        final Collection<Weighted<String>> templates = new HashSet<Weighted<String>>(Collections.unmodifiableList(Arrays.asList(new Template[]{
+                new Template("${k1}=\"${v1}\" OR ${k2}=\"${v2}\" OR ${k3}=\"${v3}\" OR ${k4}=\"${v4}\" OR ${k5}=\"${v5}\" OR ${k6}=\"${v6}\" OR ${k7}=\"${v7}\" OR ${k8}=\"${v8}\" OR ${k9}=\"${v9}\"", 1d), // OR ${k10}=\"${v10}\" OR ${k11}=\"${v11}\" OR ${k12}=\"${v12}\" OR ${k13}=\"${v13}\" OR ${k14}=\"${v14}\" OR ${k15}=\"${v15}\" OR ${k16}=\"${v16}\" OR ${k17}=\"${v17}\" OR ${k18}=\"${v18}\" OR ${k19}=\"${v19}\" OR ${k20}=\"${v20}\" OR ${k21}=\"${v21}\"", 1d),
+        })));
+
+        System.out.println("building orders and test opportunities");
+
+        final TestData testData = buildTest(templates, 100000, 10000, new PrintWriter(System.out), 100);
+
+        System.out.println("test opportunities built; querying");
+
+        final int threadsN = Runtime.getRuntime().availableProcessors();
+
+        final Collection<TestResult> results = Collections.synchronizedList(new ArrayList<TestResult>(threadsN));
+
+        final Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                randomQueries(testData, 500L); // warmup
+                final TestResult result = randomQueries(testData, 1000L);
+                randomQueries(testData, 500L); // cooldown -- keeps resource utilization constant for other running threads
+                results.add(result);
+                System.out.println("Result test300: " + result);
+                Assert.assertTrue(result.averageTime() < 10);
+                Assert.assertTrue(result.getMaxTime() < 80);
+                Assert.assertTrue(result.calcPercentOverThreshold() < 1.0d);
+            }
+        };
+
+        ThreadUtil.runThreadsAndWait(runnable, threadsN);
+
+        System.out.println("COMBINED Results test300: " + TestResult.combineThreads(results) );
+    }
+
 
 }
