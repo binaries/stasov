@@ -64,6 +64,14 @@ public class Long2ObjectMultiValueHashMap<V> extends AbstractMultiValueMap<V>
     }
 
     @Override
+    public boolean matchesAll(long[] keys, V value) {
+        for (long key : keys) {
+            if (!value.equals(map.get(key))) return false;
+        }
+        return true;
+    }
+
+    @Override
     public long size() {
         return size;
     }

@@ -1,6 +1,6 @@
 package com.pocketmath.stasov.util.multimaps;
 
-import com.pocketmath.stasov.util.TreeAlgorithm;
+import com.pocketmath.stasov.util.IndexAlgorithm;
 import it.unimi.dsi.fastutil.longs.*;
 
 /**
@@ -10,9 +10,9 @@ public class Long2LongMultiValueSortedMap<V extends Comparable<V>> extends Abstr
 
     private final Long2ObjectMap<LongSortedSet> map;
 
-    public Long2LongMultiValueSortedMap(final TreeAlgorithm treeAlgorithm) {
-        super(null, treeAlgorithm);
-        switch (treeAlgorithm) {
+    public Long2LongMultiValueSortedMap(final IndexAlgorithm indexAlgorithm) {
+        super(null, indexAlgorithm);
+        switch (indexAlgorithm) {
             case REDBLACK:  { map = new Long2ObjectRBTreeMap<LongSortedSet>(); break; }
             case AVL: { map = new Long2ObjectAVLTreeMap<LongSortedSet>(); break; }
             default: { throw new IllegalStateException(); }
@@ -20,13 +20,13 @@ public class Long2LongMultiValueSortedMap<V extends Comparable<V>> extends Abstr
     }
 
     public Long2LongMultiValueSortedMap() {
-        this(TreeAlgorithm.AVL);
+        this(IndexAlgorithm.AVL);
     }
 
     public void put(final long key, final long value) {
         LongSortedSet set = map.get(key);
         if (set == null) {
-            switch(treeAlgorithm) {
+            switch(indexAlgorithm) {
                 case REDBLACK:  { set = new LongRBTreeSet(); break; }
                 case AVL:       { set = new LongAVLTreeSet(); break; }
                 default: { throw new IllegalStateException(); }

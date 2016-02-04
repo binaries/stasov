@@ -1,10 +1,16 @@
 package com.pocketmath.stasov.util.multimaps;
 
+import com.pocketmath.stasov.util.PrettyPrintable;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenCustomHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
+import it.unimi.dsi.fastutil.objects.ObjectSortedSet;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Map;
 
 /**
  * Created by etucker on 2/3/16.
@@ -24,6 +30,13 @@ public class Long2Long2ObjectMultiValueHashMap<V extends Comparable<V>> implemen
             map.put(key1, map2);
         }
         map2.put(key2, value);
+    }
+
+    @Override
+    public void put(long key1, long[] keys2, V value) {
+        for (final long key2 : keys2) {
+            put(key1, key2, value);
+        }
     }
 
     @Override
@@ -69,8 +82,40 @@ public class Long2Long2ObjectMultiValueHashMap<V extends Comparable<V>> implemen
         final ILong2ObjectMultiValueMap<V> map2 = map.get(key1);
         if (map2 == null) return;
         final ObjectSet<V> set = map2.get(key2);
+        if (set == null) return;
         map2.remove(key2);
         size -= set.size();
+    }
+
+    @Override
+    public void remove(long key1, long key2, long value) {
+        final ILong2ObjectMultiValueMap<V> map2 = map.get(key1);
+        if (map2 == null) return;
+        final ObjectSet<V> set = map2.get(key1);
+        if (set == null) return;
+        if (set.remove(value)) size--;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        assert(size >= 0);
+        return size <= 0;
+    }
+
+    @Override
+    public boolean matchesAll(long key1, long[] keys2, V value) {
+        final ILong2ObjectMultiValueMap subMap = map.get(key1);
+        return subMap != null ? subMap.matchesAll(keys2, value) : false;
+    }
+
+    @Override
+    public String prettyPrint(String prefix) {
+        return null;
+    }
+
+    @Override
+    public String prettyPrint(final String prefix, final String key1Prefix, final String key2Prefix, final String valuePrefix) {
+        return Long2Long2ObjectMapUtil.<V>prettyPrint(this, prefix, key1Prefix, key2Prefix, valuePrefix);
     }
 
 }

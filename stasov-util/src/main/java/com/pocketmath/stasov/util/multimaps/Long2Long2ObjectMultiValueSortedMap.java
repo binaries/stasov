@@ -1,15 +1,12 @@
 package com.pocketmath.stasov.util.multimaps;
 
 import com.pocketmath.stasov.util.PrettyPrintable;
-import com.pocketmath.stasov.util.TreeAlgorithm;
+import com.pocketmath.stasov.util.IndexAlgorithm;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import it.unimi.dsi.fastutil.objects.ObjectSortedSet;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Comparator;
-import java.util.Map;
 
 /**
  * Created by etucker on 3/22/15.
@@ -19,9 +16,11 @@ public class Long2Long2ObjectMultiValueSortedMap<V extends Comparable<V>> extend
 
     private final Long2ObjectMap<Long2ObjectMultiValueSortedMap<V>> map;
 
-    public Long2Long2ObjectMultiValueSortedMap(Comparator<V> valueComparator, TreeAlgorithm treeAlg) {
+    private long size = 0;
+
+    public Long2Long2ObjectMultiValueSortedMap(Comparator<V> valueComparator, IndexAlgorithm treeAlg) {
         super(valueComparator, treeAlg);
-        switch (treeAlgorithm) {
+        switch (indexAlgorithm) {
             case REDBLACK:  { map = new Long2ObjectRBTreeMap<Long2ObjectMultiValueSortedMap<V>>(); break; }
             case AVL:       { map = new Long2ObjectAVLTreeMap<Long2ObjectMultiValueSortedMap<V>>(); break; }
             default:        { throw new IllegalStateException(); }
@@ -29,14 +28,14 @@ public class Long2Long2ObjectMultiValueSortedMap<V extends Comparable<V>> extend
     }
 
     public Long2Long2ObjectMultiValueSortedMap(Comparator<V> valueComparator) {
-        this(valueComparator, TreeAlgorithm.AVL);
+        this(valueComparator, IndexAlgorithm.AVL);
     }
 
     @Override
     public void put(final long key1, final long key2, final V value) {
         Long2ObjectMultiValueSortedMap<V> subMap = map.get(key1);
         if (subMap == null) {
-            subMap = new Long2ObjectMultiValueSortedMap<V>(valueComparator, treeAlgorithm);
+            subMap = new Long2ObjectMultiValueSortedMap<V>(valueComparator, indexAlgorithm);
             map.put(key1, subMap);
         }
         subMap.put(key2, value);
@@ -49,10 +48,11 @@ public class Long2Long2ObjectMultiValueSortedMap<V extends Comparable<V>> extend
      * @param keys2
      * @param value
      */
+    @Override
     public void put(final long key1, final long[] keys2, final V value) {
         Long2ObjectMultiValueSortedMap<V> subMap = map.get(key1);
         if (subMap == null) {
-            subMap = new Long2ObjectMultiValueSortedMap<V>(valueComparator, treeAlgorithm);
+            subMap = new Long2ObjectMultiValueSortedMap<V>(valueComparator, indexAlgorithm);
             map.put(key1, subMap);
         }
         for (final long key2: keys2) subMap.put(key2, value);
@@ -67,6 +67,11 @@ public class Long2Long2ObjectMultiValueSortedMap<V extends Comparable<V>> extend
     @Override
     public ObjectSet<V> get(final long key1, final long key2) {
         return getSorted(key1, key2);
+    }
+
+    @Override
+    public LongSet getKeys1() {
+        return map.keySet();
     }
 
     @Override
@@ -87,11 +92,13 @@ public class Long2Long2ObjectMultiValueSortedMap<V extends Comparable<V>> extend
         return subMap.containsKey(key2);
     }
 
+    @Override
     public boolean matchesAll(final long key1, final long[] keys2, final V value) {
         final Long2ObjectMultiValueSortedMap subMap = map.get(key1);
         return subMap != null ? subMap.matchesAll(keys2, value) : false;
     }
 
+    @Override
     public void remove(final long key1, final long key2, final long value) {
         final Long2ObjectMultiValueSortedMap<V> subMap = map.get(key1);
         if (subMap == null) return;
@@ -108,6 +115,7 @@ public class Long2Long2ObjectMultiValueSortedMap<V extends Comparable<V>> extend
         map.remove(key1);
     }
 
+    @Override
     public boolean isEmpty() {
         return map.isEmpty();
     }
@@ -122,7 +130,7 @@ public class Long2Long2ObjectMultiValueSortedMap<V extends Comparable<V>> extend
                 "multiValueMap=" + map +
                 '}';
     }
-
+/*
     public String prettyPrint(final String prefix, final String key1Prefix, final String key2Prefix, final String valuePrefix) {
         if (map.isEmpty()) return "EMPTY\n\r";
         StringWriter sw = new StringWriter();
@@ -147,6 +155,11 @@ public class Long2Long2ObjectMultiValueSortedMap<V extends Comparable<V>> extend
         w.println(prefix + "}");
 
         return sw.toString();
+    }
+    */
+
+    public String prettyPrint(final String prefix, final String key1Prefix, final String key2Prefix, final String valuePrefix) {
+        return Long2Long2ObjectMapUtil.<V>prettyPrint(this, prefix, key1Prefix, key2Prefix, valuePrefix);
     }
 
     public String prettyPrint(final String prefix) {

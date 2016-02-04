@@ -1,6 +1,6 @@
 package com.pocketmath.stasov.util.multimaps;
 
-import com.pocketmath.stasov.util.TreeAlgorithm;
+import com.pocketmath.stasov.util.IndexAlgorithm;
 
 import java.util.Comparator;
 
@@ -13,11 +13,11 @@ abstract class AbstractSortedMultiValueMap<V extends Comparable<V>> extends Abst
     // compare methods of data structures holding the values.
     protected final Comparator<V> valueComparator;
 
-    protected final TreeAlgorithm treeAlgorithm;
+    protected final IndexAlgorithm indexAlgorithm;
 
-    public AbstractSortedMultiValueMap(final Comparator<V> valueComparator, final TreeAlgorithm treeAlgorithm) {
+    public AbstractSortedMultiValueMap(final Comparator<V> valueComparator, final IndexAlgorithm indexAlgorithm) {
         this.valueComparator = valueComparator;
-        this.treeAlgorithm = treeAlgorithm;
+        this.indexAlgorithm = indexAlgorithm;
     }
 
 }

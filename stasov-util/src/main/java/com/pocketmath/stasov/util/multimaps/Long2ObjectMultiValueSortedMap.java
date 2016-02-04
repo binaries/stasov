@@ -1,6 +1,6 @@
 package com.pocketmath.stasov.util.multimaps;
 
-import com.pocketmath.stasov.util.TreeAlgorithm;
+import com.pocketmath.stasov.util.IndexAlgorithm;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.*;
 
@@ -15,9 +15,11 @@ public class Long2ObjectMultiValueSortedMap<V extends Comparable<V>> extends Abs
 
     private final Long2ObjectMap<ObjectSortedSet<V>> map;
 
-    public Long2ObjectMultiValueSortedMap(final Comparator<V> valueComparator, final TreeAlgorithm treeAlgorithm) {
-        super(valueComparator, treeAlgorithm);
-        switch (treeAlgorithm) {
+    private long size = 0;
+
+    public Long2ObjectMultiValueSortedMap(final Comparator<V> valueComparator, final IndexAlgorithm indexAlgorithm) {
+        super(valueComparator, indexAlgorithm);
+        switch (indexAlgorithm) {
             case REDBLACK:  { map = new Long2ObjectRBTreeMap<ObjectSortedSet<V>>(); break; }
             case AVL: { map = new Long2ObjectAVLTreeMap<ObjectSortedSet<V>>(); break; }
             default: { throw new IllegalStateException(); }
@@ -25,7 +27,7 @@ public class Long2ObjectMultiValueSortedMap<V extends Comparable<V>> extends Abs
     }
 
     public Long2ObjectMultiValueSortedMap(final Comparator<V> valueComparator) {
-        this(valueComparator, TreeAlgorithm.AVL);
+        this(valueComparator, IndexAlgorithm.AVL);
     }
 
     public Long2ObjectMultiValueSortedMap() {
@@ -35,14 +37,14 @@ public class Long2ObjectMultiValueSortedMap<V extends Comparable<V>> extends Abs
     public void put(long key, V value) {
         ObjectSortedSet<V> set = map.get(key);
         if (set == null) {
-            switch(treeAlgorithm) {
+            switch(indexAlgorithm) {
                 case REDBLACK:  { set = new ObjectRBTreeSet<V>(valueComparator); break; }
                 case AVL:       { set = new ObjectAVLTreeSet<V>(valueComparator); break; }
                 default: { throw new IllegalStateException(); }
             }
             map.put(key, set);
         }
-        set.add(value);
+        if (set.add(value)) size++;
     }
 
     public ObjectSortedSet<V> getSorted(final long key) {
@@ -83,7 +85,8 @@ public class Long2ObjectMultiValueSortedMap<V extends Comparable<V>> extends Abs
 
     public void remove(final long key, final long value) {
         final ObjectSet set = map.get(key);
-        if (set != null) set.remove(value);
+        if (set != null)
+            if (set.remove(value)) size--;
         else return;
         if (set.isEmpty()) map.remove(key);
     }
@@ -91,14 +94,17 @@ public class Long2ObjectMultiValueSortedMap<V extends Comparable<V>> extends Abs
     @Override
     public void remove(final long key, final V value) {
         final ObjectSet set = map.get(key);
-        if (set != null) set.remove(value);
+        if (set != null)
+            if (set.remove(value)) size--;
         else return;
         if (set.isEmpty()) map.remove(key);
     }
 
     @Override
     public void remove(final long key) {
-        map.remove(key);
+        final ObjectSortedSet<V> removed = map.remove(key);
+        if (removed == null) return;
+        size -= removed.size();
     }
 
     @Override
@@ -108,10 +114,16 @@ public class Long2ObjectMultiValueSortedMap<V extends Comparable<V>> extends Abs
 
     public void clear() {
         map.clear();
+        size = 0;
     }
 
     public ObjectSet<Map.Entry<Long, ObjectSortedSet<V>>> entrySet() {
         return map.entrySet();
+    }
+
+    @Override
+    public long size() {
+        return size;
     }
 
     @Override

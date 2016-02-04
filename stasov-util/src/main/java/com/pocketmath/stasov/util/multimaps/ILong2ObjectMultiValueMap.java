@@ -25,4 +25,5 @@ public interface ILong2ObjectMultiValueMap<V> {
 
     public long size();
 
+    public boolean matchesAll(long[] keys2, V value);
 }
