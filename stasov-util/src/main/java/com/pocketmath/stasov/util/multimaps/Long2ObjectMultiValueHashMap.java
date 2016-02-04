@@ -44,17 +44,19 @@ public class Long2ObjectMultiValueHashMap<V> extends AbstractMultiValueMap<V>
 
             map.put(key, set);
         }
-        if (set.size() > 256) {
-            if (!(set instanceof ObjectLinkedOpenHashSet)) {
-                final ObjectSet<V> newSet = new ObjectLinkedOpenHashSet<>();
-                newSet.addAll(set);
-                set = newSet;
-            }
-        } else if (set.size() < 128) {
-            if (!(set instanceof ObjectArraySet)) {
-                final ObjectSet<V> newSet = new ObjectArraySet<>();
-                newSet.addAll(set);
-                set = newSet;
+        if (valuesIndexAlgorithm == IndexAlgorithm.DYNAMIC1) {
+            if (set.size() > 256) {
+                if (!(set instanceof ObjectLinkedOpenHashSet)) {
+                    final ObjectSet<V> newSet = new ObjectLinkedOpenHashSet<>();
+                    newSet.addAll(set);
+                    set = newSet;
+                }
+            } else if (set.size() < 128) {
+                if (!(set instanceof ObjectArraySet)) {
+                    final ObjectSet<V> newSet = new ObjectArraySet<>();
+                    newSet.addAll(set);
+                    set = newSet;
+                }
             }
         }
         if (set.add(value)) size++;
