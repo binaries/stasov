@@ -1,6 +1,6 @@
 package com.pocketmath.stasov.util.optimizedrangemap;
 
-import com.pocketmath.stasov.util.TreeAlgorithm;
+import com.pocketmath.stasov.util.IndexAlgorithm;
 import com.pocketmath.stasov.util.multimaps.ILong2ObjectMultiValueMap;
 import com.pocketmath.stasov.util.multimaps.ILong2ObjectMultiValueSortedMap;
 import com.pocketmath.stasov.util.multimaps.Long2ObjectMultiValueSortedMap;
@@ -27,7 +27,7 @@ public class OptimizedRangeMap<T extends Comparable<T>> {
 
     // TODO: Use hashmap for better performance?
     private ILong2ObjectMultiValueMap<T> map =
-            new Long2ObjectMultiValueSortedMap<T>(Comparator.naturalOrder(), TreeAlgorithm.AVL);
+            new Long2ObjectMultiValueSortedMap<T>(Comparator.naturalOrder(), IndexAlgorithm.AVL);
 
     private final double tuneFactor;
 
