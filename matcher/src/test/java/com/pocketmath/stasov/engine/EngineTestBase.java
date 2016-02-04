@@ -357,7 +357,7 @@ public class EngineTestBase {
         }
     }
 
-    static TestData buildTest(final Collection<Weighted<String>> templates, final int ordersCount, final int opportunitiesCount, final PrintWriter progressWriter) throws IndexingException {
+    static TestData buildTest(final Collection<Weighted<String>> templates, final int ordersCount, final int opportunitiesCount, final PrintWriter progressWriter, final int progressEvery) throws IndexingException {
         if (templates == null) throw new IllegalArgumentException("templates was null");
         if (ordersCount < 1) throw new IllegalArgumentException("no orders");
         if (opportunitiesCount < 0) throw new IllegalArgumentException("opportunities less than 0");
@@ -367,7 +367,10 @@ public class EngineTestBase {
         final Engine engine = data.getEngine();
 
         for (int i = 1; i <= ordersCount; i++) {
-            if (i % 100 == 0 && progressWriter != null) progressWriter.println("i=" + i);
+            if (i % progressEvery == 0 && progressWriter != null) {
+                progressWriter.println("i=" + i);
+                progressWriter.flush();
+            }
             generateRandomParameters(engine, i, 100, 100, 1d, Order.RANDOM, Order.RANDOM, templates, data.specifications, data.opportunities);
         }
 
@@ -376,8 +379,12 @@ public class EngineTestBase {
         return data;
     }
 
+    static TestData buildTest(final Collection<Weighted<String>> templates, final int ordersCount, final int opportunitiesCount, final PrintWriter progressWriter) throws IndexingException {
+        return buildTest(templates, ordersCount, opportunitiesCount, progressWriter, 100);
+    }
+
     static TestData buildTest(final Collection<Weighted<String>> templates, final int ordersCount, final int opportunitiesCount) throws IndexingException {
-        return buildTest(templates, ordersCount, opportunitiesCount, null);
+        return buildTest(templates, ordersCount, opportunitiesCount, null, 100);
     }
 
     static Object[] randomQuery(final TestData data, final Object[] expectedResults, final Random random) {
