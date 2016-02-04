@@ -14,6 +14,7 @@ import org.testng.Assert;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import java.io.PrintWriter;
+import java.text.DecimalFormat;
 import java.util.*;
 
 /**
@@ -93,7 +94,7 @@ public class EngineTestBase {
 
         //System.out.println("oppObj: " + opp);
 
-        System.out.println("engine: " + engine.prettyPrint());
+        //System.out.println("engine: " + engine.prettyPrint());
 
         final Object[] results = engine.query(opp);
 
@@ -223,7 +224,7 @@ public class EngineTestBase {
     }
 
     private static String fill(
-            final @Nonnull @ReadOnly EngineBase engine,
+            final @Nonnull @ReadOnly Engine engine,
             final @Nonnull @ReadOnly String template,
             final @Nonnull @ReadOnly Order attributeTypesOrder,
             final @Nonnull @ReadOnly Order attributeValuesOrder,
@@ -238,7 +239,7 @@ public class EngineTestBase {
 
         String spec = new String(template); // copy
 
-        final AttrSvcBase attrSvc = engine.attrSvc;
+        final AttrSvcBase attrSvc = engine.getAttrSvc();
 
         final long[] attrTypeIds = attrSvc.getAttrTypeIds().clone();
         switch (attributeTypesOrder) {
@@ -293,6 +294,7 @@ public class EngineTestBase {
     }
 
     static void generateRandomParameters(
+            final Engine engine,
             final @Nonnegative long ioId,
             final int maxValuesPerAttr,
             final int maxAttrs,
@@ -303,6 +305,7 @@ public class EngineTestBase {
             final Map<Long,String> specifications,
             final Collection<Map<String,String>> opportunities) {
 
+        if (engine == null) throw new IllegalArgumentException();
         if (ioId < 1) throw new IllegalArgumentException();
         if (maxValuesPerAttr < 1) throw new IllegalArgumentException();
         if (maxAttrs < 1) throw new IllegalArgumentException();
@@ -313,8 +316,6 @@ public class EngineTestBase {
         if (templates.isEmpty()) throw new IllegalArgumentException();
         if (specifications == null) throw new IllegalArgumentException();
         if (opportunities == null) throw new IllegalArgumentException();
-
-        final EngineBase engine = new EngineBase();
 
         final String template = StasovArrays.chooseRandomWeightedValue(templates);
 
@@ -329,7 +330,8 @@ public class EngineTestBase {
     static class TestData {
         private Map<Long,String> specifications = new HashMap<Long,String>();
         private List<Map<String,String>> opportunities = new ArrayList<Map<String,String>>();
-        private final EngineBase engine = new EngineBase();
+        private final Engine engine = Engine.newLongEngine();
+
         private boolean frozen = false;
 
         public void freeze() {
@@ -362,12 +364,13 @@ public class EngineTestBase {
 
         final TestData data = new TestData();
 
+        final Engine engine = data.getEngine();
+
         for (int i = 1; i <= ordersCount; i++) {
             if (i % 100 == 0 && progressWriter != null) progressWriter.println("i=" + i);
-            generateRandomParameters(i, 100, 100, 1d, Order.RANDOM, Order.RANDOM, templates, data.specifications, data.opportunities);
+            generateRandomParameters(engine, i, 100, 100, 1d, Order.RANDOM, Order.RANDOM, templates, data.specifications, data.opportunities);
         }
 
-        final Engine engine = new EngineBase();
         index(engine, data.specifications);
 
         return data;
@@ -404,18 +407,57 @@ public class EngineTestBase {
         private long endTime = -1;
         private long maxTime = Long.MIN_VALUE;
         private long minTime = Long.MAX_VALUE;
+        private final long threshold;
+        private long overThresholdCount = 0;
+        private int threadCount = 1;
 
-        public TestResult(Runnable thread) {
+        private TestResult() {
+            this.runnable = null;
+            this.threshold = -1;
+        }
+
+        public TestResult(final Runnable thread, final long threshold) {
             this.runnable = thread;
+            this.threshold = threshold;
+        }
+
+        public TestResult(final Runnable thread) {
+            this(thread, 10L);
+        }
+
+        public void combineThread(final TestResult o) {
+            this.invocations = Math.addExact(this.invocations, o.invocations);
+            this.overThresholdCount = Math.addExact(this.overThresholdCount, o.overThresholdCount);
+            this.endTime = Math.addExact(this.endTime, o.getTime());
+            if (o.minTime < this.minTime) this.minTime = o.minTime;
+            if (o.maxTime > this.maxTime) this.maxTime = o.maxTime;
+            this.threadCount++;
+        }
+
+        public static TestResult combineThreads(final Collection<TestResult> results) {
+            final TestResult sum = new TestResult();
+            sum.threadCount = 0;
+            sum.startTime = 0;
+            sum.endTime = 0;
+            for (final TestResult r : results) {
+                sum.combineThread(r);
+            }
+            return sum;
         }
 
         public void invoke() {
+
+            // TODO: handle this more elegantly
+            if (runnable == null)
+                throw new IllegalStateException("this is not an invokable result instance (probably because it's a combination");
+
             final long start = System.currentTimeMillis();
             runnable.run();
             final long end = System.currentTimeMillis();
             final long time = end - start;
             if (time > maxTime) maxTime = time;
             if (time < minTime) minTime = time;
+            if (time > threshold) overThresholdCount++;
             invocations++;
         }
 
@@ -449,13 +491,23 @@ public class EngineTestBase {
             return minTime;
         }
 
-        public double getInvocationsPerSecond() {
+        public double getInvocationsPerSecond(final int threadCount) {
             if (invocations < 0) throw new IllegalStateException();
-            return ((double)invocations) * ( ((double)1000) / getTime() );
+            return ((double)invocations) * ( ((double)1000) / getTime() ) * threadCount;
+        }
+
+        public double getInvocationsPerSecond() {
+            return getInvocationsPerSecond(1);
+        }
+
+        public double calcPercentOverThreshold() {
+            return (double)overThresholdCount / (double)invocations * 100d;
         }
 
         @Override
         public String toString() {
+            final DecimalFormat percentFormat = new DecimalFormat("###.###");
+
             return "TestResult{" +
                     "time=" + getTime() + "ms" +
                   //  "endTime=" + endTime +
@@ -465,7 +517,8 @@ public class EngineTestBase {
                     ", maxTime=" + maxTime + "ms" +
                     ", minTime=" + minTime + "ms" +
                     ", avgTime=" + averageTime() + "ms" +
-                    ", invocations/s=" + getInvocationsPerSecond() +
+                    ", overThresholdCount: " + overThresholdCount + " (" + percentFormat.format(calcPercentOverThreshold()) + "%, t=" + threshold + "ms)" + // TODO: Don't show threshold when not applicable.
+                    ", invocations/s=" + getInvocationsPerSecond(threadCount) +
                     '}';
         }
     }

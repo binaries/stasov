@@ -1,7 +1,7 @@
 package com.pocketmath.stasov.engine;
 
 import com.pocketmath.stasov.attributes.Order;
-import com.pocketmath.stasov.util.StasovArrays;
+import com.pocketmath.stasov.util.ThreadUtil;
 import com.pocketmath.stasov.util.Weighted;
 import org.testng.annotations.Test;
 
@@ -218,17 +218,16 @@ public class EnginePerformanceTest extends EngineTestBase {
         final Map<Long,String> specifications = new HashMap<Long,String>();
         final Collection<Map<String,String>> opportunities = new HashSet<Map<String,String>>();
 
+        final Engine engine = Engine.newLongEngine();
+
         for (int i = 1; i <= 20; i++) {
             if (i % 100 == 0) System.out.println("i=" + i);
-            generateRandomParameters(i, 100, 100, 1d, Order.RANDOM, Order.RANDOM, templates, specifications, opportunities);
+            generateRandomParameters(engine, i, 100, 100, 1d, Order.RANDOM, Order.RANDOM, templates, specifications, opportunities);
         }
 
         final Map[] oppsArray = opportunities.toArray(new Map[opportunities.size()]);
-
-        final EngineBase engine = new EngineBase();
+        ;
         index(engine, specifications);
-
-        System.out.println(engine.prettyPrint());
 
         //System.gc();
         //Thread.sleep(5000); // give garbage collection some time to operate
@@ -266,20 +265,24 @@ public class EnginePerformanceTest extends EngineTestBase {
                 //new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\"", 1d),
                 //new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\"", 1d),
         })));
+
+        final Engine engine = Engine.newLongEngine();
+
         final Map<Long,String> specifications = new HashMap<Long,String>();
         final Collection<Map<String,String>> opportunities = new HashSet<Map<String,String>>();
 
         for (int i = 1; i <= 10000; i++) {
             if (i % 100 == 0) System.out.println("i=" + i);
-            generateRandomParameters(i, 100, 100, 1d, Order.RANDOM, Order.RANDOM, templates, specifications, opportunities);
+            generateRandomParameters(engine, i, 100, 100, 1d, Order.RANDOM, Order.RANDOM, templates, specifications, opportunities);
         }
 
         final Map[] oppsArray = opportunities.toArray(new Map[opportunities.size()]);
 
-        final EngineBase engine = new EngineBase();
         index(engine, specifications);
 
-        System.out.println(engine.prettyPrint());
+        //System.out.println("printing engine:");
+
+        //System.out.println(engine.prettyPrint());
 
         //System.gc();
         //Thread.sleep(5000); // give garbage collection some time to operate
@@ -317,20 +320,22 @@ public class EnginePerformanceTest extends EngineTestBase {
                 //new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\"", 1d),
                 //new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\"", 1d),
         })));
+
+        final Engine engine = Engine.newLongEngine();
+
         final Map<Long,String> specifications = new HashMap<Long,String>();
         final Collection<Map<String,String>> opportunities = new HashSet<Map<String,String>>();
 
         for (int i = 1; i <= 10000; i++) {
             if (i % 100 == 0) System.out.println("i=" + i);
-            generateRandomParameters(i, 100, 100, 1d, Order.RANDOM, Order.RANDOM, templates, specifications, opportunities);
+            generateRandomParameters(engine, i, 100, 100, 1d, Order.RANDOM, Order.RANDOM, templates, specifications, opportunities);
         }
 
         final Map[] oppsArray = opportunities.toArray(new Map[opportunities.size()]);
 
-        final EngineBase engine = new EngineBase();
         index(engine, specifications);
 
-        System.out.println(engine.prettyPrint());
+        //System.out.println(engine.prettyPrint());
 
         //System.gc();
         //Thread.sleep(5000); // give garbage collection some time to operate
@@ -382,7 +387,12 @@ public class EnginePerformanceTest extends EngineTestBase {
         final Collection<Weighted<String>> templates = new HashSet<Weighted<String>>(Collections.unmodifiableList(Arrays.asList(new Template[]{
                 new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\" AND ${k3}=\"${v3}\" AND ${k4}=\"${v4}\" AND ${k5}=\"${v5}\" AND ${k6}=\"${v6}\" AND ${k7}=\"${v7}\" AND ${k8}=\"${v8}\" AND ${k9}=\"${v9}\"", 1d), // OR ${k10}=\"${v10}\" OR ${k11}=\"${v11}\" OR ${k12}=\"${v12}\" OR ${k13}=\"${v13}\" OR ${k14}=\"${v14}\" OR ${k15}=\"${v15}\" OR ${k16}=\"${v16}\" OR ${k17}=\"${v17}\" OR ${k18}=\"${v18}\" OR ${k19}=\"${v19}\" OR ${k20}=\"${v20}\" OR ${k21}=\"${v21}\"", 1d),
         })));
+
+        System.out.println("building test opportunities");
+
         final TestData testData = buildTest(templates, 10000, 10000);
+
+        System.out.println("test opportunities built; querying");
 
         final TestResult result = randomQueries(testData, 10000L);
 
@@ -419,7 +429,7 @@ public class EnginePerformanceTest extends EngineTestBase {
         System.out.println("Result test103: " + result);
 
         Assert.assertTrue(result.averageTime() < 10);
-        Assert.assertTrue(result.getMaxTime() < 20);
+        Assert.assertTrue(result.getMaxTime() < 50);
     }
 
     @Test(enabled = false)
@@ -465,6 +475,76 @@ public class EnginePerformanceTest extends EngineTestBase {
 
         Assert.assertTrue(result.averageTime() < 10);
         Assert.assertTrue(result.getMaxTime() < 20);
+    }
+
+    @Test
+    public void test300() throws IndexingException, InterruptedException {
+        final Collection<Weighted<String>> templates = new HashSet<Weighted<String>>(Collections.unmodifiableList(Arrays.asList(new Template[]{
+                new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\" AND ${k3}=\"${v3}\" AND ${k4}=\"${v4}\" AND ${k5}=\"${v5}\" AND ${k6}=\"${v6}\" AND ${k7}=\"${v7}\" AND ${k8}=\"${v8}\" AND ${k9}=\"${v9}\"", 1d), // OR ${k10}=\"${v10}\" OR ${k11}=\"${v11}\" OR ${k12}=\"${v12}\" OR ${k13}=\"${v13}\" OR ${k14}=\"${v14}\" OR ${k15}=\"${v15}\" OR ${k16}=\"${v16}\" OR ${k17}=\"${v17}\" OR ${k18}=\"${v18}\" OR ${k19}=\"${v19}\" OR ${k20}=\"${v20}\" OR ${k21}=\"${v21}\"", 1d),
+        })));
+
+        System.out.println("building test opportunities");
+
+        final TestData testData = buildTest(templates, 10000, 10000);
+
+        System.out.println("test opportunities built; querying");
+
+        final int threadsN = Runtime.getRuntime().availableProcessors();
+
+        final Collection<TestResult> results = Collections.synchronizedList(new ArrayList<TestResult>(threadsN));
+
+        final Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                randomQueries(testData, 2500L); // warmup
+                final TestResult result = randomQueries(testData, 10000L);
+                randomQueries(testData, 2500L); // cooldown -- keeps resource utilization constant for other running threads
+                results.add(result);
+                System.out.println("Result test300: " + result);
+                Assert.assertTrue(result.averageTime() < 10);
+                Assert.assertTrue(result.getMaxTime() < 80);
+                Assert.assertTrue(result.calcPercentOverThreshold() < 1.0d);
+            }
+        };
+
+        ThreadUtil.runThreadsAndWait(runnable, threadsN);
+
+        System.out.println("COMBINED Results test300: " + TestResult.combineThreads(results) );
+    }
+
+    @Test
+    public void test301() throws IndexingException, InterruptedException {
+        final Collection<Weighted<String>> templates = new HashSet<Weighted<String>>(Collections.unmodifiableList(Arrays.asList(new Template[]{
+                new Template("${k1}=\"${v1}\" AND ${k2}=\"${v2}\" AND ${k3}=\"${v3}\" OR ${k4}=\"${v4}\" OR ${k5}=\"${v5}\" OR ${k6}=\"${v6}\" OR ${k7}=\"${v7}\" OR ${k8}=\"${v8}\" OR ${k9}=\"${v9}\"", 1d), // OR ${k10}=\"${v10}\" OR ${k11}=\"${v11}\" OR ${k12}=\"${v12}\" OR ${k13}=\"${v13}\" OR ${k14}=\"${v14}\" OR ${k15}=\"${v15}\" OR ${k16}=\"${v16}\" OR ${k17}=\"${v17}\" OR ${k18}=\"${v18}\" OR ${k19}=\"${v19}\" OR ${k20}=\"${v20}\" OR ${k21}=\"${v21}\"", 1d),
+        })));
+
+        System.out.println("building test opportunities");
+
+        final TestData testData = buildTest(templates, 10000, 10000);
+
+        System.out.println("test opportunities built; querying");
+
+        final int threadsN = Runtime.getRuntime().availableProcessors();
+
+        final Collection<TestResult> results = Collections.synchronizedList(new ArrayList<TestResult>(threadsN));
+
+        final Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                randomQueries(testData, 250L); // warmup
+                final TestResult result = randomQueries(testData, 1000L);
+                randomQueries(testData, 250L); // cooldown -- keeps resource utilization constant for other running threads
+                results.add(result);
+                System.out.println("Result test300: " + result);
+                Assert.assertTrue(result.averageTime() < 10);
+                Assert.assertTrue(result.getMaxTime() < 80);
+                Assert.assertTrue(result.calcPercentOverThreshold() < 1.0d);
+            }
+        };
+
+        ThreadUtil.runThreadsAndWait(runnable, threadsN);
+
+        System.out.println("COMBINED Results test300: " + TestResult.combineThreads(results) );
     }
 
 }
