@@ -18,7 +18,7 @@ public class Seq {
     transient private final Long2IntSortedMap map;
     transient private final IntArrayList freeList;
 
-    public Seq(final TreeAlgorithm mapTreeAlg) {
+    public Seq(final IndexAlgorithm mapTreeAlg) {
         switch(mapTreeAlg) {
             case REDBLACK:  { map = new Long2IntRBTreeMap(); break; }
             case AVL:       { map = new Long2IntAVLTreeMap(); break; }
@@ -31,7 +31,7 @@ public class Seq {
     }
 
     public Seq() {
-        this(TreeAlgorithm.AVL);
+        this(IndexAlgorithm.AVL);
     }
 
     public int getIndex(final long key) {
