@@ -38,10 +38,24 @@ public class Long2ObjectMultiValueHashMap<V> extends AbstractMultiValueMap<V>
             switch (valuesIndexAlgorithm) {
                 case HASH : { set = new ObjectLinkedOpenHashSet<>(); break; }
                 case ARRAY : { set = new ObjectArraySet<>(); break; }
+                case DYNAMIC1 : { set = new ObjectArraySet<>(); break; }
                 default : throw new UnsupportedOperationException();
             }
 
             map.put(key, set);
+        }
+        if (set.size() > 256) {
+            if (!(set instanceof ObjectLinkedOpenHashSet)) {
+                final ObjectSet<V> newSet = new ObjectLinkedOpenHashSet<>();
+                newSet.addAll(set);
+                set = newSet;
+            }
+        } else if (set.size() < 128) {
+            if (!(set instanceof ObjectArraySet)) {
+                final ObjectSet<V> newSet = new ObjectArraySet<>();
+                newSet.addAll(set);
+                set = newSet;
+            }
         }
         if (set.add(value)) size++;
     }

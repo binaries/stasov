@@ -19,4 +19,9 @@ public enum IndexAlgorithm {
     /**
      * Compact with fast iteration performance for small sets or infrequent lookups.
      */
-    ARRAY}
+    ARRAY,
+    /**
+     * Structures may change based on the size of what's being stored.
+     */
+    DYNAMIC1
+}
