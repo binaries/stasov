@@ -15,4 +15,8 @@ public enum IndexAlgorithm {
     /**
      * Better for constant time reads and writes.  Not compact.
      */
-    HASH}
+    HASH,
+    /**
+     * Compact with fast iteration performance for small sets or infrequent lookups.
+     */
+    ARRAY}

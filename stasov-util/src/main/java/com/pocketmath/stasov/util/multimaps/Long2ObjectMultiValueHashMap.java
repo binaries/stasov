@@ -1,8 +1,10 @@
 package com.pocketmath.stasov.util.multimaps;
 
+import com.pocketmath.stasov.util.IndexAlgorithm;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongSet;
+import it.unimi.dsi.fastutil.objects.ObjectArraySet;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 
@@ -16,11 +18,29 @@ public class Long2ObjectMultiValueHashMap<V> extends AbstractMultiValueMap<V>
 
     private long size = 0;
 
+    private final IndexAlgorithm valuesIndexAlgorithm;
+
+    /**
+     * @param valuesIndexAlgorithm Used as the algorithm to store sets of values which have the same keys.  Note internally hash is used in all other mappings.
+     */
+    public Long2ObjectMultiValueHashMap(final IndexAlgorithm valuesIndexAlgorithm) {
+        this.valuesIndexAlgorithm = valuesIndexAlgorithm;
+    }
+
+    public Long2ObjectMultiValueHashMap() {
+        this(IndexAlgorithm.HASH);
+    }
+
     @Override
     public void put(long key, V value) {
         ObjectSet<V> set = map.get(key);
         if (set == null) {
-            set = new ObjectLinkedOpenHashSet<>();
+            switch (valuesIndexAlgorithm) {
+                case HASH : { set = new ObjectLinkedOpenHashSet<>(); break; }
+                case ARRAY : { set = new ObjectArraySet<>(); break; }
+                default : throw new UnsupportedOperationException();
+            }
+
             map.put(key, set);
         }
         if (set.add(value)) size++;

@@ -1,16 +1,10 @@
 package com.pocketmath.stasov.util.multimaps;
 
-import com.pocketmath.stasov.util.PrettyPrintable;
+import com.pocketmath.stasov.util.IndexAlgorithm;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenCustomHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
-import it.unimi.dsi.fastutil.objects.ObjectSortedSet;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.Map;
 
 /**
  * Created by etucker on 2/3/16.
@@ -22,11 +16,24 @@ public class Long2Long2ObjectMultiValueHashMap<V extends Comparable<V>> implemen
 
     private long size = 0;
 
+    private IndexAlgorithm valuesIndexAlgorithm;
+
+    /**
+     * @param valuesIndexAlgorithm Used as the algorithm to store sets of values which have the same keys.  Note internally hash is used in all other mappings.
+     */
+    public Long2Long2ObjectMultiValueHashMap(final IndexAlgorithm valuesIndexAlgorithm) {
+        this.valuesIndexAlgorithm = valuesIndexAlgorithm;
+    }
+
+    public Long2Long2ObjectMultiValueHashMap() {
+        this(IndexAlgorithm.HASH);
+    }
+
     @Override
     public void put(long key1, long key2, V value) {
         ILong2ObjectMultiValueMap<V> map2 = map.get(key1);
         if (map2 == null) {
-            map2 = new Long2ObjectMultiValueHashMap<>();
+            map2 = new Long2ObjectMultiValueHashMap<>(valuesIndexAlgorithm);
             map.put(key1, map2);
         }
         map2.put(key2, value);
