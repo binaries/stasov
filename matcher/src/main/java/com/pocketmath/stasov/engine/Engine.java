@@ -12,7 +12,7 @@ public abstract class Engine<ObjectType extends Serializable & Comparable> {
 
     public abstract void index(String pmtl, ObjectType id) throws IndexingException;
 
-    public abstract ObjectType[] query(OpportunityDataBase opportunity); // TODO: make return type ObjectType
+    public abstract ObjectType[] query(OpportunityDataBase opportunity);
 
     public abstract void remove(final ObjectType id) throws IndexingException;
 
