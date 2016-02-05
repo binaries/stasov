@@ -9,7 +9,7 @@ import org.testng.annotations.Test;
 /**
  * Created by etucker on 8/27/15.
  */
-class EngineConcurrencyTest extends EngineTestBase {
+public class EngineConcurrencyTest extends EngineTestBase {
 
     @Test
     public void simpleIndexTest1() throws IndexingException {

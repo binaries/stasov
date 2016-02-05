@@ -14,7 +14,7 @@ import java.util.*;
  * Created by etucker on 8/27/15.
  */
 @Test(singleThreaded = true)
-class EnginePerformanceTest extends EngineTestBase {
+public class EnginePerformanceTest extends EngineTestBase {
 
     /**
      * The most rudimentary test.
