@@ -26,8 +26,8 @@ public class OptimizedRangeMap<T extends Comparable<T>> {
             new Long2ObjectMultiValueSortedMap<OptRMEntry<T>>();
 
     // TODO: Use hashmap for better performance?
-    private ILong2ObjectMultiValueMap<T> map =
-            new Long2ObjectMultiValueSortedMap<T>(Comparator.naturalOrder(), IndexAlgorithm.AVL);
+    private ILong2ObjectMultiValueMap<OptRMEntry<T>> map =
+            new Long2ObjectMultiValueSortedMap<OptRMEntry<T>>(Comparator.naturalOrder(), IndexAlgorithm.AVL);
 
     private final double tuneFactor;
 
@@ -79,16 +79,17 @@ public class OptimizedRangeMap<T extends Comparable<T>> {
     private void put(final long x0, final long x1, T t) {
         try {
             if (x0 > x1) throw new IllegalArgumentException();
-            intervalToEntries.put(interval, new OptRMEntry(x0, x1, t));
+            OptRMEntry<T> entry = new OptRMEntry(x0, x1, t);
+            intervalToEntries.put(interval, entry);
             for (long i = x0; i < x1; i = Math.addExact(i, interval)) {
-                map.put(i, t);
+                map.put(i, entry);
             }
         } finally {
             putsSinceLastIntervalCalculation++;
         }
     }
 
-    private ObjectSet<T> get(final long x, final long interval) {
+    private ObjectSet<OptRMEntry<T>> getPossibilities(final long x, final long interval) {
         return map.get( x - x % interval );
     }
 
@@ -109,16 +110,17 @@ public class OptimizedRangeMap<T extends Comparable<T>> {
      * @param interval
      * @return
      */
-    public ObjectSet<T> get(final float x, final long interval) {
+    protected ObjectSet<OptRMEntry<T>> getPossibilities(final float x, final long interval) {
         final long xscaled = calcScaled(x);
-        return get(xscaled, interval);
+        return getPossibilities(xscaled, interval);
     }
 
     public void getForEach(final float x, final Consumer<T> consumer) {
         final long xscaled = calcScaled(x);
         for (final long interval : getIntervals())
-            for (final T item : get(xscaled,interval))
-                consumer.accept(item);
+            for (final OptRMEntry<T> entry : getPossibilities(xscaled, interval))
+                if (x >= entry.getX0() && x < entry.getX1())
+                    consumer.accept(entry.getT());
     }
 
     private long calculateNewInterval() {

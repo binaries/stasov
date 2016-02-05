@@ -6,11 +6,13 @@ import java.util.Objects;
  * Created by etucker on 2/2/16.
  */
 class OptRMEntry<T extends Comparable<T>> implements Comparable<OptRMEntry<T>> {
-    private float x0;
-    private float x1;
-    private T t;
+    private final float x0;
+    private final float x1;
+    private final T t;
 
     public OptRMEntry(float x0, float x1, T t) {
+        if (x0 > x1) throw new IllegalArgumentException();
+        if (t == null) throw new IllegalArgumentException();
         this.x0 = x0;
         this.x1 = x1;
         this.t = t;
