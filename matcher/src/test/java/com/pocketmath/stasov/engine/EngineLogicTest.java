@@ -2,7 +2,9 @@ package com.pocketmath.stasov.engine;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.testng.asserts.Assertion;
 
 /**
  * Created by etucker on 6/9/15.
@@ -287,6 +289,119 @@ public class EngineLogicTest extends EngineTestBase {
         );
     }
 
+    @Test
+    public void test103h_eq() throws IndexingException {
+        testIndexAndQuery(
+                Engine.newLongEngine(),
+                ImmutableMap.<Long,String>of(
+                        1L, "(devicetype = \"android\" OR devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
+                        2L, "devicetype = \"iphone\""
+                ),
+                ImmutableMap.<String,String>of(
+                        "devicetype", "android",
+                        "city", "austin",
+                        "creativesize", "300x250",
+                        "deviceid", "xxxxxxxxxxxxxxxxxx"  // device id is not mentioned in order specs
+                ),
+                new Long[]{1L}
+        );
+    }
+
+    @Test
+    public void test103i_eq() throws IndexingException {
+        testIndexAndQuery(
+                Engine.newLongEngine(),
+                ImmutableMap.<Long,String>of(
+                        1L, "(devicetype = \"android\" OR devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
+                        2L, "devicetype = \"iphone\""
+                ),
+                ImmutableMap.<String,String>of(
+                        "devicetype", "iphone",
+                        "city", "austin",
+                        "creativesize", "300x250",
+                        "deviceid", "xxxxxxxxxxxxxxxxxx"  // device id is not mentioned in order specs
+                ),
+                new Long[]{1L,2L}
+        );
+    }
+
+    @Test
+    public void test103j_eq() throws IndexingException {
+        testIndexAndQuery(
+                Engine.newLongEngine(),
+                ImmutableMap.<Long,String>of(
+                        1L, "(devicetype = \"android\" OR devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
+                        2L, "devicetype = \"iphone\""
+                ),
+                ImmutableMap.<String,String>of(
+                        "devicetype", "windows",
+                        "city", "austin",
+                        "creativesize", "300x250",
+                        "deviceid", "xxxxxxxxxxxxxxxxxx"  // device id is not mentioned in order specs
+                ),
+                new Long[]{}
+        );
+    }
+
+    @Test
+    public void test103k_eq() throws IndexingException {
+        testIndexAndQuery(
+                Engine.newLongEngine(),
+                ImmutableMap.<Long,String>of(
+                        1L, "(devicetype = \"android\" OR devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
+                        2L, "devicetype = \"android\""
+                ),
+                ImmutableMap.<String,String>of(
+                        "devicetype", "windows",
+                        "city", "austin",
+                        "creativesize", "300x250",
+                        "deviceid", "xxxxxxxxxxxxxxxxxx"  // device id is not mentioned in order specs
+                ),
+                new Long[]{}
+        );
+    }
+
+    @Test
+    public void test103l_eq() throws IndexingException {
+        testIndexAndQuery(
+                Engine.newLongEngine(),
+                ImmutableMap.<Long,String>of(
+                        1L, "(devicetype = \"android\" OR devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
+                        2L, "devicetype = \"android\""
+                ),
+                ImmutableMap.<String,String>of(
+                        "devicetype", "android",
+                        "city", "austin",
+                        "creativesize", "300x250",
+                        "deviceid", "xxxxxxxxxxxxxxxxxx"  // device id is not mentioned in order specs
+                ),
+                new Long[]{1L,2L}
+        );
+    }
+
+    @Test
+    public void test103m_eq() throws IndexingException {
+        boolean exceptionFound = false;
+        try {
+            testIndexAndQuery(
+                    Engine.newLongEngine(),
+                    ImmutableMap.<Long, String>of(
+                            1L, "(devicetype = \"android\" OR devicetype = \"iphone\" OR devicetype = \"asdfasdfasdfk4u74365283234545gsf\") AND city = \"austin\" AND creativesize = \"300x250\"",
+                            2L, "devicetype = \"android\""
+                    ),
+                    ImmutableMap.<String, String>of(
+                            "devicetype", "android",
+                            "city", "austin",
+                            "creativesize", "300x250",
+                            "deviceid", "xxxxxxxxxxxxxxxxxx"  // device id is not mentioned in order specs
+                    ),
+                    new Long[]{1L, 2L}
+            );
+        } catch (Exception e) {
+            exceptionFound = true;
+        }
+        Assert.assertTrue(exceptionFound);
+    }
 
     @Test
     public void test104_eq() throws IndexingException {
