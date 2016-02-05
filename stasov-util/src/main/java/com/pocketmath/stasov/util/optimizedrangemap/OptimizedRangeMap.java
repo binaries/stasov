@@ -85,7 +85,7 @@ public class OptimizedRangeMap<T extends Comparable<T>> {
                 map.put(i, entry);
             }
         } finally {
-            putsSinceLastIntervalCalculation++;
+            putsSinceLastIntervalCalculation = Math.incrementExact(putsSinceLastIntervalCalculation);
         }
     }
 
