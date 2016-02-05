@@ -16,7 +16,7 @@ public class DeviceType extends AttributeHandler {
         } else if (input.equalsIgnoreCase("Android")) {
             return 2;
         }
-        return -1;
+        return NOT_FOUND;
     }
 
 }
