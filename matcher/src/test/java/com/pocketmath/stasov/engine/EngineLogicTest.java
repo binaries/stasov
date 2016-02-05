@@ -19,6 +19,15 @@ public class EngineLogicTest extends EngineTestBase {
     }
 
     @Test
+    public void simpleIndexTest2() throws IndexingException {
+        Engine engine = Engine.newLongEngine();
+
+        final String spec = "DeviceType in (\"iPhone\", \"Android\")";
+        long id = 1;
+        engine.index(spec, id);
+    }
+
+    @Test
     public void test1_in() throws IndexingException {
         testIndexAndQuery(
                 Engine.newLongEngine(),
@@ -182,6 +191,102 @@ public class EngineLogicTest extends EngineTestBase {
                 new Long[]{2L}
         );
     }
+
+    @Test
+    public void test103b_eq() throws IndexingException {
+        testIndexAndQuery(
+                Engine.newLongEngine(),
+                ImmutableMap.<Long,String>of(
+                        1L, "(devicetype = \"android\" OR devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
+                        2L, "devicetype = \"iphone\""
+                ),
+                ImmutableMap.<String,String>of(
+                        "devicetype", "iphone",
+                        "city", "austin",
+                        "creativesize", "300x250"
+                ),
+                new Long[]{1L,2L}
+        );
+    }
+
+    @Test
+    public void test103c_eq() throws IndexingException {
+        testIndexAndQuery(
+                Engine.newLongEngine(),
+                ImmutableMap.<Long,String>of(
+                        1L, "(devicetype = \"android\" OR devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
+                        2L, "devicetype = \"iphone\""
+                ),
+                ImmutableMap.<String,String>of(
+                        "city", "austin",
+                        "creativesize", "300x250"
+                ),
+                new Long[]{}
+        );
+    }
+
+    @Test
+    public void test103d_eq() throws IndexingException {
+        testIndexAndQuery(
+                Engine.newLongEngine(),
+                ImmutableMap.<Long,String>of(
+                        1L, "(devicetype = \"android\" OR devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
+                        2L, "devicetype = \"iphone\""
+                ),
+                ImmutableMap.<String,String>of(
+                        "creativesize", "300x250"
+                ),
+                new Long[]{}
+        );
+    }
+
+    @Test
+    public void test103e_eq() throws IndexingException {
+        testIndexAndQuery(
+                Engine.newLongEngine(),
+                ImmutableMap.<Long,String>of(
+                        1L, "(devicetype = \"android\" OR devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
+                        2L, "devicetype = \"iphone\""
+                ),
+                ImmutableMap.<String,String>of(
+                        // empty
+                ),
+                new Long[]{}
+        );
+    }
+
+    @Test
+    public void test103f_eq() throws IndexingException {
+        testIndexAndQuery(
+                Engine.newLongEngine(),
+                ImmutableMap.<Long,String>of(
+                        1L, "(devicetype = \"android\" OR devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
+                        2L, "devicetype = \"iphone\""
+                ),
+                ImmutableMap.<String,String>of(
+                        // empty
+                ),
+                null
+        );
+    }
+
+    @Test
+    public void test103g_eq() throws IndexingException {
+        testIndexAndQuery(
+                Engine.newLongEngine(),
+                ImmutableMap.<Long,String>of(
+                        1L, "(devicetype = \"android\" OR devicetype = \"iphone\") AND city = \"austin\" AND creativesize = \"300x250\"",
+                        2L, "devicetype = \"iphone\""
+                ),
+                ImmutableMap.<String,String>of(
+                        "devicetype", "android",
+                        "city", "asjkdhfkjlwqh3riu23hrfjksadhfaskjdfasdf", // non-existent city
+                        "creativesize", "300x250"
+                ),
+                null
+        );
+    }
+
 
     @Test
     public void test104_eq() throws IndexingException {

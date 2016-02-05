@@ -394,7 +394,7 @@ class MatchTree {
                     if (queryValues == null) continue;
 
                     for (final long queryValue : queryValues) {
-                        assert(queryValue >= 0 || queryValue == AttributeHandler.USE_FUZZY_MATCH);
+                        assert(queryValue >= 0 || queryValue == AttributeHandler.USE_FUZZY_MATCH || queryValue == AttributeHandler.NOT_FOUND);
                         final ObjectSet<MatchNode> inclNextNodes;
                         final ObjectSet<MatchNode> exclNextNodes;
 
