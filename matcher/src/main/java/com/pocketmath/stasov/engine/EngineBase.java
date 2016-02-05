@@ -174,22 +174,6 @@ class EngineBase<ObjectType extends Serializable & Comparable> extends Engine<Ob
         }
     }
 
-    /*
-    public void index(final String pmtl, final long id) throws IndexingException {
-        if (id < 1) throw new IllegalArgumentException();
-        final Long l = new Long(id);
-        final ObjectType o;
-        try {
-            o = (ObjectType) l;
-        } catch (ClassCastException cce) {
-            throw new IndexingException(
-                    "The type long is not supported by this implementation. (Check the type of Engine<ObjectType>.)",
-                    new UnsupportedOperationException(cce));
-        }
-        doIndex(pmtl, o);
-    }
-    */
-
     public void remove(final ObjectType id) throws IndexingException {
         checkInvariants();
         try {
@@ -221,11 +205,6 @@ class EngineBase<ObjectType extends Serializable & Comparable> extends Engine<Ob
         }
         return results;
     }
-
-    //public MapOpportunityData mapOpportunityData() {
-    //    return new MapOpportunityData(attrSvc);
-    //}
-
 
     @Override
     public String toString() {
