@@ -4,12 +4,11 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import org.testng.asserts.Assertion;
 
 /**
  * Created by etucker on 6/9/15.
  */
-public class EngineLogicTest extends EngineTestBase {
+class EngineLogicTest extends EngineTestBase {
 
     @Test
     public void simpleIndexTest1() throws IndexingException {

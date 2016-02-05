@@ -20,7 +20,7 @@ import java.util.*;
 /**
  * Created by etucker on 8/27/15.
  */
-public class EngineTestBase {
+class EngineTestBase {
 
     static class Template extends Weighted<String> {
         private final String text;
