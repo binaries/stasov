@@ -13,7 +13,7 @@ import java.util.concurrent.Callable;
  */
 public class ConcurrentEngineWrapper<ObjectType extends Serializable & Comparable> extends Engine<ObjectType> {
 
-    private final Engine engine;
+    private final Engine<ObjectType> engine;
 
     private SpeedReadExecution execution;
 
@@ -56,7 +56,7 @@ public class ConcurrentEngineWrapper<ObjectType extends Serializable & Comparabl
     }
 
     @Override
-    public Object[] query(OpportunityDataBase opportunity) {
+    public ObjectType[] query(OpportunityDataBase opportunity) {
         if (execution.isFreeNow()) {
             return engine.query(opportunity);
         } else {
