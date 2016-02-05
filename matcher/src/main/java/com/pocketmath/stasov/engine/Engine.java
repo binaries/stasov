@@ -2,7 +2,6 @@ package com.pocketmath.stasov.engine;
 
 import com.pocketmath.stasov.attributes.AttrSvcBase;
 
-import javax.sql.rowset.serial.SerialArray;
 import java.io.Serializable;
 
 /**

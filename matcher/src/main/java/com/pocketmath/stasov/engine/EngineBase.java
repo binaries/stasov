@@ -3,12 +3,9 @@ package com.pocketmath.stasov.engine;
 import com.pocketmath.stasov.attributes.AttrSvcBase;
 import com.pocketmath.stasov.pmtl.dnfconv.DNFConv;
 import com.pocketmath.stasov.pmtl.PocketTLLanguageException;
-import it.unimi.dsi.fastutil.longs.LongSortedSet;
 
 import java.io.Serializable;
-import java.util.BitSet;
 import java.util.SortedSet;
-import java.util.function.Consumer;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
