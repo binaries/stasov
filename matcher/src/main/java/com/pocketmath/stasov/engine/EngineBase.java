@@ -132,7 +132,7 @@ class EngineBase<ObjectType extends Serializable & Comparable> extends Engine<Ob
             }
         }
 
-        indexSinceLastRefresh++;
+        indexSinceLastRefresh = Math.incrementExact(indexSinceLastRefresh);
 
         final String dnfSpec;
         try {
@@ -140,22 +140,36 @@ class EngineBase<ObjectType extends Serializable & Comparable> extends Engine<Ob
         } catch (PocketTLLanguageException e) {
            throw new IndexingException(e);
         }
+
         logger.log(Level.FINE, "DNF converted :: {0}", dnfSpec);
         if (dnfSpec == null) throw new IndexingException("DNF converted string was null.");
         if (dnfSpec.isEmpty()) throw new IndexingException("DNF converted string was empty.");
         if (dnfSpec.trim().isEmpty()) throw new IndexingException("DNF converted string was only whitespace.");
 
-        final long internalId = idTranslator.toId(id);
-
-        indexer.index(tree, dnfSpec, new long[]{internalId});
-
-        maintain();
-
-        if (safeIndex) {
+        try {
+            final long internalId = idTranslator.toId(id);
+            indexer.index(tree, dnfSpec, new long[]{internalId});
+        } catch (Exception e) {
+            throw new IndexingException(e);
+        } finally {
+            if (safeIndex) {
+                try {
+                    checkInvariants();
+                } catch (Exception e) {
+                    throw new IndexingException(e);
+                }
+            }
             try {
-                checkInvariants();
+                maintain();
             } catch (Exception e) {
                 throw new IndexingException(e);
+            }
+            if (safeIndex) {
+                try {
+                    checkInvariants();
+                } catch (Exception e) {
+                    throw new IndexingException(e);
+                }
             }
         }
     }
@@ -178,15 +192,20 @@ class EngineBase<ObjectType extends Serializable & Comparable> extends Engine<Ob
 
     public void remove(final ObjectType id) throws IndexingException {
         checkInvariants();
-        removeSinceLastRefresh++;
-        final long internalId = idTranslator.toId(id);
-        logger.log(Level.FINE, "Removing id: " + id + " (translated to internal id: " + internalId + ")");
-        tree.remove(internalId);
-        tracker.diassociate(internalId);
-        idTranslator.remove(id);
+        try {
+            removeSinceLastRefresh = Math.incrementExact(removeSinceLastRefresh);
+            final long internalId = idTranslator.toId(id);
+            logger.log(Level.FINE, "Removing id: " + id + " (translated to internal id: " + internalId + ")");
+            tree.remove(internalId);
+            tracker.diassociate(internalId);
+            idTranslator.remove(id);
 
-        maintain();
-        checkInvariants();
+            maintain();
+        } catch (Exception e) {
+            throw new IndexingException(e);
+        } finally {
+            checkInvariants();
+        }
     }
 
     public ObjectType[] query(final OpportunityDataBase opportunity) {
