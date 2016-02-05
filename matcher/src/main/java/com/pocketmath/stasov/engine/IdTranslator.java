@@ -112,18 +112,6 @@ class IdTranslator<IDT> {
         checkInvariants();
     }
 
-    private static void refactorBitSet(final Long2LongMap m, final BitSet oldBS, final BitSet newBS) {
-        if (m == null) throw new IllegalArgumentException();
-        if (oldBS == null) throw new IllegalArgumentException();
-        if (newBS == null) throw new IllegalArgumentException();
-        for (int oldId = oldBS.nextSetBit(0); oldId >= 0; oldId = oldBS.nextSetBit(oldId+1)) {
-            if (oldId == Integer.MAX_VALUE) break; // or (i+1) would overflow (per Java 8 API)
-            final long newId = m.get((long)oldId);
-            if (newId > Integer.MAX_VALUE) throw new IllegalStateException();
-            if (newId > 0) newBS.set((int)newId);
-        }
-    }
-
     private static class Refresh {
         private final Set<Long> oldIdsToRemove;
         private final Map<Long,Long> oldIdToNewIdUpdates;
