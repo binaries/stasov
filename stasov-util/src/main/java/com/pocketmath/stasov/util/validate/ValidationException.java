@@ -1,4 +1,4 @@
-package com.pocketmath.stasov.util;
+package com.pocketmath.stasov.util.validate;
 
 /**
  * Created by etucker on 2/1/16.
