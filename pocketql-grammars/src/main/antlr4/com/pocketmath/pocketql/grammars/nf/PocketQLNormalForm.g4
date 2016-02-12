@@ -23,5 +23,7 @@ IN      : [Ii][Nn];
 ALPHANUM: (
     ([a-z]|[A-Z]|[0-9])+
     | ( '"' ([a-z]|[A-Z]|[0-9]|WS)+ '"') {setText(getText().substring(1, getText().length()-1));} // strip the quotes
+    | ( '{' ([a-z]|[A-Z]|[0-9]|WS)+ '}') {setText(getText().substring(1, getText().length()-1));} // strip the curly brackets
+
    );
 WS      : (' '|'\t'|'\n'|'\r') ;

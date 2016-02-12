@@ -36,7 +36,7 @@ public class ${className} extends AttrSvcBase {
         register(attrMetas);
     }
 
-    protected final AttributeHandler lookupHandler(final long attrTypeId) {
+    public final AttributeHandler lookupHandler(final long attrTypeId) {
         assert(attrTypeId < Integer.MAX_VALUE);
         switch ((int)attrTypeId) {
             <#list allAttrs as attr>

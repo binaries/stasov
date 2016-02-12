@@ -8,7 +8,6 @@ import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
-import it.unimi.dsi.fastutil.objects.ObjectSortedSet;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -200,9 +199,9 @@ class MatchTree {
             for(final long attrTypeId: attrTypeIds) {
                 final LongSortedSet _inclVals = inclVals.getSorted(attrTypeId);
                 final LongSortedSet _exclVals = exclVals.getSorted(attrTypeId);
-                if (_inclVals == null && _exclVals == null) throw new IllegalStateException(); // TODO: refine exception type.
-                if (_inclVals == null && _exclVals.isEmpty()) throw new IllegalStateException(); // TODO: refine exception type.
-                if (_exclVals == null && _inclVals.isEmpty()) throw new IllegalStateException(); // TODO: refine exception type.
+                if (_inclVals == null && _exclVals == null) throw new IllegalStateException(); // TODO: match exception type.
+                if (_inclVals == null && _exclVals.isEmpty()) throw new IllegalStateException(); // TODO: match exception type.
+                if (_exclVals == null && _inclVals.isEmpty()) throw new IllegalStateException(); // TODO: match exception type.
                 ag.add(attrTypeId, _inclVals, _exclVals);
             }
             return ag;
@@ -394,11 +393,11 @@ class MatchTree {
                     if (queryValues == null) continue;
 
                     for (final long queryValue : queryValues) {
-                        assert(queryValue >= 0 || queryValue == AttributeHandler.USE_FUZZY_MATCH || queryValue == AttributeHandler.NOT_FOUND);
+                        assert(queryValue >= 0 || queryValue == AttributeHandler.USE_3D_RANGE_MATCH || queryValue == AttributeHandler.NOT_FOUND);
                         final ObjectSet<MatchNode> inclNextNodes;
                         final ObjectSet<MatchNode> exclNextNodes;
 
-                        if (queryValue == AttributeHandler.USE_FUZZY_MATCH) {
+                        if (queryValue == AttributeHandler.USE_3D_RANGE_MATCH) {
                             inclNextNodes = null;
                             exclNextNodes = null;
 

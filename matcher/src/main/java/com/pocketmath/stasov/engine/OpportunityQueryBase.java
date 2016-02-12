@@ -35,7 +35,7 @@ public class OpportunityQueryBase {
         if (impDatas != null) {
             for (final String value : impDatas) {
                 final long valueId = attrSvc.findValue(attrTypeId, value);
-                assert(valueId >= 0 || valueId == AttributeHandler.USE_RANGE_MATCH || valueId == AttributeHandler.NOT_FOUND);
+                assert(valueId >= 0 || valueId == AttributeHandler.USE_3D_RANGE_MATCH || valueId == AttributeHandler.NOT_FOUND);
                 multiValueMap.put(attrTypeId, valueId);
             }
             return multiValueMap.getSorted(attrTypeId);
@@ -43,6 +43,10 @@ public class OpportunityQueryBase {
             multiValueMap.fastPut(attrTypeId, EMPTY_SET);
             return null;
         }
+    }
+
+    final Set<String> getInputStrings(final long attrTypeId) {
+        return oppData.getData(attrTypeId);
     }
 
     void clear() {

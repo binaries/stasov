@@ -145,7 +145,7 @@ class TreeBuilder {
 
             validate(n, false, false);
 
-            // get the variable name
+            // getSorted the variable name
             if (termContext.ID() == null) throw new IllegalStateException(); // TODO: improve exception handling
             final String variableName = termContext.ID().getText();
             if (variableName == null) throw new IllegalStateException(); // TODO: improve exception handling
@@ -156,7 +156,7 @@ class TreeBuilder {
             final String value = eqContext.atom().getText();
             positiveValues.add(value);
 
-            final InNode inNode = new InNode(n); //inNodesMap.get(ctx);
+            final InNode inNode = new InNode(n); //inNodesMap.getSorted(ctx);
             n.addChild(inNode);
             inNode.setParent(n);
             inNode.setVariableName(variableName);
@@ -176,14 +176,14 @@ class TreeBuilder {
 
             //System.out.println("IN NOT: " + termContext.NOT());
 
-            // get the variable name
+            // getSorted the variable name
             if (termContext.ID() == null) throw new IllegalStateException(); // TODO: improve exception handling
             final String variableName = termContext.ID().getText();
             if (variableName == null) throw new IllegalStateException(); // TODO: improve exception handling
 
             // next steps build positive values
 
-            // get in separate variable in case we wish to query size, null checking, etc.
+            // getSorted in separate variable in case we wish to query size, null checking, etc.
             final List<AtomContext> atomContexts = inContext.atom();
 
             assert(atomContexts != null);
@@ -210,7 +210,7 @@ class TreeBuilder {
                 negativeValues.add(value);
             }
 
-            final InNode inNode = new InNode(parent); //inNodesMap.get(ctx);
+            final InNode inNode = new InNode(parent); //inNodesMap.getSorted(ctx);
             parent.addChild(inNode);
             inNode.setVariableName(variableName);
             inNode.addPositiveValues(positiveValues);

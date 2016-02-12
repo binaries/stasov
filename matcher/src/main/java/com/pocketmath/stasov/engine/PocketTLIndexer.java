@@ -8,6 +8,7 @@ import com.pocketmath.pocketql.grammars.nf.PocketQLNormalFormParser;
 import com.pocketmath.stasov.attributes.AttrSvcBase;
 import com.pocketmath.stasov.pmtl.PocketTLDataException;
 import com.pocketmath.stasov.pmtl.PocketTLLanguageException;
+import com.pocketmath.stasov.util.validate.ValidationException;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.DiagnosticErrorListener;
@@ -55,7 +56,7 @@ class PocketTLIndexer {
             final List<TerminalNode> valueNodes = ctx.list().ALPHANUM();
             for (TerminalNode valueNode : valueNodes) {
                 final String valueString = valueNode.getText();
-                final long valueId = attrSvc.findValue(attrTypeId, valueString);
+                final long valueId = attrSvc.findValue(attrTypeId, valueString, true);
                 if (valueId < 1) throw new IllegalArgumentException( new PocketTLDataException("value not found for varName: " + varName + "; attrTypeId: " + attrTypeId + "; value: " + valueString) );
                 if (not)
                     andGroupBuilder.addExclusionaryValue(attrTypeId, valueId);
@@ -75,7 +76,7 @@ class PocketTLIndexer {
 
             final TerminalNode valueTN = ctx.ALPHANUM(1);
             final String valueString = valueTN.getText();
-            final long valueId = attrSvc.findValue(attrTypeId, valueString);
+            final long valueId = attrSvc.findValue(attrTypeId, valueString, true);
             if (valueId < 1) throw new IllegalArgumentException( new PocketTLDataException("value not found for varName: " + varName + "; attrTypeId: " + attrTypeId + "; value: " + valueString) );
             if (not)
                 andGroupBuilder.addExclusionaryValue(attrTypeId, valueId);

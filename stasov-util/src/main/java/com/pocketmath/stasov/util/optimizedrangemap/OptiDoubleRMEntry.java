@@ -7,7 +7,7 @@ import java.util.Objects;
 /**
  * Created by etucker on 2/7/16.
  */
-class OptiDoubleRMEntry<T extends Comparable<T>> extends AbstractOptiRMEntry<T, Double> {
+public class OptiDoubleRMEntry<T extends Comparable<T>> extends AbstractOptiRMEntry<T, Double> {
 
     final double x0;
     final double x1;
@@ -26,7 +26,7 @@ class OptiDoubleRMEntry<T extends Comparable<T>> extends AbstractOptiRMEntry<T, 
         return x0;
     }
 
-    public double getFloatX() {
+    public double getDoubleX0() {
         return x0;
     }
 

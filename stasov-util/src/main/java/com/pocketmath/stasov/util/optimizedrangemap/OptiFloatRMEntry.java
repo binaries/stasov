@@ -7,7 +7,7 @@ import java.util.Objects;
 /**
  * Created by etucker on 2/7/16.
  */
-class OptiFloatRMEntry<T extends Comparable<T>> extends AbstractOptiRMEntry<T,Float> {
+public class OptiFloatRMEntry<T extends Comparable<T>> extends AbstractOptiRMEntry<T,Float> {
 
     final float x0;
     final float x1;

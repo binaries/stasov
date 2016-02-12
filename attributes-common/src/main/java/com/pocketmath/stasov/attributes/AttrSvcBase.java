@@ -2,6 +2,8 @@ package com.pocketmath.stasov.attributes;
 
 import com.google.common.primitives.Longs;
 import com.pocketmath.stasov.util.Weights;
+import com.pocketmath.stasov.util.validate.ValidationException;
+import com.pocketmath.stasov.util.validate.ValidationRuntimeException;
 import it.unimi.dsi.fastutil.longs.LongArrays;
 import it.unimi.dsi.fastutil.longs.LongComparator;
 import it.unimi.dsi.fastutil.longs.LongRBTreeSet;
@@ -40,19 +42,30 @@ public abstract class AttrSvcBase {
         this.attrComparator = new AttrTypeIdWeightComparator(weights);
     }
 
-    protected abstract AttributeHandler lookupHandler(final long attrTypeId);
+    public abstract AttributeHandler lookupHandler(final long attrTypeId);
 
     public long findTypeId(final String typeName) {
         assert(registered);
         return typeNameToTypeId.getLong(typeName);
     }
 
-    public long findValue(final long attrTypeId, final String input) {
+    public long findValue(final long attrTypeId, final String input, final boolean validate) {
         assert(registered);
         if (input == null) throw new IllegalArgumentException("input was null");
         final AttributeHandler handler = lookupHandler(attrTypeId);
+        if (validate) {
+            try {
+                handler.validate(input);
+            } catch (ValidationException ve) {
+                throw new ValidationRuntimeException(ve);
+            }
+        }
         if (handler == null) throw new UnsupportedOperationException("Handler not found for attrTypeId=" + attrTypeId);
         return handler.find(input);
+    }
+
+    public long findValue(final long attrTypeId, final String input) {
+        return findValue(attrTypeId, input, false);
     }
 
     long findValue(final String typeName, final String input) {
@@ -123,4 +136,5 @@ public abstract class AttrSvcBase {
         if (attributeHandler == null) return null;
         return attributeHandler.sampleValues(order);
     }
+
 }

@@ -1,7 +1,7 @@
 package com.pocketmath.stasov.engine;
 
 import com.pocketmath.stasov.util.IDAllocator;
-import com.pocketmath.stasov.util.ValidationException;
+import com.pocketmath.stasov.util.validate.ValidationException;
 import com.pocketmath.stasov.util.numbers.Numbers;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;

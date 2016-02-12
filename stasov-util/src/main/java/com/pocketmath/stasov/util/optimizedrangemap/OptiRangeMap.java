@@ -91,12 +91,12 @@ public abstract class OptiRangeMap<T extends Comparable<T>, K extends Comparable
         fastPut(entry);
     }
 
-    public void forEach(@Nonnull final K x, final Consumer<T> consumer) {
+    public void forEachEntry(final K x, final Consumer<E> consumer) {
         final long xscaled = calcScaled(x);
         for (final long interval : getIntervals())
             for (final E entry : getPossibilities(xscaled, interval))
                 if (entry.inBounds(x))
-                    consumer.accept(entry.getT());
+                    consumer.accept(entry);
     }
 
     protected ObjectSet<E> getPossibilities(final long x, final long interval) {

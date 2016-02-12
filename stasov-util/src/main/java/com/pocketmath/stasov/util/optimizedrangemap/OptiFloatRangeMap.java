@@ -12,6 +12,10 @@ public class OptiFloatRangeMap<T extends Comparable<T>> extends AbstractDoubleSc
         super(scaleFactor, tuneFactor, initialInterval, newIntervalCalculationAfterNPuts);
     }
 
+    public OptiFloatRangeMap() {
+        super();
+    }
+
     @Override
     protected long calcScaled(@Nonnull final Float x) {
         return calcScaled(x.floatValue());

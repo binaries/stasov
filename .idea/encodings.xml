@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Encoding" useUTFGuessing="true" native2AsciiForPropertiesFiles="false">
+    <file url="file://$PROJECT_DIR$" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/attributes" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/attributes-common" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/attributes-devel" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/attributes-generated-glue" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/matcher" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/pocketql-grammars" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/stasov-common" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/stasov-util" charset="UTF-8" />
     <file url="PROJECT" charset="UTF-8" />
   </component>
 </project>
