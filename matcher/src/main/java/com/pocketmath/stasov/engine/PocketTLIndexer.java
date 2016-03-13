@@ -8,10 +8,7 @@ import com.pocketmath.pocketql.grammars.nf.PocketQLNormalFormParser;
 import com.pocketmath.stasov.attributes.AttrSvcBase;
 import com.pocketmath.stasov.attributes.handler.base.AttributeHandler;
 import com.pocketmath.stasov.pmtl.PocketTLDataException;
-import com.pocketmath.stasov.pmtl.PocketTLLanguageException;
 import com.pocketmath.stasov.util.StasovStrings;
-import com.pocketmath.stasov.util.validate.ValidationException;
-import com.sun.tools.doclint.HtmlTag;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.DiagnosticErrorListener;
@@ -22,7 +19,6 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import java.util.List;
-import java.util.Objects;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -99,7 +95,7 @@ class PocketTLIndexer {
             final long attrTypeId = attrSvc.findTypeId(varName);
             if (attrTypeId < 1) throw new IllegalArgumentException(new PocketTLDataException("could not find varName: " + varName));
             final List<TerminalNode> valueNodes = ctx.list().ALPHANUM();
-            for (TerminalNode valueNode : valueNodes) {
+            for (final TerminalNode valueNode : valueNodes) {
                 final String valueString = valueNode.getText();
                 enterValueAux(varName, attrTypeId, valueString);
             }
