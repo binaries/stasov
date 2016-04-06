@@ -1,7 +1,5 @@
-package com.pocketmath.stasov.util.bitset;
+package com.pocketmath.stasov.util.dynamicbitset;
 
-import com.pocketmath.stasov.util.BitUtil;
-import it.unimi.dsi.fastutil.Swapper;
 import it.unimi.dsi.fastutil.ints.IntArrays;
 import it.unimi.dsi.fastutil.longs.LongArrays;
 import it.unimi.dsi.fastutil.objects.*;
@@ -17,7 +15,7 @@ import java.util.*;
  *
  * Created by etucker on 3/24/16.
  */
-public class SBS2 {
+abstract class SBS2 {
 
     /**
      * For each item:
@@ -49,26 +47,24 @@ public class SBS2 {
         }
     };
 
-    static class HMNode {
+    private static class HMNode {
         private final int startPosition;
         private final long[] data;
-        //private final int size; // not necessarily the same thing as data length, but equal to or shorter than
-        //private final int sizeInBits;
 
         public HMNode(
                 final @Nonnegative int startPosition,
-                final @Nonnegative int endPosition) {
+                final @Nonnegative int endPosition,
+                final boolean bitsSet) {
 
             assert(startPosition % 64 == 0);
             assert(endPosition % 64 == 0);
             this.startPosition = startPosition;
             int start = startPosition / 64;
-            int end = Math.addExact(Math.addExact(endPosition / 64, (endPosition % 64 > 0 ? 1 : 0)), 1);
-            int len = Math.subtractExact(end, start);
+            int end = Math.addExact(Math.addExact(endPosition / 64, (endPosition % 64 > 0 ? 1 : 0)), 1); // TODO: make faster
+            int len = Math.subtractExact(end, start); // TODO: make faster
             this.data = new long[len];
-            //this.sizeInBits = Math.multiplyExact(len, 64);
-            //this.size = len;
-            //assert(data.length == getSize());
+            if (bitsSet)
+                Arrays.fill(this.data, 0xFFFFFFFFFFFFFFFFL);
         }
 
         public int getStartPosition() {
@@ -87,12 +83,9 @@ public class SBS2 {
             return data.length;
         }
 
-       // public int getSizeInBits() {
-       //     return sizeInBits;
-       // }
     }
 
-    class HM {
+    private static class HM {
         private HMNode[] nodes;
         private Object2IntMap nodesCache = null;
         private int size = 0;
@@ -165,24 +158,6 @@ public class SBS2 {
         public HMNode getNode(int index) {
             return nodes[index];
         }
-
-        /*
-        public HMNode findNode(final int position, final int minimumIndex) {
-            int index = LongArrays.binarySearch(ranges, position, minimumIndex, ranges.length);
-            if (index < 0) index = -index;
-            if (index == -(ranges.length)) {
-                return null;
-            }
-            final HMNode node = nodes[index];
-            if (node.startPosition + node.getSize() < position) return null;
-            assert(node != null);
-            return node;
-        }
-
-        public HMNode findNode(final int position) {
-            return findNode(position, 0);
-        }
-        */
     }
 
     private HM map = null;
@@ -191,8 +166,15 @@ public class SBS2 {
 
     }
 
-    private int toPositionValue(final long rawPosition) {
-        return (int)( rawPosition >> 32 );
+    private int toPositionValueOnBoundary(final long rawPosition) {
+        final int retVal = (int)( rawPosition >> 32 );
+        assert(retVal >= 0);
+        assert(retVal % 64 == 0); // check that we're on a boundary
+        return retVal;
+    }
+
+    private long toPositionRaw(final int positionValue) {
+        return positionValue << 32;
     }
 
     private boolean isDense(final long rawPosition) {
@@ -207,7 +189,7 @@ public class SBS2 {
         return ((int)rawPosition) & 0x7FFFFFFF;
     }
 
-    private long toSparseLength(final long rawPosition, final int length) {
+    protected long toSparseLength(final long rawPosition, final int length) {
         return (rawPosition & 0x80000000) & (length & 0x7FFFFFFF);
     }
 
@@ -215,7 +197,7 @@ public class SBS2 {
         return ((int)rawPosition) & 0x7FFFFFFF;
     }
 
-    private boolean lengthSignIndicatesSet(int length) {
+    protected boolean lengthSignIndicatesSet(int length) {
         return length >= 0;
     }
 
@@ -259,7 +241,7 @@ public class SBS2 {
             final long raw = ranges[x];
             if (isSparse(raw)) {
                 // sparse handling
-                final int _startPosition = toPositionValue(raw);
+                final int _startPosition = toPositionValueOnBoundary(raw);
                 final int _length = toSparsePositionLength(raw);
                 if (lengthSignIndicatesSet(_length)) {
                     consumer.consumeRange(_startPosition, _length);
@@ -269,7 +251,7 @@ public class SBS2 {
             } else {
                 // dense handling
                 assert(isDense(raw));
-                final int _startPosition = toPositionValue(raw);
+                final int _startPosition = toPositionValueOnBoundary(raw);
                 final int _denseDataIndex = toDenseDataIndex(raw);
                 final HMNode node = map.getNode(_denseDataIndex);
                 final int _nodeStartPosition = node.getStartPosition();
@@ -293,40 +275,65 @@ public class SBS2 {
         forEachSetPosition(consumer, 0);
     }
 
-    public void and(final @Nonnull SBS2 o) {
-        final long positionKey =
-    }
+    protected abstract boolean mustConvertOnSubRange(boolean rangeIsSet);
 
-    protected boolean mustConvertOnSubRange(final boolean rangeIsSet) {
-        return !rangeIsSet;
-    }
+    /**
+     *
+     * @param target The array on which to perform operations.
+     * @param bitsAreSet True means all bits are set.  False means all bits are clear.
+     * @param positionsCount Number of positions.
+     */
+    protected abstract void rawLongApply(
+            final long[] target,
+            final boolean bitsAreSet,
+            final int arrayStartIndex,
+            final int positionsCount);
 
-    protected long rawLongApply(final long l, final int startBitInclusive, final int endBitExclusive) {
-        return BitUtil.toSet(l, startBitInclusive, endBitExclusive);
-    }
+    protected abstract void rawLongApply(
+            final long[] targetArray0,
+            final long[] array1,
+            final @Nonnegative int i0,
+            final @Nonnegative int len,
+            final @Nonnegative int i1);
 
-    protected void rawLongApply(long[] longArray, int startBitInclusive, int endBitInclusive) {
-        Arrays.fill(longArray, startBitInclusive, endBitInclusive, 0xFFFFFFFFFFFFFFFFL);
-    }
+    protected abstract void rawLongApply(
+            final long[] target,
+            final int arrayStartIndex,
+            final int len);
 
-    protected void sparseApply(
+    protected abstract long rawLongApply(
+            final long l0,
+            final long l1);
+
+    private void sparseApply(
             final int index,
             final long raw,
+            final long oRaw,
             final int startPosition,
             final int endPosition,
             final int absLength,
             final int rawLength) {
 
-        if (lengthSignIndicatesSet(rawLength)) {
-            // the section being considered is not set
-            // flip the sign
-            ranges[index] = toSparseLength(raw, -rawLength);
-        }
+      //  if (lengthSignIndicatesSet(rawLength)) {
+      //      // the section being considered is not set
+      //      // flip the sign
+      //      ranges[index] = toSparseLength(raw, -rawLength);
+      //  }
+        throw new IllegalStateException("not yet implemented");
     }
 
-    public void denseApply(int rangeIndex, long raw, HMNode node, int startPosition, int endPosition) {
+    private void denseApply(
+            final @Nonnegative int rangeIndex,
+            final long raw,
+            final SBS2 o,
+            final @Nonnull HMNode node,
+            final @Nonnegative int startPosition,
+            final @Nonnegative int endPosition) {
 
-        //final int z = Math.min(endPositionExclusive / 64 + 1, nodeSize);
+        assert(rangeIndex >= 0);
+        assert(node != null);
+        assert(startPosition >= 0);
+        assert(endPosition >= 0);
 
         final int nodeStartPosition = node.getStartPosition();
         final int offsetInBitPosition = startPosition - nodeStartPosition;
@@ -335,27 +342,22 @@ public class SBS2 {
         final long[] nodeData = node.getData();
 
         int insideLongStartInclusive =
-            Math.max(0, 64 - offsetInBitPosition % 64);
-
-        //int insideLongEndExclusive =
-        //    Math.min(64, endPosition % 64); // assumes always use 64 bit boundaries
-
-
-        //        Math.min(
-        //                (endPositionExclusive - 1 - _nodeStartPosition) % 64,
-        //                nodeSize % 64);
+                Math.max(0, 64 - offsetInBitPosition % 64);
 
         int y = endPosition - startPosition + offsetInBitPosition;
         int i = offsetInBitPosition / 64;
+
         if (endPosition - startPosition + offsetInBitPosition <= 64) {
             // beginning and end are now
             nodeData[i] = rawLongApply(
+                    o,
                     nodeData[i],
                     insideLongStartInclusive,
                     64 - endPosition % 64);
         } else {
             // just beginning
             nodeData[i] = rawLongApply(
+                    o,
                     nodeData[i],
                     insideLongStartInclusive,
                     64);
@@ -366,11 +368,12 @@ public class SBS2 {
             int zMinus1 = z - 1;
             if (i < zMinus1) {
                 // continue to fill
-                rawLongApply(nodeData, i, zMinus1);
+                rawLongApply(o, nodeData, i, zMinus1, startPosition + i * 64, startPosition + zMinus1 * 64);
             }
 
             // handle the end
             nodeData[z] = rawLongApply(
+                    o,
                     nodeData[z],
                     0,
                     64 - endPosition % 64);
@@ -378,7 +381,102 @@ public class SBS2 {
 
     }
 
-    public void set(final int startPositionInclusive, final int endPositionExclusive) {
+    /**
+     * To be called by another object, and any changes will take place
+     * only on the passed in parameter nodeData.
+     *
+     * Will keep processing until either reaching endPosition or encountering
+     * a condition which cannot be processed further.  Always returns the number
+     * of positions processed.
+     *
+     * @param target The node data which to be modified.
+     * @param oArrayIndexBegin The array index inclusive to begin operating from.
+     * @param oArrayIndexEnd The array index exclusive at whih to stop.
+     * @param startPosition Indicates the start position inclusive corresponding to the arrayIndexBegin.
+     * @param endPosition Indicates the end position exclusive corresponding to the arrayIndexEnd.
+     * @return The number of positions processed.  May be zero.
+     */
+    private int applyOn(
+            final long[] target,
+            final int oArrayIndexBegin,
+            final int oArrayIndexEnd,
+            final int startPosition,
+            final int endPosition) {
+
+        assert(target != null);
+        assert(oArrayIndexBegin >= 0);
+        assert(oArrayIndexEnd >= 0);
+        assert(oArrayIndexEnd > oArrayIndexBegin);
+        assert(startPosition >= 0);
+        assert(startPosition % 64 == 0);
+        assert(endPosition >= 0);
+        assert(endPosition % 64 == 0);
+
+        final int x = Arrays.binarySearch(ranges, toPositionRaw(startPosition));
+        int rangeIndex = x;
+        if (x < 0) rangeIndex = -x - 1;
+        final long raw = ranges[rangeIndex];
+
+        final int len;
+
+        if (isSparse(raw)) {
+            final int localStartPosition = toPositionValueOnBoundary(raw);
+            //final int positionOffset = localStartPosition - startPosition;          assert(positionOffset >= 0); assert(positionOffset % 64 == 0);
+            final int rawLen = toSparsePositionLength(raw);
+            final int absRawLen = Math.abs(rawLen);
+            final int localEndPosition = localStartPosition + absRawLen;            assert(localEndPosition >= 0); assert( localEndPosition % 64 == 0);
+            final int innerEndPosition = Math.min(localEndPosition, endPosition);   assert(innerEndPosition >= 0); assert( innerEndPosition % 64 == 0);
+            len = Math.min(absRawLen, innerEndPosition - startPosition) / 64;       assert(len >= 0); assert(len % 64 == 0);
+            rawLongApply(target, lengthSignIndicatesSet(rawLen), oArrayIndexBegin, len);
+        } else {
+            assert(isDense(raw));
+            final int nodeIndex = toDenseDataIndex(raw);                            assert(nodeIndex >= 0);
+            final HMNode node = map.getNode(nodeIndex);                             assert(node != null);
+            final int localStartPosition = node.getStartPosition();                 assert(localStartPosition % 64 == 0);
+            final int localEndPosition = node.getEndPosition();                     assert(localEndPosition % 64 == 0);
+            final long[] nodeData = node.getData();                                 assert(nodeData != null);
+            final int positionOffset = localStartPosition - startPosition;          assert(positionOffset >= 0); assert(positionOffset % 64 == 0);
+            final int arrayIndexBegin = positionOffset / 64 + oArrayIndexBegin;
+            len = Math.min(
+                    oArrayIndexEnd - oArrayIndexBegin,
+                    node.getSize() - arrayIndexBegin);                              assert(len >= 0); assert(len % 64 == 0);
+            rawLongApply(target, nodeData, oArrayIndexBegin, len, arrayIndexBegin);
+        }
+
+        assert(Math.multiplyExact(len,64) >= 0);
+        return len * 64;
+    }
+
+    /**
+     *
+     * @param o
+     * @param nodeData
+     * @param arrayIndexBegin
+     * @param arrayIndexEnd
+     * @param startPosition
+     * @param endPosition
+     * @return positions processed
+     */
+    protected int rawLongApply(
+            SBS2 o,
+            long[] nodeData,
+            int arrayIndexBegin,
+            int arrayIndexEnd,
+            int startPosition,
+            int endPosition) {
+
+        if (o == null) {
+            rawLongApply(nodeData, arrayIndexBegin, arrayIndexEnd);
+            final int retVal = ( arrayIndexEnd - arrayIndexBegin ) * 64;
+            assert(retVal >= 0);
+            assert(retVal % 64 == 0);
+            return retVal;
+        }
+
+        return o.applyOn(nodeData, arrayIndexBegin, arrayIndexEnd, startPosition, endPosition);
+    }
+
+    protected void process(final int startPositionInclusive, final int endPositionExclusive, SBS2 o) {
         final long positionKey = toLongPositionKey(startPositionInclusive);
         if (positionKey > ranges[ranges.length - 1]) {
             // TODO: expand
@@ -391,11 +489,10 @@ public class SBS2 {
         int x = LongArrays.binarySearch(ranges, positionKey);
         if (x < 0) x = -x + 1;
 
-        loop1:
-        while (b < endPositionExclusive && x < ranges.length) {
+        loop1: while (b < endPositionExclusive && x < ranges.length) {
 
             long raw = ranges[x];
-            final int inLocalRangeStartPosition = toPositionValue(raw);
+            final int inLocalRangeStartPosition = toPositionValueOnBoundary(raw);
 
             if (isSparse(raw)) {
                 // sparse handling
@@ -413,47 +510,21 @@ public class SBS2 {
                     assert (b <= inLocalRangeStartPosition);
                     assert (b >= inLocalRangeStartPosition + _absLength);
                     // conversion not required
-                    sparseApply(x, raw, inLocalRangeStartPosition, inLocalRangeStartPosition + _absLength, _absLength, _length);
+                    final long oRaw = o.getByPosition(inLocalRangeStartPosition);
+                    sparseApply(x, raw, oRaw, inLocalRangeStartPosition, inLocalRangeStartPosition + _absLength, _absLength, _length);
                     b += _absLength;
                 }
-
-                /*
-                if (lengthSignIndicatesSet(_length)) {
-                    if (inLocalRangeStartPosition + _absLength >= endPositionExclusive) {
-                        // everything's already set! cool!
-                        return;
-                    } else {
-                        b += _absLength - inLocalRangeStartPosition;
-                    }
-                } else {
-                    // the section being considered is not set
-                    final int y = Math.min(_absLength, Math.max(0, endPositionExclusive - 1 - _absLength));
-
-                    // flip the sign
-                    ranges[x] = toSparseLength(raw, -y);
-
-                    b += y - inLocalRangeStartPosition;
-
-                    ranges[x] = combine(ranges[x], b);
-                }
-                    */
             } else {
                 // dense handling
                 assert (isDense(raw));
                 final int _denseDataIndex = toDenseDataIndex(raw);
                 final HMNode node = map.getNode(_denseDataIndex);
-                final int _nodeStartPosition = node.getStartPosition();
-                //final long[] nodeData = node.getData();
-                //final int nodeSize = node.getSize();
-
-                //assert(nodeSize <= nodeData.length);
-
-                //final int offsetInBitPosition = Math.subtractExact( b, _nodeStartPosition );
                 final int localStartPositionInclusive = b;
                 final int localEndPositionExclusive =
                         Math.min(endPositionExclusive, node.getEndPosition());
 
-                denseApply(x, raw, node, localStartPositionInclusive, localEndPositionExclusive);
+                final long oRaw = o.getByPosition(inLocalRangeStartPosition);
+                denseApply(x, raw, oRaw, node, localStartPositionInclusive, localEndPositionExclusive);
 
                 b = localEndPositionExclusive;
             }
@@ -462,12 +533,11 @@ public class SBS2 {
     }
 
     private void createDenseRange(final int rangeIndex, final int startPosition, final int endPosition, final boolean rangeIsSet) {
-        final HMNode node = new HMNode(startPosition, endPosition);
+        final HMNode node = new HMNode(startPosition, endPosition, rangeIsSet);
         final int nodesIndex = map.add(node);
         final long range = toDenseRangeRaw(startPosition, nodesIndex);
         ranges[rangeIndex] = range;
     }
-
 
     public void clear(final int startPositionInclusive, final int endPositionExclusive) {
 
