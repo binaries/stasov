@@ -38,11 +38,13 @@ public class SBS3 {
     private long[][] dense;
     private int nextDenseFree;
 
+    private int splitThreshold;
+
     private static long ALL_CLEAR = 0L;
     private static long ALL_SET = 0xFFFFFFFFFFFFFFFFL;
 
     private static final int MAX_BLOCK = 0x0FFFFFFF;
-    private static final long MAX_POSITION = 64L * (long)MAX_BLOCK;
+    private static final long MAX_POSITION = 64L * ((long)MAX_BLOCK - 1);
     private static final int MAX_DENSE_INDEX = MAX_BLOCK;
 
     private static final int MAX_BLOCKS_PER_DENSE = 32768;
@@ -68,12 +70,18 @@ public class SBS3 {
         return INITIAL_BLOCKS_PER_DENSE;
     }
 
-    public SBS3(final int capacity) {
+    public SBS3(final int capacity, final int splitThreshold) {
         if (capacity < 1) throw new IllegalArgumentException();
+        if (splitThreshold < 1) throw new IllegalArgumentException();
+        this.splitThreshold = splitThreshold;
         this.array = new long[capacity];
         this.array[0] = Conv.createSparse(0, maxBlock(), false);
         this.dataSize = 1;
         LongArrays.fill(array, 1, array.length, EMPTY);
+    }
+
+    public SBS3(final int capacity) {
+        this(capacity, 8);
     }
 
     public SBS3() {
@@ -83,26 +91,37 @@ public class SBS3 {
     protected static class Conv {
 
         static boolean isSparse(final long a) {
+            assert(a != EMPTY);
             return (a & 0x1) == 0x0;
         }
 
         static boolean isDense(final long a) {
+            assert(a != EMPTY);
             return (a & 0x1) == 0x1;
         }
 
         static int startBlock(final long a) {
+            assert(a != EMPTY);
             return (int) (a >> 32);
         }
 
+        static long startPosition(final long a) {
+            assert(a != EMPTY);
+            return PosConv.blockToStartPosition(startBlock(a));
+        }
+
         static int sparseLength(final long a) {
+            assert(a != EMPTY);
             return ((int) a) >> 2;
         }
 
         static int denseIndex(final long a) {
+            assert(a != EMPTY);
             return ((int) a) >> 2;
         }
 
         static boolean sparseValue(final long a) {
+            assert(a != EMPTY);
             return (0x2 & a) == 0x2;
         }
 
@@ -132,7 +151,6 @@ public class SBS3 {
             assert(Conv.isDense(retVal));
             assert(Conv.startBlock(retVal) == startBlock);
             assert(Conv.denseIndex(retVal) == denseIndex);
-            //assert(Conv.denseIndex(retVal) == )
             return retVal;
         }
 
@@ -141,12 +159,27 @@ public class SBS3 {
     protected static class PosConv {
 
         static int positionToBlock(final long position) {
-            return (int)(position / 64);
+            assert(position <= maxPosition());
+
+            final int retVal = (int)(position / 64L);
+
+            assert(retVal >= 0);
+            assert(retVal <= maxBlock());
+            return retVal;
+        }
+
+        static long blockToStartPosition(final int block) {
+            return (long)block * 64L;
         }
 
         static long positionToKey(final long position) {
+            assert(position <= maxPosition());
+
             final int block = positionToBlock(position);
-            return ((long)block) << 32;
+            final long retVal = ((long)block) << 32;
+
+            assert(retVal >= 0);
+            return retVal;
         }
 
         static boolean aboveMaxPosition(final long position) {
@@ -160,6 +193,16 @@ public class SBS3 {
 
     }
 
+    protected int splitThreshold() {
+        return splitThreshold;
+    }
+
+    /**
+     *
+     * @param len
+     * @param fillValue
+     * @return dense index
+     */
     private int createDense(final int len, final boolean fillValue) {
         if (len > maxBlocksPerDense()) throw new IllegalArgumentException("len=" + len);
         final long[] newArray = new long[len];
@@ -169,14 +212,22 @@ public class SBS3 {
             dense = new long[8][];
             nextDenseFree = 0;
             dense[0] = newArray;
+
+            final int denseIndex = 0;
+            assert(denseIndex >= 0);
+            assert(dense[denseIndex] != null);
             return 0;
         }
 
         if (nextDenseFree >= dense.length) {
-            for (int i = dense.length; i >= 0; i--) {
+            for (int i = dense.length - 1; i >= 0; i--) {
                 final long[] x = dense[i];
                 if (x != null) {
                     dense[i] = newArray;
+
+                    final int denseIndex = i;
+                    assert(denseIndex >= 0);
+                    assert(dense[denseIndex] != null);
                     return i;
                 }
             }
@@ -187,10 +238,13 @@ public class SBS3 {
         dense[x] = newArray;
         nextDenseFree++;
 
-        System.out.println("nextDenseFree: " + nextDenseFree);
+        //System.out.println("nextDenseFree: " + nextDenseFree);
         assert(nextDenseFree >= dense.length || dense[nextDenseFree] == null);
 
-        return x;
+        final int denseIndex = x;
+        assert(denseIndex >= 0);
+        assert(dense[denseIndex] != null);
+        return denseIndex;
     }
 
     private long convertToDense(final int index, final long sparse) {
@@ -199,14 +253,14 @@ public class SBS3 {
         final int startBlock = Conv.startBlock(sparse);
         assert(startBlock < maxBlock());
         final int len = Conv.sparseLength(sparse);
-        if (len > maxBlocksPerDense()) {
-            System.out.println('w');
-        }
+        //if (len > maxBlocksPerDense())
+        //    System.out.println('w');
         assert(len > 0);
         assert(len <= maxBlocksPerDense());
         final boolean sparseValue = Conv.sparseValue(sparse);
         final int denseIndex = createDense(len, sparseValue);
         assert(dense[denseIndex] != null);
+        assert(dense[denseIndex].length == len);
         final long retVal = Conv.createDense(startBlock, denseIndex);
         assert(Conv.isDense(retVal));
         assert(Conv.startBlock(retVal) == startBlock);
@@ -215,8 +269,28 @@ public class SBS3 {
     }
 
     protected int findIndex(final long a) {
-        final int index = LongArrays.binarySearch(array, a);
-        return index < 0 ? Math.max(0, -index - 1) : index;
+        assert(a != EMPTY);
+        int index = LongArrays.binarySearch(array, 0, dataSize, a);
+        //System.out.println("dataSize: " + dataSize);
+
+        index = index < 0 ? Math.max(0,-(index + 2)) : index;
+
+        // TODO: optimize
+        if (index + 1 < dataSize) {
+            if (Conv.startBlock(array[index + 1]) == Conv.startBlock(a)) {
+                index++;
+            }
+        }
+
+        //print(System.out);
+        if (index < 0) throw new IllegalStateException("index:" + index + " at a:" + Long.toHexString(a));
+        assert(index < dataSize);
+
+        //System.out.println("index: " + index);
+
+        return index;
+
+        //return index < 0 ? Math.max(0, -index - 1) : index;
     }
 
     protected void clearSparse(final int index) {
@@ -314,16 +388,19 @@ public class SBS3 {
     }
 
     private void ensureArrayCapacity(
-            final int newCapacity,
+            final int newMinimumCapacity,
             final float spareBlocksMultiplier,
             final int minSpareBlocks,
             final int maxSpareBlocks) {
-        assert(newCapacity >= 0);
-        if (newCapacity <= array.length) return;
+        assert(newMinimumCapacity >= 0);
+        if (newMinimumCapacity <= array.length) return;
         final int prevLen = array.length;
-        final int spareBlocks = Math.min(Math.max((int)(newCapacity * spareBlocksMultiplier), minSpareBlocks), maxSpareBlocks);
-        final int growth = newCapacity - array.length + spareBlocks;
-        LongArrays.grow(array, growth);
+        final int spareBlocks = Math.min(Math.max((int)(newMinimumCapacity * spareBlocksMultiplier), minSpareBlocks), maxSpareBlocks);
+        final int newLength = newMinimumCapacity + spareBlocks;
+        assert(newLength > array.length);
+        assert(newLength >= newMinimumCapacity);
+        array = LongArrays.grow(array, newLength);
+        assert(array.length >= newMinimumCapacity);
         LongArrays.fill(array, prevLen, array.length, EMPTY);
     }
 
@@ -336,7 +413,7 @@ public class SBS3 {
         if (newCapacity <= array.length) return;
         final int prevLen = array.length;
         final int growth = newCapacity - array.length;
-        LongArrays.grow(array, growth);
+        array = LongArrays.grow(array, growth);
         LongArrays.fill(array, prevLen, array.length, EMPTY);
     }
 
@@ -405,6 +482,7 @@ public class SBS3 {
         assert(len > 0);
         if (len <= numBlocksDistance) return;
         ensureArrayCapacity(newSize);
+        assert(array.length >= newSize);
         if (Conv.isSparse(a)) {
             final int sBlock0 = Conv.startBlock(a);
             final int sBlock1 = Math.addExact(sBlock0, numBlocksDistance);
@@ -525,12 +603,17 @@ public class SBS3 {
     protected boolean setDenseByPosition(final long a, final long position) {
         assert(validateInvariants());
 
+        assert(a != EMPTY);
         assert(Conv.isDense(a));
-        final int sBlock = Conv.startBlock(position);
+        final int sBlock = Conv.startBlock(a);
+        //System.out.println("das sblocken: " + sBlock + " hex: " + Integer.toHexString(sBlock));
         final int positionBlock = PosConv.positionToBlock(position);
+        //System.out.println("das positionblocken: " + positionBlock + " hex: " + Integer.toHexString(positionBlock));
+        assert(positionBlock >= sBlock);
         final int blockOffset = positionBlock - sBlock;
-        final int positionOffset = (int) position % 64;
+        final int positionOffset = (int)(position % 64);
         final int denseIndex = Conv.denseIndex(a);
+        //System.out.println("das denseindexen: " + denseIndex);
         final long x = 0x8000000000000000L >> positionOffset;
 
         assert(sBlock >= 0);
@@ -542,9 +625,10 @@ public class SBS3 {
         assert(x != 0);
 
         final long[] data = dense[denseIndex];
-        System.out.println("denseIndex: " + denseIndex);
+        //System.out.println("denseIndex: " + denseIndex);
         if (data == null)
             throw new IllegalStateException("denseIndex = " + denseIndex);
+        //System.out.println("data.length: " + data.length);
         final long d = data[blockOffset];
         data[blockOffset] |= x;
 
@@ -619,6 +703,17 @@ public class SBS3 {
         final long key = PosConv.positionToKey(position);
         final int initialIndex = findIndex(key);
         final long initialA = array[initialIndex];
+        //System.out.println("position: " + position + ", max=" + maxPosition());
+        //System.out.println("key:      " + Long.toHexString(key));
+        //System.out.println("initialA: " + Long.toHexString(initialA));
+        //System.out.println("initialIndex: " + Long.toHexString(initialIndex));
+        //if (initialIndex > 0) {
+        //    System.out.println("previous start block: " + Conv.startBlock(array[initialIndex - 1]));
+        //    System.out.println("previous start position: " + Conv.startPosition(array[initialIndex - 1]));
+        //    //System.out.println("previous end position  : " + Conv.startPosition(array[initialIndex - 1]));
+        //}
+        assert(initialIndex >= 0);
+        assert(initialIndex < dataSize);
         if (Conv.isSparse(initialA)) {
             final boolean av = Conv.sparseValue(initialA);
             if (av) {
@@ -628,13 +723,14 @@ public class SBS3 {
                 {
                     final int index = findIndex(key);
                     final long a = array[index];
+                    //assert(print(a, System.out));
 
                     final int sBlock = Conv.startBlock(a);
                     final int targetBlock = PosConv.positionToBlock(position);
 
                     final int distanceToTargetBlockFromStart = targetBlock - sBlock;
 
-                    if (distanceToTargetBlockFromStart > 8) {
+                    if (distanceToTargetBlockFromStart > splitThreshold()) {
                         split(index, distanceToTargetBlockFromStart - 1);
                     }
                 }
@@ -642,6 +738,7 @@ public class SBS3 {
                 {
                     final int index = findIndex(key);
                     final long a = array[index];
+                    //assert(print(a, System.out));
 
                     final int sBlock = Conv.startBlock(a);
                     final int targetBlock = PosConv.positionToBlock(position);
@@ -649,22 +746,25 @@ public class SBS3 {
 
                     final int distanceFromTargetBlockToEnd = sBlock + len - targetBlock;
 
-                    if (distanceFromTargetBlockToEnd > 8) {
-                        split(index, 8);
+                    if (distanceFromTargetBlockToEnd > splitThreshold()) {
+                        split(index, 1024);
                     }
                 }
 
                 {
                     final int index = findIndex(key);
                     final long a = array[index];
+                    //assert(print(a, System.out));
 
-                    System.out.println("begin");
-                    print(System.out);
-                    System.out.println("end");
+                    //System.out.println("begin");
+                    //print(System.out);
+                    //System.out.println("end");
 
                     final long denseA = convertToDense(index, a);
                     final boolean modified = setDenseByPosition(denseA, position);
                     array[index] = denseA;
+
+                    //assert(print(denseA, System.out));
 
                     assert(validateInvariants());
                     return modified;
@@ -672,6 +772,9 @@ public class SBS3 {
             }
         } else {
             assert(Conv.isDense(initialA));
+
+            //assert(print(initialA, System.out));
+            //System.out.println(dataSize);
 
             assert(validateInvariants());
             return setDenseByPosition(initialA, position);
@@ -712,35 +815,43 @@ public class SBS3 {
         }
     }
 
+    protected boolean print(final long a, final PrintStream out) {
+        if (Conv.isSparse(a)) {
+            final int sBlock = Conv.startBlock(a);
+            final int len = Conv.sparseLength(a);
+            final int zBlock = sBlock + len;
+            final boolean av = Conv.sparseValue(a);
+            out.print("s:");
+            out.print(av ? '1' : '0');
+            out.print(":[");
+            out.print(sBlock);
+            out.print("..");
+            out.print(zBlock-1);
+            out.println(']');
+        } else {
+            assert(Conv.isDense(a));
+            final int sBlock = Conv.startBlock(a);
+            final int denseIndex = Conv.denseIndex(a);
+            final long[] data = dense[denseIndex];
+            out.println("d:");
+            for (int j = 0; j < data.length; j++) {
+                final String hex = Long.toHexString(data[j]);
+                out.print(sBlock + j);
+                out.print(' ');
+                out.println(hex);
+            }
+        }
+        return true;
+    }
+
     public void print(final PrintStream out) {
         final NumberFormat nf = NumberFormat.getNumberInstance();
         nf.setMinimumIntegerDigits(12);
         for (int i = 0; i < dataSize; i++) {
             final long a = array[i];
             //System.out.println("a: " + Long.toHexString(a));
-            if (Conv.isSparse(a)) {
-                final int sBlock = Conv.startBlock(a);
-                final int len = Conv.sparseLength(a);
-                final int zBlock = sBlock + len;
-                final boolean av = Conv.sparseValue(a);
-                out.print(av ? '1' : '0');
-                out.print(":[");
-                out.print(sBlock);
-                out.print("..");
-                out.print(zBlock-1);
-                out.println(']');
-            } else {
-                assert(Conv.isDense(a));
-                final int sBlock = Conv.startBlock(a);
-                final int denseIndex = Conv.denseIndex(a);
-                final long[] data = dense[denseIndex];
-                for (int j = 0; j < data.length; j++) {
-                    final String hex = Long.toHexString(data[j]);
-                    out.print(sBlock + j);
-                    out.print(' ');
-                    out.println(hex);
-                }
-            }
+            out.println(i+":");
+            print(a, out);
         }
     }
 
