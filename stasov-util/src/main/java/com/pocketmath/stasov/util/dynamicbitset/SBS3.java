@@ -2,11 +2,15 @@ package com.pocketmath.stasov.util.dynamicbitset;
 
 import it.unimi.dsi.fastutil.ints.IntArrays;
 import it.unimi.dsi.fastutil.longs.LongArrays;
+import it.unimi.dsi.fastutil.longs.LongIterable;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.objects.ObjectArrays;
+import net.nicoulaj.compilecommand.annotations.Inline;
 
 import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Objects;
 
 /**
  * Format of sparse entry is a 64-bit long with bits as:
@@ -27,23 +31,23 @@ import java.util.Arrays;
  *
  * Created by etucker on 4/8/16.
  */
-public class SBS3 {
+public class SBS3 implements LongIterable {
 
-    private long[] array;
-    private int dataSize;
+    long[] array;
+    int dataSize;
 
-    private static long EMPTY = Long.MAX_VALUE;
+    static final long EMPTY = Long.MAX_VALUE;
 
-    private long[][] dense;
-    private int denseSize;
+    long[][] dense;
+    int denseSize;
     private int[] denseFree;
     private int denseFreeSize;
 
     private int splitThreshold;
     private int splitBleed;
 
-    private static long ALL_CLEAR = 0L;
-    private static long ALL_SET = 0xFFFFFFFFFFFFFFFFL;
+    static final long ALL_CLEAR = 0L;
+    static final long ALL_SET = 0xFFFFFFFFFFFFFFFFL;
 
     private static final int MIN_BLOCK = 0;
     private static final int MAX_BLOCK = 0x0FFFFFFF;
@@ -116,38 +120,62 @@ public class SBS3 {
         this(8);
     }
 
+    long getComponent(final int index) {
+        return array[index];
+    }
+
+    long[] getDenseData(final int denseIndex) {
+        return dense[denseIndex];
+    }
+
     protected static class Conv {
 
+        @Inline
         static boolean isSparse(final long a) {
             assert(a != EMPTY);
             return (a & 0x1L) == 0x0L;
         }
 
+        @Inline
         static boolean isDense(final long a) {
             assert(a != EMPTY);
             return (a & 0x1L) == 0x1L;
         }
 
+        @Inline
         static int startBlock(final long a) {
             assert(a != EMPTY);
-            return (int) (a >> 32);
+            final int retVal = (int) (a >> 32);
+            assert retVal >= 0;
+            return retVal;
         }
 
+        @Inline
         static long startPosition(final long a) {
             assert(a != EMPTY);
-            return PosConv.blockToStartPosition(startBlock(a));
+            final long retVal = PosConv.blockToStartPosition(startBlock(a));
+            assert retVal >= minPosition();
+            assert retVal <= maxPosition();
+            return retVal;
         }
 
+        @Inline
         static int sparseLength(final long a) {
             assert(a != EMPTY);
-            return ((int) a) >> 2;
+            final int retVal = ((int) a) >> 2;
+            assert retVal >= 0;
+            return retVal;
         }
 
+        @Inline
         static int denseIndex(final long a) {
             assert(a != EMPTY);
-            return ((int) a) >> 2;
+            final int retVal = ((int) a) >> 2;
+            assert retVal >= 0;
+            return retVal;
         }
 
+        @Inline
         static boolean sparseValue(final long a) {
             assert(a != EMPTY);
             return (0x2L & a) == 0x2L;
@@ -181,11 +209,11 @@ public class SBS3 {
             assert(Conv.denseIndex(retVal) == denseIndex);
             return retVal;
         }
-
     }
 
     protected static class PosConv {
 
+        @Inline
         static int positionToBlock(final long position) {
             assert(position <= maxPosition());
 
@@ -206,10 +234,17 @@ public class SBS3 {
             return retVal;
         }
 
+        @Inline
         static long blockToStartPosition(final int block) {
             return ((long)block) * 64L;
         }
 
+        @Inline
+        static long blockToEndPosition(final int block) {
+            return blockToStartPosition(block) + 63L;
+        }
+
+        @Inline
         static long positionToKey(final long position) {
             assert(position <= maxPosition());
 
@@ -221,10 +256,12 @@ public class SBS3 {
             return retVal;
         }
 
+        @Inline
         static boolean aboveMaxPosition(final long position) {
             return position > maxPosition();
         }
 
+        @Inline
         static void requireInBoundsPosition(final long position) {
             if (aboveMaxPosition(position) || position < 0)
                 throw new IllegalArgumentException();
@@ -234,12 +271,14 @@ public class SBS3 {
 
     private static class BitUtil {
 
+        @Inline
         public static long flip(final long a) {
             return a ^ 0xFFFFFFFFFFFFFFFFL;
         }
 
     }
 
+    @Inline
     protected int fastDenseLength(final long a) {
         assert(a != EMPTY);
         final int denseIndex = Conv.denseIndex(a);
@@ -247,6 +286,7 @@ public class SBS3 {
         return data.length;
     }
 
+    @Inline
     protected int length(final long a) {
         assert(a != EMPTY);
         if (Conv.isSparse(a)) {
@@ -257,16 +297,43 @@ public class SBS3 {
         }
     }
 
+    @Inline
+    protected int startBlock(final long a) {
+        return Conv.startBlock(a);
+    }
+
+    @Inline
     protected int endBlock(final long a) {
         return Conv.startBlock(a) + length(a);
     }
 
+    @Inline
+    protected long startPosition(final long a) {
+        return Conv.startPosition(a);
+    }
+
+    @Inline
     protected long endPosition(final long a) {
         return Conv.startPosition(a) + (long)length(a) * 64L - 1L;
     }
 
     protected int splitThreshold() {
         return splitThreshold;
+    }
+
+    long[] denseArray(final long a) {
+        assert Conv.isDense(a);
+        final int denseIndex = Conv.denseIndex(a);
+        final long[] denseArray = dense[denseIndex];
+        assert denseArray != null;
+        return denseArray;
+    }
+
+    long createDenseNoPrefill(final int startBlock, final int length) {
+        if (length > maxBlocksPerDense()) throw new IllegalArgumentException();
+        final long[] newArray = new long[length];
+        final int denseIndex = assignDenseIndex(newArray);
+        return Conv.createDense(startBlock, denseIndex);
     }
 
     /**
@@ -341,8 +408,9 @@ public class SBS3 {
         assert(validateInvariants());
     }
 
-    protected int findIndex(final long a) {
-        assert(a != EMPTY);
+    /*
+    protected int findIndex_(final long a) {
+        assert a != EMPTY;
         int index = LongArrays.binarySearch(array, 0, dataSize, a);
         //System.out.println("dataSize: " + dataSize);
 
@@ -361,6 +429,9 @@ public class SBS3 {
         return index;
     }
 
+    */
+
+    /*
     protected void clearSparse(final int index) {
         final long a = array[index];
         assert(Conv.isSparse(a));
@@ -454,7 +525,8 @@ public class SBS3 {
         if (allSet) return 1;
         return -1;
     }
-
+*/
+    /*
     private void ensureArrayCapacity(
             final int newMinimumCapacity,
             final float spareBlocksMultiplier,
@@ -486,6 +558,7 @@ public class SBS3 {
         array = LongArrays.grow(array, growth);
         LongArrays.fill(array, prevLen, array.length, EMPTY);
     }
+    */
 
     public void readOptimize() {
         assert(validateInvariants());
@@ -522,6 +595,7 @@ public class SBS3 {
         IntArrays.trim(denseFree, Math.max(128, Math.multiplyExact(denseFreeSize,2)));
     }
 
+    /*
     private void sortArray() {
         assert(dataSize <= array.length);
 
@@ -536,7 +610,9 @@ public class SBS3 {
 
         assert(validateInvariants());
     }
+    */
 
+    /*
     private void splitMultiple(final int index, final int zBlock, final int numBlocks) {
         assert(findIndex(zBlock) > index);
         final int newSize = dataSize + numBlocks - 1;
@@ -568,6 +644,7 @@ public class SBS3 {
             throw new IllegalStateException("not yet implemented");
         }
     }
+*/
 
     private int split(final int index, final int numBlocksDistance) {
         assert(validateInvariants());
@@ -590,99 +667,6 @@ public class SBS3 {
         sortArray();
         assert(validateInvariants());
         return numBlocksDistance;
-    }
-
-    protected void andDense(final int x0, final SBS3 o1, final int x1, final int sBlock, final int zBlock) {
-        final long a = array[x0], b = o1.array[x1];
-        final int di0 = Conv.denseIndex(a), di1 = Conv.denseIndex(b);
-        final long[] data0 = dense[di0], data1 = o1.dense[di1];
-        final int sBlock0 = Conv.startBlock(a), sBlock1 = Conv.startBlock(b);
-        final int offset0 = sBlock0 - sBlock, offset1 = sBlock1 - sBlock;
-        final int n = zBlock - Math.min(sBlock0 + data0.length, sBlock1 + data1.length);
-        for (int i = 0; i < n; i++) {
-            data0[i+offset0] &= data1[i+offset1];
-        }
-    }
-
-    protected void clearDense(final int x0, final int startBlock, final int zBlock) {
-        assert(x0 >= 0);
-        assert(startBlock >= 0);
-        assert(zBlock >= 0);
-        assert(zBlock >= startBlock);
-        final long a = array[x0];
-        assert(Conv.isDense(a));
-        final int denseIndex = Conv.denseIndex(a);
-        final long[] data = dense[denseIndex];
-        final int sBlock = Conv.startBlock(a);
-        final int offset = Math.subtractExact(startBlock, sBlock);
-        final int n = Math.subtractExact(zBlock, (sBlock - data.length));
-        Arrays.fill(data, offset, n, ALL_CLEAR);
-    }
-
-    /**
-     *
-     * @param startBlock block to start computing from
-     * @param o1
-     * @return one past the last block computed
-     */
-    protected int and(final int startBlock, final SBS3 o1) {
-        final int x0 = findIndex(startBlock), x1 = o1.findIndex(startBlock);
-        final long a = array[x0], b = o1.array[x1];
-        final int zBlock0 = x0 < dataSize - 1 ? Conv.startBlock(array[x0 + 1]) : Integer.MAX_VALUE;
-        final int zBlock1 = x0 < o1.dataSize - 1 ? Conv.startBlock(o1.array[x1 + 1]) : Integer.MAX_VALUE;
-        final int zBlock = Math.min(zBlock0, zBlock1);  // will be one past the first end block to be reached
-        final int zDiff = zBlock0 - zBlock1;
-        final boolean at = Conv.isSparse(a), bt = Conv.isSparse(b);
-
-        if (at && bt) { // both sparse
-            if (zBlock0 <= zBlock1) {
-                if (!Conv.sparseValue(b)) // b is 0
-                    clearSparse(x0);
-            } else {
-                if (zDiff <= 8) {
-                    convertToDense(x0);
-                } else {
-                    splitMultiple(x0, zBlock1, zDiff > 2048 ? zDiff > 8192 ? 8 : 4 : 2);
-                }
-                assert(validateInvariants());
-                return startBlock;
-            }
-        } else if (!at && !bt) {
-            andDense(x0, o1, x1, startBlock, zBlock);
-        } else if (at && !bt) {
-            if (zBlock0 <= zBlock1) {
-                final int bv = o1.denseIsAll(x1, zBlock);
-                switch (bv) {
-                    case 0: {
-                        if (!Conv.sparseValue(b))
-                            clearSparse(x0);
-                        break;
-                    }
-                    default: {
-                        convertToDense(x0);
-                        assert(validateInvariants());
-                        return startBlock;
-                    }
-                }
-            } else {
-                if (zDiff <= 8) {
-                    convertToDense(x0);
-                } else {
-                    splitMultiple(x0, zBlock1, zDiff > 2048 ? zDiff > 8192 ? 8 : 4 : 2);
-                }
-                assert(validateInvariants());
-                return startBlock;
-            }
-        } else if (!at && bt) {
-            if (!Conv.sparseValue(b)) {
-                clearDense(x0, startBlock, zBlock);
-            }
-        } else {
-            throw new IllegalStateException();
-        }
-
-        assert(validateInvariants());
-        return zBlock;
     }
 
     protected boolean setDenseByPosition(final long a, final long position) {
@@ -801,6 +785,8 @@ public class SBS3 {
         int pBlock = 0;
         for (int i = 0; i < dataSize; i++) {
             final long a = array[i];
+            if (a == EMPTY)
+                continue;
             final int sBlock = Conv.startBlock(a);
             if (sBlock != pBlock) {
                 print(System.err);
@@ -815,6 +801,8 @@ public class SBS3 {
         long past = Long.MIN_VALUE;
         for (int i = 0; i < dataSize; i++) {
             final long a = array[i];
+            if (a == EMPTY)
+                continue;
             if (a <= past) {
                 print(System.err);
                 throw new IllegalStateException("broken at index: " + i);
@@ -830,6 +818,8 @@ public class SBS3 {
 
         for (int i = 0; i < dataSize; i++) {
             final long a = array[i];
+            if (a == EMPTY)
+                continue;
             final int nextStartBlock = Conv.startBlock(a);
             if (nextStartBlock < startBlock) {
                 print(System.err);
@@ -878,8 +868,8 @@ public class SBS3 {
         PosConv.requireInBoundsPosition(position);
         assert(validateInvariants());
 
-        final long key = PosConv.positionToKey(position);
-        final int initialIndex = findIndex(key);
+        final int block = PosConv.positionToBlock(position);
+        final int initialIndex = findComponentIndex(key);
         final long initialA = array[initialIndex];
         //System.out.println("position: " + position + ", max=" + maxPosition());
         //System.out.println("key:      " + Long.toHexString(key));
@@ -899,7 +889,7 @@ public class SBS3 {
             } else {
 
                 {
-                    final int index = findIndex(key);
+                    final int index = findComponentIndex(block);
                     final long a = array[index];
                     //assert(print(a, System.out));
 
@@ -916,7 +906,7 @@ public class SBS3 {
                 }
 
                 {
-                    final int index = findIndex(key);
+                    final int index = findComponentIndex(block);
                     final long a = array[index];
                     //assert(print(a, System.out));
 
@@ -934,7 +924,7 @@ public class SBS3 {
                 }
 
                 {
-                    final int index = findIndex(key);
+                    final int index = findComponentIndex(block);
                     final long a = array[index];
                     //assert(print(a, System.out));
 
@@ -974,8 +964,8 @@ public class SBS3 {
         PosConv.requireInBoundsPosition(position);
         assert(validateInvariants());
 
-        final long key = PosConv.positionToKey(position);
-        final int initialIndex = findIndex(key);
+        final int block = PosConv.positionToBlock(position);
+        final int initialIndex = findComponentIndex(block);
         final long initialA = array[initialIndex];
         assert(initialIndex >= 0);
         assert(initialIndex < dataSize);
@@ -986,7 +976,7 @@ public class SBS3 {
             } else {
 
                 {
-                    final int index = findIndex(key);
+                    final int index = findComponentIndex(block);
                     final long a = array[index];
 
                     final int sBlock = Conv.startBlock(a);
@@ -1002,7 +992,7 @@ public class SBS3 {
                 }
 
                 {
-                    final int index = findIndex(key);
+                    final int index = findComponentIndex(block);
                     final long a = array[index];
 
                     final int sBlock = Conv.startBlock(a);
@@ -1019,7 +1009,7 @@ public class SBS3 {
                 }
 
                 {
-                    final int index = findIndex(key);
+                    final int index = findComponentIndex(block);
                     final long a = array[index];
 
                     assert(validateInvariants());
@@ -1043,8 +1033,8 @@ public class SBS3 {
     public boolean get(final long position) {
         PosConv.requireInBoundsPosition(position);
 
-        final long key = PosConv.positionToKey(position);
-        final int index = findIndex(key);
+        final long block = PosConv.positionToBlock(position);
+        final int index = findComponentIndex(block);
         final long a = array[index];
 
         assert(index >= 0);
@@ -1084,103 +1074,548 @@ public class SBS3 {
         }
     }
 
-    private class SetBitsItr implements LongIterator {
+    public LongIterator positionsIterator() {
+        return new SetBitsItr(this);
+    }
 
-        boolean inPositiveSparse = false;
-        boolean inDense = false;
+    @Override
+    public LongIterator iterator() {
+        return positionsIterator();
+    }
 
-        long sparsePosition = 0;
-        long sparsePositionLength = 0;
+    private Cursor perInstanceBlockTraveller = null;
 
-        long[] denseData = null;
-        int denseDataIndex = 0;
-        long denseDataItem = 0;
+    protected Cursor perInstanceBlockTraveller() {
+        if (perInstanceBlockTraveller == null) {
+            perInstanceBlockTraveller = newblockTraveller();
+        } else {
+            perInstanceBlockTraveller.reset();
+        }
+        return perInstanceBlockTraveller;
+    }
 
-        int denseDataPositionOffset = 0;
+    protected Cursor newblockTraveller() {
+        return new Cursor(this);
+    }
 
-        long startPosition = 0;
-        int arrayIndex = 0;
+    private enum Op {
+        AND, OR, XOR
+    }
 
-        long nextValue = nextNextLong();
+    /**
+     * A wrapper to permit assert mode specific functionality.
+     */
+    private abstract class AssertRunnable implements Runnable {
+        public boolean arun() {
+            run();
+            return true;
+        }
+    }
 
-        private long nextNextLong() {
+    /**
+     * No cursors are advanced by this method.
+     *
+     * @param s0
+     * @param s1
+     * @param startBlock
+     * @param endBlock
+     */
+    private void mergeAnd(final Cursor s0, final Cursor s1, final int startBlock, final int endBlock) {
+        assert(startBlock <= endBlock);
 
-            loop0: while (arrayIndex < dataSize) {
-                if (inPositiveSparse) {
-                    if (sparsePosition < sparsePositionLength)
-                        return sparsePosition++;
-                } else if (inDense) {
-                    if (denseDataIndex < denseData.length) {
-                        if (denseDataPositionOffset < 64) {
-                            final long mask = 1L << denseDataPositionOffset++;
-                            final boolean value = (mask & denseDataItem) == 0;
-                            if (value)
-                                return startPosition + denseDataIndex * 64 + denseDataPositionOffset;
-                        } else {
-                            denseDataItem = denseData[++denseDataIndex];
-                            denseDataPositionOffset = 0;
-                        }
-                    }
-                } else {
-                    loop1:
-                    while (true) {
-                        arrayIndex++;
-                        if (arrayIndex >= dataSize)
-                            return -1L;
+        BitSet _obs0 = null, _obs1 = null;
+        assert((_obs0 = new BitSet()) != null);
+        assert((_obs1 = new BitSet()) != null);
+        final BitSet obs0 = _obs0, obs1 = _obs1;
+        assert(new AssertRunnable() {
+            public void run() {
+                final long startPos = PosConv.blockToStartPosition(startBlock);
+                final long endPos = PosConv.blockToEndPosition(endBlock);
+                s0.getCore().set(obs0, startPos, endPos);
+                s1.getCore().set(obs1, startPos, endPos);
+            }
+        }.arun());
 
-                        final long a = array[arrayIndex];
-                        startPosition = Conv.startPosition(a);
+        int ai0 = s0.getChangeComponentIndex(), ai1 = s1.getChangeComponentIndex();
 
-                        if (Conv.isSparse(a)) {
-                            if (!Conv.sparseValue(a)) {
-                                continue loop1;
-                            } else {
-                                sparsePosition = 0;
-                                sparsePositionLength = Math.multiplyExact(64, Conv.sparseLength(a));
-                                break loop1;
-                            }
-                        } else {
-                            assert(Conv.isDense(a));
-                            final int denseIndex = Conv.denseIndex(a);
-                            denseDataIndex = 0;
-                            denseData = dense[denseIndex];
-                            denseDataItem = denseData[denseDataIndex];
-                            denseDataPositionOffset = 0;
-                            break loop1;
-                        }
+        loop1: while (true) {
+
+            assert(ai0 >= 0);
+            assert(ai1 >= 0);
+
+            final long a0 = s0.getBlock(ai0);
+            final int startBlock0 = Conv.startBlock(a0);
+            final int endBlock0 = endBlock(a0); // TODO: optimize
+
+            final long a1 = s1.getBlock(ai1);
+            final int startBlock1 = Conv.startBlock(a1);
+            final int endBlock1 = endBlock(a1); // TODO: optimize
+
+            assert(startBlock0 >= startBlock);
+            assert(startBlock0 <= endBlock);
+            assert(startBlock1 >= startBlock);
+            assert(startBlock1 <= endBlock);
+
+            assert(startBlock0 <= endBlock1 || startBlock1 <= endBlock0);
+
+            final int startOffset0 = startBlock - startBlock0;
+            final int endOffset0 = endBlock - endBlock0; // TODO: optimize
+            final int len0 = endOffset0 - startOffset0 + 1;
+
+            final int startOffset1 = startBlock - startBlock1;
+            final int endOffset1 = endBlock - endBlock1; // TODO: optimize
+            final int len1 = endOffset1 - startOffset1 + 1;
+
+            final int minLen = Math.min(len0, len1);
+
+            if (Conv.isDense(a0) && Conv.isDense(a1)) {
+                final long[] denseData0 = dense[Conv.denseIndex(a0)];
+                final long[] denseData1 = dense[Conv.denseIndex(a1)];
+
+                for (int i = 0; i < minLen; i++) {
+                    final int i0 = i + startOffset0;
+                    final int i1 = i + startOffset1;
+                    final long d0 = denseData0[i0];
+                    final long d1 = denseData1[i1];
+                    final long r = d0 & d1;
+                    denseData0[i0] = r;
+                }
+
+            } else if (Conv.isDense(a0) && Conv.isSparse(a1)) {
+                if (!Conv.sparseValue(a1)) {
+                    final long[] denseData0 = dense[Conv.denseIndex(a0)];
+                    Arrays.fill(denseData0, startOffset0, startOffset0 + minLen, EMPTY);
+                }
+
+            } else if (Conv.isSparse(a0) && Conv.isSparse(a1)) {
+                if (Conv.sparseValue(a0) && !Conv.sparseValue(a1)) {
+                    if (len0 > minLen) {
+                        split(ai0, minLen);
+                    } else assert minLen == len0;
+                    assert(minLen <= len0);
+                    final long newA0 = Conv.createSparse(Conv.startBlock(a0), minLen, false);
+                    array[ai0] = newA0;
+                }
+
+            } else if (Conv.isSparse(a0) && Conv.isDense(a1)) {
+                if (Conv.sparseValue(a0)) {
+                    if (len0 > minLen) {
+                        split(ai0, minLen);
+                    } else assert minLen == len0;
+                    assert(minLen <= len0);
+                    convertToDense(ai0);
+                    final long newA0 = array[ai0];
+                    final long[] denseData0 = dense[Conv.denseIndex(newA0)];
+                    final long[] denseData1 = dense[Conv.denseIndex(a1)];
+
+                    for (int i = 0; i < minLen; i++) {
+                        final int i0 = i + startOffset0;
+                        final int i1 = i + startOffset1;
+                        final long d0 = denseData0[i0];
+                        final long d1 = denseData1[i1];
+                        final long r = d0 & d1;
+                        denseData0[i0] = r;
                     }
                 }
             }
-            throw new IllegalStateException();
+
+            if (startBlock0 + minLen >= endBlock) {
+                assert startBlock0 + minLen == endBlock;
+                break loop1;
+            } else {
+                final long b0 = s0.getBlock(ai0);
+                final long b1 = s1.getBlock(ai1);
+
+                if (endBlock0 == endBlock1) {
+                    ai0++;
+                    ai1++;
+                } else if (endBlock0 < endBlock1) {
+                    ai0++;
+                } else {
+                    ai1++;
+                }
+
+                if (ai0 > s0.maxIndex() || ai1 > s1.maxIndex()) {
+                    break loop1;
+                }
+            }
         }
 
-        @Override
-        public long nextLong() {
-            final long retVal = nextValue;
-            if (nextValue >= 0)
-                nextValue = nextNextLong();
-            return retVal;
-        }
+        assert(new AssertRunnable() {
+            public void run() {
 
-        @Override
-        public int skip(int n) {
+                obs0.and(obs1);
+
+                final long startPos = PosConv.blockToStartPosition(startBlock);
+                final long endPos = PosConv.blockToEndPosition(endBlock);
+                assert s0.getCore().equals(obs0, startPos, endPos);
+                assert s1.getCore().equals(obs1, startPos, endPos);
+            }
+        }.arun());
+    }
+
+    public boolean equals(final BitSet obs, final int startPosition, final int endPosition) {
+        Objects.requireNonNull(obs);
+        if (startPosition < 0)
+            throw new IllegalArgumentException();
+        if (endPosition < 0)
+            throw new IllegalArgumentException();
+        if (startPosition > MAX_POSITION)
             throw new UnsupportedOperationException();
-        }
+        if (endPosition > MAX_POSITION)
+            throw new UnsupportedOperationException();
 
-        @Override
-        public boolean hasNext() {
-            return nextValue >= 0;
+        final LongIterator posItr = positionsIterator();
+        while (posItr.hasNext()) {
+            final long p = posItr.nextLong();
+            if (p > Integer.MAX_VALUE)
+                throw new IllegalStateException();
+            if (!(p >= startPosition && p <= endPosition))
+                continue;
+            if (!obs.get((int)p))
+                return false;
         }
+        for (int i = startPosition; i >= 0 && i <= endPosition; i = obs.nextSetBit(i)) {
+            if (!get((long)i))
+                return false;
+        }
+        return true;
+    }
 
-        @Override
-        public Long next() {
-            return nextLong();
+    public boolean equals(final BitSet obs, final long startPosition, final long endPosition) {
+        if (startPosition > Integer.MAX_VALUE)
+            throw new UnsupportedOperationException();
+        if (endPosition > Integer.MAX_VALUE)
+            throw new UnsupportedOperationException();
+
+        return equals(obs, (int) startPosition, (int) endPosition);
+    }
+
+    public void set(final BitSet obs, final int startPosition, final int endPosition) {
+        Objects.requireNonNull(obs);
+        if (startPosition < 0)
+            throw new IllegalArgumentException();
+        if (endPosition < 0)
+            throw new IllegalArgumentException();
+        if (startPosition > MAX_POSITION)
+            throw new UnsupportedOperationException();
+        if (endPosition > MAX_POSITION)
+            throw new UnsupportedOperationException();
+
+        for (int i = startPosition; i >= 0 && i <= endPosition; i = obs.nextSetBit(i)) {
+            set((long)i);
         }
     }
 
-    public LongIterator positionsIterator() {
-        return new SetBitsItr();
+    public void set(final BitSet obs, final long startPosition, final long endPosition) {
+        if (startPosition > Integer.MAX_VALUE)
+            throw new UnsupportedOperationException();
+        if (endPosition > Integer.MAX_VALUE)
+            throw new UnsupportedOperationException();
+
+        set(obs, (int) startPosition, (int) endPosition);
     }
+
+    public void set(final BitSet obs) {
+        set(obs, 0, Integer.MAX_VALUE);
+    }
+
+    public void clear(final BitSet obs, final int startPosition, final int endPosition) {
+        Objects.requireNonNull(obs);
+        if (startPosition < 0)
+            throw new IllegalArgumentException();
+        if (endPosition < 0)
+            throw new IllegalArgumentException();
+        if (startPosition > MAX_POSITION)
+            throw new UnsupportedOperationException();
+        if (endPosition > MAX_POSITION)
+            throw new UnsupportedOperationException();
+
+        for (int i = startPosition; i >= 0 && i <= endPosition; i = obs.nextSetBit(i)) {
+            clear((long)i);
+        }
+    }
+
+    public void clear(final BitSet obs, final long startPosition, final long endPosition) {
+        if (startPosition > Integer.MAX_VALUE)
+            throw new UnsupportedOperationException();
+        if (endPosition > Integer.MAX_VALUE)
+            throw new UnsupportedOperationException();
+
+        clear(obs, (int) startPosition, (int) endPosition);
+    }
+
+    public void clear(final BitSet obs) {
+        clear(obs, 0, Integer.MAX_VALUE);
+    }
+
+
+    /**
+     * Modifications should only occur on a single instance of the object at once, so it
+     * should be safe to reuse the cursor.
+     */
+    protected Cursor s0Cursor() {
+        return perInstanceBlockTraveller();
+    }
+
+    protected Cursor s1Cursor() {
+        return newblockTraveller();
+    }
+
+    static enum OpResult {
+        TRUE, FALSE, INDETERMINATE
+    }
+
+    static class And extends Operation {
+
+        public boolean noChanges(final boolean v0, final boolean v1) {
+            return !v0 || v1;
+        }
+
+        public boolean op(final boolean v0, final boolean v1) {
+            return v0 && v1;
+        }
+
+        public OpResult op(final boolean v0, final long v1) {
+            if (v1 == ALL_CLEAR)
+                return op(v0, false) ? OpResult.TRUE : OpResult.FALSE;
+            else if (v1 == ALL_SET)
+                return op(v0, true) ? OpResult.TRUE : OpResult.FALSE;
+            else
+                return OpResult.INDETERMINATE;
+        }
+
+        public long op(final long v0, final boolean v1) {
+            return !v1 ? ALL_CLEAR : v0;
+        }
+
+        public long op(final long v0, final long v1) {
+            return v0 & v1;
+        }
+/*
+        @Override
+        public void g(final Cursor s0, final Cursor s1, final int startBlock, final int endBlock) {
+            super.ss(s0, s1, startBlock, endBlock);
+
+            if (noChanges(s0, s1)) {
+                // no changes necessary
+                return;
+            }
+
+            lowerSplit(s0, s1, startBlock, endBlock);
+            lookaheadWithUpperSplit(s0, s1, startBlock, endBlock);
+
+            assert Conv.startBlock(s0.getComponent()) == startBlock;
+            assert s0.getCore().length(s0.getComponent()) == endBlock - startBlock;
+
+            op(s0, s1);
+        }
+        */
+    }
+
+        /*
+
+        @Override
+        public void ss(final Cursor s0, final Cursor s1, final int startBlock, final int endBlock) {
+            super.ss(s0, s1, startBlock, endBlock);
+
+            {
+                final long a0 = s0.getComponent(), a1 = s1.getComponent();
+                final boolean v0 = Conv.sparseValue(a0), v1 = Conv.sparseValue(a1);
+
+                if (noChanges(v0, v1)) {
+                    // no changes necessary
+                    return;
+                }
+            }
+
+            lowerSplit(s0, s1, startBlock, endBlock);
+            lookaheadWithUpperSplit(s0, s1, startBlock, endBlock);
+
+            final long a0 = s0.getComponent(), a1 = s1.getComponent();
+            final boolean v0 = Conv.sparseValue(a0), v1 = Conv.sparseValue(a1);
+            assert Conv.startBlock(a0) == startBlock;
+            assert Conv.sparseLength(a0) == endBlock - startBlock;
+
+            final int newLength0 = endBlock - startBlock;
+            final boolean newValue0 = op(v0, v1);
+
+            final long newA0 = Conv.createSparse(startBlock, newLength0, newValue0);
+            s0.setComponent(newA0);
+        }
+
+        @Override
+        public void sd(final Cursor s0, final Cursor s1, final int startBlock, final int endBlock) {
+            super.sd(s0, s1, startBlock, endBlock);
+
+        }
+
+        @Override
+        public void ds(final Cursor s0, final Cursor s1, final int startBlock, final int endBlock) {
+            super.ds(s0, s1, startBlock, endBlock);
+
+        }
+
+        @Override
+        public void dd(final Cursor s0, final Cursor s1, final int startBlock, final int endBlock) {
+            super.dd(s0, s1, startBlock, endBlock);
+
+        }
+    }
+    */
+
+    void op(final SBS3 o, final Operation op) {
+
+        final Cursor s0 = s0Cursor();
+        final Cursor s1 = s1Cursor();
+
+        /**
+         * Loop over each component.  If there is a change, execute accordingly.
+         *
+         * Will always call op.XX on new component boundaries.  The op may call
+         * methods to determine if this is also a change boundary.
+         */
+
+        for (;;) {
+
+            /* Change misalignment:
+             *    { s0 }
+             *            { s1 }
+             */
+            if (s0.endsBeforeStartOf(s1)) {
+                s0.nextComponent();
+                continue;
+            }
+
+            /* Change misalignment:
+             *            { s0 }
+             *    { s1 }
+             */
+            if (s1.endsBeforeStartOf(s0)) {
+                s1.nextComponent();
+                continue;
+            }
+
+            final int startBlock = s0.startsBeforeStartOf(s1) ? s1.getStartBlock() : s0.getStartBlock();
+            final int endBlock = s0.endsBeforeEndOf(s1) ? s0.getEndBlock() : s1.getEndBlock();
+
+            /*
+            // Do operations
+            if (s0.inSparse()) {
+                if (s1.inSparse()) {
+                    op.ss(s0, s1, startBlock, endBlock);
+                } else {
+                    assert s1.inDense();
+                    op.sd(s0, s1, startBlock, endBlock);
+                }
+            } else {
+                assert s0.inDense();
+                if (s1.inSparse()) {
+                    op.ds(s0, s1, startBlock, endBlock);
+                } else {
+                    assert s1.inDense();
+                    op.dd(s0, s1, startBlock, endBlock);
+                }
+            }*/
+
+            op.op(s0, s1, startBlock, endBlock);
+
+            // Advance
+            if (s0.peekNextComponentEndBlock() > s1.peekNextComponentEndBlock()) {
+                if (s0.nextComponent())
+                    return;
+                if (s1.nextComponent())
+                    return;
+                return;
+            } else {
+                if (s1.nextComponent())
+                    return;
+                if (s0.nextComponent())
+                    return;
+                return;
+            }
+
+        }
+    }
+
+    /*
+    public void op1(final SBS3 o, final Op op) {
+
+        final Cursor s0 = perInstanceBlockTraveller();
+        final Cursor s1 = o.newblockTraveller();
+
+        s0.nextBlock();
+        s1.nextBlock();
+
+        loop0:
+        while (true) {
+
+            // if there is no overlap, then fast forward until there is
+            loop1:
+            while (true) {
+                if (s0.isPastEnd() || s1.isPastEnd()) {
+                    return;
+                } else if (s1.getCurrentChangeBlock() < s0.getPreviousChangeBlock()) {
+                    int changeIndex = s1.nextBlock();
+                    if (changeIndex < 0) {
+                        return;
+                    }
+                    break loop1;
+                } else if (s1.getCurrentChangeBlock() > s0.getCurrentChangeBlock()) {
+                    int changeIndex = s0.nextBlock();
+                    if (changeIndex < 0) {
+                        return;
+                    }
+                    break loop1;
+                } else {
+                    s0.nextBlock();
+                    s1.nextBlock();
+                }
+            }
+
+            // detect overlap
+            int i = Math.max(s0.getPreviousChangeBlock(), s1.getPreviousChangeBlock());
+            int j = Math.min(s0.getCurrentChangeBlock(), s1.getCurrentChangeBlock());
+
+            // consider the nature of the overlap
+            final boolean s0pv = s0.getPreviousValue(), s1pv = s1.getPreviousValue();
+            switch (op) {
+                case AND: {
+                    if (s0pv == s1pv) {
+                        // do nothing
+                    } else if (!s0pv && s1pv) {
+                        // do nothing
+                    } else if (s0pv && !s1pv) {
+                        mergeAnd(s0, s1, i, j);
+                    }
+                    break;
+                }
+            }
+        }
+    }
+    */
+
+    private final static And AND_OP = new And();
+
+    public void and(final SBS3 o) {
+        op(o, AND_OP);
+    }
+
+//    public void or(final SBS3 o) {
+//
+//    }
+//
+//    public void not(final SBS3 o) {
+//
+//    }
+//
+//    public void xor(final SBS3 o) {
+//
+//    }
+//
+//    public void clear() {
+//
+//    }
 
     protected boolean print(final long a, final PrintStream out) {
         if (Conv.isSparse(a)) {
@@ -1227,10 +1662,43 @@ public class SBS3 {
         out.println("array data size: " + dataSize);
         for (int i = 0; i < dataSize; i++) {
             final long a = array[i];
+            if (a == EMPTY)
+                continue;
             //System.out.println("a: " + Long.toHexString(a));
             out.print(i+":");
             print(a, out);
         }
+    }
+
+    int size = 0;
+
+    void incrementSize() {
+        size++;
+    }
+
+    void decrementSize() {
+        size--;
+    }
+
+
+    int end = 0;
+
+    int findComponentIndex(final int block) {
+        assert block >= 0;
+        return ComponentsHelper.find(block, this);
+    }
+
+    public boolean contains(final long a) {
+        final int componentIndex = ComponentsHelper.find(startBlock(a), this);
+        return componentIndex >= 0;
+    }
+
+    public boolean delete(final long a) {
+        return ComponentsHelper.delete(a, this);
+    }
+
+    public void insert(final long a) {
+        ComponentsHelper.insert(a, 5, 1.25f);
     }
 
 }
