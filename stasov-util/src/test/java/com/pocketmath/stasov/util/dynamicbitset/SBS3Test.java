@@ -494,6 +494,4 @@ public class SBS3Test {
         Assert.assertTrue(o2.get(7));
     }
 
-
-
 }
