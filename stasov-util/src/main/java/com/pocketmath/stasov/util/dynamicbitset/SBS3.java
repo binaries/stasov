@@ -1449,6 +1449,48 @@ public class SBS3 implements LongIterable {
         }
     }
 
+    static class Xor extends Operation {
+        @Override
+        protected boolean noChanges(Cursor s0, Cursor s1) {
+            return false;
+        }
+
+        @Override
+        protected boolean noChange1(boolean v1) {
+            return false;
+        }
+
+        @Override
+        protected boolean noChange1(long v1) {
+            return false;
+        }
+
+        @Override
+        protected boolean op(boolean v0, boolean v1) {
+            return v0 ^ v1;
+        }
+
+        @Override
+        protected OpResult op(boolean v0, long v1) {
+            if (v1 == ALL_SET)
+                return v0 ? OpResult.FALSE : OpResult.TRUE;
+            else if (v1 == ALL_CLEAR)
+                return v0 ? OpResult.TRUE : OpResult.FALSE;
+            else
+                return OpResult.INDETERMINATE;
+        }
+
+        @Override
+        protected long op(long v0, boolean v1) {
+            return v0 ^ (v1 ? ALL_SET : ALL_CLEAR);
+        }
+
+        @Override
+        protected long op(long v0, long v1) {
+            return v0 ^ v1;
+        }
+    }
+
     void op(final SBS3 o, final Operation op) {
 
         final Cursor s0 = s0Cursor();
@@ -1541,6 +1583,7 @@ public class SBS3 implements LongIterable {
 
     private final static And AND_OP = new And();
     private final static Or OR_OP = new Or();
+    private final static Xor XOR_OP = new Xor();
 
     public void and(final SBS3 o) {
         op(o, AND_OP);
@@ -1549,6 +1592,36 @@ public class SBS3 implements LongIterable {
     public void or(final SBS3 o) {
         op(o, OR_OP);
     }
+
+    public void xor(final SBS3 o) {
+        op(o, XOR_OP);
+    }
+
+    public void not() {
+        for (int i = 0; i <= end; i++) {
+            final long a = getComponent(i);
+            if (a == EMPTY)
+                continue;
+            assert validateComponent(a);
+            if (Conv.isSparse(a)) {
+                final int startBlock = Conv.startBlock(a);
+                final int length = Conv.sparseLength(a);
+                final boolean v = Conv.sparseValue(a);
+                final long newA = Conv.createSparse(startBlock, length, !v);
+                setComponent(i, newA);
+            } else {
+                assert Conv.isDense(a);
+                final int denseIndex = Conv.denseIndex(a);
+                assert denseIndex >= 0;
+                final long[] denseData = getDenseData(denseIndex);
+                for (int j = 0; j < denseData.length; j++)
+                    denseData[j] = BitUtil.flip(denseData[j]);
+            }
+            assert validateComponent(a);
+        }
+    }
+
+
 //
 //    public void not(final SBS3 o) {
 //
