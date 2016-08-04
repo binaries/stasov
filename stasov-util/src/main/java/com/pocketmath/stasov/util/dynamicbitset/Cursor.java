@@ -1,6 +1,10 @@
 package com.pocketmath.stasov.util.dynamicbitset;
 
 import javax.swing.border.EmptyBorder;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 /**
  * Created by etucker on 5/23/16.
@@ -71,7 +75,7 @@ class Cursor {
         changeComponentIndex = -1;
         previousChangeComponentIndex = -1;
 
-        assert (validateInvariants());
+        assert validateInvariants();
     }
 
     public void reset() {
@@ -190,8 +194,7 @@ class Cursor {
 
     public boolean isPastEnd() {
         assert (validateInvariants());
-        assert componentIndex <= core.dataSize;
-        return componentIndex >= core.dataSize;
+        return componentIndex > core.end;
     }
 
     public boolean beforeStart() {
@@ -233,8 +236,18 @@ class Cursor {
         return getStartPos() == o.getStartPos();
     }
 
+    private int nextCI = -2;
+
     protected boolean hasNextComponent(final int fromIndex) {
-        return fromIndex + 1 < core.dataSize;
+        if (nextCI > -2) {
+            return nextCI >= 0;
+        }
+        nextCI = doNextComponentIndex(fromIndex);
+        return nextCI >= 0;
+    }
+
+    protected boolean hasNextComponent() {
+        return hasNextComponent(componentIndex);
     }
 
     /**
@@ -243,11 +256,26 @@ class Cursor {
      * @return the array index of the next component with negative if sparse else positive if dense
      */
     protected int nextComponentIndex(final int fromIndex) {
-        int nextCI = fromIndex + 1;
-        if (nextCI >= core.dataSize) {
-            throw new IllegalStateException();
+        assert fromIndex >= -1;
+        if (nextCI > -2) {
+            final int retVal = nextCI;
+            nextCI = -2;
+            return retVal;
         }
-        return nextCI;
+        assert nextCI == -2;
+        return doNextComponentIndex(fromIndex);
+    }
+
+    private int doNextComponentIndex(final int fromIndex) {
+        if (fromIndex < core.end) {
+            int nextCI = fromIndex + 1;
+            for (; nextCI <= core.end; nextCI++) {
+                final long a = core.getComponent(nextCI);
+                if (a != core.EMPTY)
+                    return nextCI;
+            }
+        }
+        return -1;
     }
 
     private boolean componentIsSparse(final int index) {
@@ -323,6 +351,7 @@ class Cursor {
      * @param currentIndex
      * @return next index
      */
+    /*
     private int nextSetBlockOffsetDense(
             final long[] denseData,
             int currentIndex) {
@@ -333,7 +362,9 @@ class Cursor {
         }
         return -1;
     }
+    */
 
+    /*
     public int nextBlock() {
         assert validateInvariants();
 
@@ -366,6 +397,7 @@ class Cursor {
         int ci = componentIndex;
 
         for (;;) {
+            assert inDense || inSparse;
             if (inDense && denseDataIndex < denseData.length) {
                 // we're inside a dense component
                 final int blockOffset =
@@ -430,6 +462,7 @@ class Cursor {
             }
         }
     }
+     */
 
     /**
      *
@@ -512,10 +545,6 @@ class Cursor {
         assert (validateInvariants());
     }
 
-    public int maxIndex() {
-        return core.dataSize;
-    }
-
     private int backwardComponentIndex(final int currentIndex, final int distance) {
         int i = currentIndex - 1;
         int travelled = 0;
@@ -542,7 +571,7 @@ class Cursor {
         int i = currentIndex + 1;
         int travelled = 0;
         for (;;) {
-            if (i >= core.dataSize) {
+            if (i > core.end) {
                 return -1;
             } else if (core.array[i] == SBS3.EMPTY) {
                 i++;
@@ -562,8 +591,19 @@ class Cursor {
 
     public boolean nextComponent() {
         final int r = forwardComponentIndex(componentIndex);
+
         if (r >= 0) {
             componentIndex = r;
+
+            // TODO: move this logic elsewhere
+            final long a = getComponent();
+            if (SBS3.Conv.isSparse(a)) {
+                setInSparse();
+            } else {
+                assert SBS3.Conv.isDense(a);
+                setInDense();
+            }
+
             return true;
         } else {
             return false;
@@ -647,8 +687,9 @@ class Cursor {
 
     public long getComponent() {
         assert componentIndex >= 0;
-        assert componentIndex <= core.dataSize;
-        assert core.dataSize <= core.array.length; // TODO: Move this logic to SBS class
+        assert componentIndex <= core.end;
+        assert componentIndex < core.array.length;
+        assert core.end <= core.array.length; // TODO: Move this logic to SBS class
         final long a = core.array[componentIndex];
         assert a != SBS3.EMPTY;
         return a;
@@ -678,27 +719,40 @@ class Cursor {
         assert SBS3.Conv.isDense(getComponent());
     }
 
-    public static enum SplitCursorBlock {
-        BOTTOM,
-        TOP,
-        FIRST_OF_SPLIT
-    }
 
-    private int split(final int block) {
-        
-    }
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append(
+                "Cursor{" +
+                "core=" + core +
+                ", componentIndex=" + componentIndex +
+                ", inSparse=" + inSparse +
+                ", inDense=" + inDense +
+                ", startPos=" + startPos +
+                ", endPos=" + endPos +
+                ", sparseValue=" + sparseValue +
+                ", lastComponentBoundary=" + lastComponentBoundary +
+                ", lastValueBoundary=" + lastValueBoundary +
+                ", lastValue=" + lastValue +
+                ", currentChangeBlock=" + currentChangeBlock +
+                ", previousChangeBlock=" + previousChangeBlock +
+                ", denseDataIndex=" + denseDataIndex +
+                ", denseData=" + Arrays.toString(denseData) +
+                ", changeComponentIndex=" + changeComponentIndex +
+                ", previousChangeComponentIndex=" + previousChangeComponentIndex +
+                ", nextCI=" + nextCI +
+                '}'
+        );
+        sb.append("\n");
 
-    /**
-     *
-     * @param block first block
-     * @return
-     */
-    public void split(final int block, final SplitCursorBlock scb) {
-        final int newComponentIndex = core.split(block);
-        switch (scb) {
-            case BOTTOM =
-            case FIRST_OF_SPLIT : { componentIndex = newComponentIndex; break; }
-        }
-    }
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final PrintStream ps = new PrintStream(baos);
+        core.print(ps);
+        String content = new String(baos.toByteArray(), StandardCharsets.UTF_8);
 
+        sb.append(content);
+
+        return sb.toString();
+    }
 }

@@ -61,6 +61,9 @@ abstract class Operation {
     /**
      * Operation on a sparse component and a sub section of a dense component.
      *
+     * if the return value of this method is INDETERMINATE, this will typically
+     * result in the caller converting v0 to a dense representation.
+     *
      * @param v0 sparse component
      * @param v1 subsection of dense component
      * @return
@@ -97,13 +100,20 @@ abstract class Operation {
         lowerSplit(s0, s1, startBlock, endBlock);
         lookaheadWithUpperSplit(s0, s1, startBlock, endBlock);
 
-        assert SBS3.Conv.startBlock(s0.getComponent()) == startBlock;
-        assert s0.getCore().length(s0.getComponent()) == endBlock - startBlock;
+        // TODO these assertions are nonsense with gap allowances?
+        //assert SBS3.Conv.startBlock(s0.getComponent()) == startBlock :
+        //        "SBS3.Conv.startBlock(s0.getComponent()): " + SBS3.Conv.startBlock(s0.getComponent()) + "; startBlock: " + startBlock;
+
+        //assert s0.getCore().length(s0.getComponent()) == endBlock - startBlock + 1:
+        //        "s0.getCore().length(s0.getComponent()): " + s0.getCore().length(s0.getComponent()) + "; endblock - startblock + 1: " + (endBlock - startBlock + 1);
 
         doOp(s0, s1, startBlock, endBlock);
     }
 
     private void doOp(final Cursor s0, final Cursor s1, final int startBlock, final int endBlock) {
+
+        assert s0.inSparse() || s0.inDense();
+        assert s1.inSparse() || s1.inDense();
 
         if (s0.inSparse()) {
             if (s1.inSparse()) {
@@ -165,8 +175,8 @@ abstract class Operation {
 
                 final int start0 = startBlock - startBlock0;
                 final int end0 = start0 + len;
-                assert start0 > 0;
-                assert end0 > 0;
+                assert start0 >= 0;
+                assert end0 >= 0;
 
                 for (int i = start0; i < end0; i++) {
                     denseData0[i] = op(denseData0[i], v1);
@@ -181,31 +191,58 @@ abstract class Operation {
 
                 final int start0 = startBlock - startBlock0, start1 = startBlock - startBlock1;
                 final int end0 = start0 + len;
-                assert start0 > 0;
-                assert end0 > 0;
+                assert start0 >= 0;
+                assert end0 >= 0;
 
                 final int offset1 = start1 - start0;
-                assert offset1 > 0;
+                assert offset1 >= 0;
 
-                for (int i = start0; i < end0; i++) {
-                    denseData0[i] = op(denseData0[i], denseData1[i + offset1]);
+                if (denseData0.length <= 0)
+                    throw new IllegalStateException();
+                if (denseData1.length <= 0)
+                    throw new IllegalStateException();
+
+                for (int i = start0; i <= end0; i++) {
+                    assert i >= 0;
+                    assert i < denseData0.length;
+                    assert i < denseData1.length;
+                    assert Math.addExact(i,offset1) < denseData1.length;
+                    denseData0[i] = op(denseData0[i], denseData1[Math.addExact(i,offset1)]);
                 }
                 return;
             }
         }
     }
 
-    private long lowerSplit(final Cursor s0, final Cursor s1, final int startBlock, final int endBlock) {
+    /**
+     *
+     * @param s0
+     * @param s1
+     * @param startBlock
+     * @param endBlock
+     * @return zero or greater if a split has occurred else less than zero
+     */
+    private int lowerSplit(final Cursor s0, final Cursor s1, final int startBlock, final int endBlock) {
         // check if we need to split or can merge
         if (s0.startsAfterStartOf(s1)) {
             // lower split will be needed
             // (not maybe -- definitely will -- because we would not encounter this case now otherwise)
-            return s0.splitLower(startBlock);
+            //return s0.splitLower(startBlock);
+            return ComponentsHelper.trySplitBefore(startBlock, s0.getCore());
         }
-        return SBS3.EMPTY;
+        return -1;
+        //return SBS3.EMPTY;
     }
 
-    private long lookaheadWithUpperSplit(final Cursor s0, final Cursor s1, final int startBlock, final int endBlock) {
+    /**
+     *
+     * @param s0
+     * @param s1
+     * @param startBlock
+     * @param endBlock
+     * @return zero or greater if a split has occurred else less than zero
+     */
+    private int lookaheadWithUpperSplit(final Cursor s0, final Cursor s1, final int startBlock, final int endBlock) {
 
         // look ahead to see if upper split will be warranted
         // if it is, make the split!
@@ -235,13 +272,15 @@ abstract class Operation {
                             // must upper split
                             final int firstBlockOfSecondComponent = i + s1LAStartBlock;
                             assert firstBlockOfSecondComponent >= 0;
-                            return s0.splitUpper(firstBlockOfSecondComponent);
+                            //return s0.splitUpper(firstBlockOfSecondComponent);
+                            return ComponentsHelper.trySplitBefore(firstBlockOfSecondComponent, s0.getCore());
                         }
                     }
                 }
             }
         }
-        return SBS3.EMPTY;
+        return -1;
+        //return SBS3.EMPTY;
     }
 
 /*
