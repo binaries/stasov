@@ -536,4 +536,14 @@ public class SBS3Test {
         Assert.assertTrue(o.get(5));
     }
 
+    @Test
+    public void clear1() {
+        final SBS3 o = new SBS3();
+
+        o.set(5);
+        o.clear(5);
+
+        Assert.assertFalse(o.get(5));
+    }
+
 }
