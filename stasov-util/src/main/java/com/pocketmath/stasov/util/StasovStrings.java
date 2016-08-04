@@ -1,5 +1,7 @@
 package com.pocketmath.stasov.util;
 
+import java.util.Objects;
+
 /**
  * Created by etucker on 4/12/15.
  */
@@ -45,5 +47,11 @@ public class StasovStrings {
             + "\\u205F" // MEDIUM MATHEMATICAL SPACE
             + "\\u3000" // IDEOGRAPHIC SPACE
             ;
+
+    public static void requireNonBlank(final String s) {
+        Objects.requireNonNull(s);
+        if (s.isEmpty()) throw new IllegalArgumentException("string was empty");
+        if (s.trim().isEmpty()) throw new IllegalArgumentException("string was whitespace only");
+    }
 
 }
