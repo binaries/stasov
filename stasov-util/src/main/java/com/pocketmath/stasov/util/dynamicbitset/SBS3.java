@@ -1404,6 +1404,51 @@ public class SBS3 implements LongIterable {
         }
     }
 
+    static class Or extends Operation {
+
+        @Override
+        protected boolean noChanges(Cursor s0, Cursor s1) {
+            return false;
+        }
+
+        @Override
+        protected boolean noChange1(boolean v1) {
+            return false;
+        }
+
+        @Override
+        protected boolean noChange1(long v1) {
+            return false;
+        }
+
+        @Override
+        protected boolean op(boolean v0, boolean v1) {
+            return v0 || v1;
+        }
+
+        @Override
+        protected OpResult op(boolean v0, long v1) {
+            if (v0)
+                return OpResult.TRUE;
+            else if (v1 == ALL_CLEAR)
+                return OpResult.FALSE;
+            else if (v1 == ALL_SET)
+                return OpResult.TRUE;
+            else
+                return OpResult.INDETERMINATE;
+        }
+
+        @Override
+        protected long op(long v0, boolean v1) {
+            return v0 | (v1 ? ALL_SET : ALL_CLEAR);
+        }
+
+        @Override
+        protected long op(long v0, long v1) {
+            return v0 | v1;
+        }
+    }
+
     void op(final SBS3 o, final Operation op) {
 
         final Cursor s0 = s0Cursor();
@@ -1495,14 +1540,15 @@ public class SBS3 implements LongIterable {
     }
 
     private final static And AND_OP = new And();
+    private final static Or OR_OP = new Or();
 
     public void and(final SBS3 o) {
         op(o, AND_OP);
     }
 
-//    public void or(final SBS3 o) {
-//
-//    }
+    public void or(final SBS3 o) {
+        op(o, OR_OP);
+    }
 //
 //    public void not(final SBS3 o) {
 //

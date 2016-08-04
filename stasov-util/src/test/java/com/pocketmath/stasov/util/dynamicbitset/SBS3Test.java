@@ -55,6 +55,14 @@ public class SBS3Test {
     }
 
     @Test
+    public void test6b() {
+        final SBS3 o = new SBS3();
+        o.set(1);
+        o.set(2);
+        o.set(63);
+    }
+
+    @Test
     public void test7() {
         final SBS3 o = new SBS3();
         o.set(1);
@@ -92,10 +100,14 @@ public class SBS3Test {
     }
 
     @Test
-    public void test12() {
+    public void test12() throws Exception {
         final SBS3 o = new SBS3();
         for (int i = 0; i < 1024; i++) {
-            o.set(i);
+            try {
+                o.set(i);
+            } catch (Exception e) {
+                throw new Exception("i:" + i, e);
+            }
         }
     }
 
@@ -109,7 +121,7 @@ public class SBS3Test {
         }
     }
 
-    @Test(timeOut=(int)(60000*1.5))
+    @Test(timeOut=(int)(60000*1.5), enabled=true)
     public void test14() {
         final SBS3 o = new SBS3(1, 16384);
         final int n = 1024*1024;
@@ -117,6 +129,19 @@ public class SBS3Test {
             if (i % 65536 == 0) System.out.println("i="+i);
             if (i*8 > o.maxPosition()) throw new IllegalStateException("error in test code -- position went too high");
             o.set(i*8);
+        }
+    }
+
+    @Test(timeOut=(int)(60000*1.5), enabled=true)
+    public void test15() {
+        final SBS3 o = new SBS3(1, 16384);
+        final int n = 1024*1024;
+        for (int i = 0; i < n; i++) {
+            if (i % 65536 == 0) System.out.println("i="+i);
+            if (i*8 > o.maxPosition()) throw new IllegalStateException("error in test code -- position went too high");
+            o.set(i*8);
+            Assert.assertTrue(o.get(i*8));
+            Assert.assertFalse(o.get(i*8+1));
         }
     }
 
@@ -402,5 +427,73 @@ public class SBS3Test {
         }
 
     }
+
+    @Test
+    public void testAnd1() {
+        final SBS3 o1 = new SBS3();
+        final SBS3 o2 = new SBS3();
+
+        o1.set(5);
+        o2.set(5);
+
+        o1.and(o2);
+
+        Assert.assertTrue(o1.get(5));
+    }
+
+    @Test
+    public void testAnd2() {
+        final SBS3 o1 = new SBS3();
+        final SBS3 o2 = new SBS3();
+
+        o1.set(5);
+        o2.set(7);
+
+        Assert.assertTrue(o1.get(5));
+        Assert.assertTrue(o2.get(7));
+
+        o1.and(o2);
+
+        Assert.assertFalse(o1.get(5), o1.toString());
+        Assert.assertFalse(o1.get(7), o1.toString());
+
+        Assert.assertFalse(o2.get(5));
+        Assert.assertTrue(o2.get(7));
+    }
+
+    @Test
+    public void testOr1() {
+        final SBS3 o1 = new SBS3();
+        final SBS3 o2 = new SBS3();
+
+        o1.set(5);
+        o2.set(5);
+
+        o1.or(o2);
+
+        Assert.assertTrue(o1.get(5));
+    }
+
+    @Test
+    public void testOr2() {
+        final SBS3 o1 = new SBS3();
+        final SBS3 o2 = new SBS3();
+
+        o1.set(5);
+        o2.set(7);
+
+        Assert.assertTrue(o1.get(5));
+        Assert.assertTrue(o2.get(7));
+
+        o1.or(o2);
+
+        Assert.assertTrue(o1.get(5), o1.toString());
+        Assert.assertTrue(o1.get(7), o1.toString());
+
+        Assert.assertFalse(o2.get(5));
+        Assert.assertTrue(o2.get(7));
+    }
+
+
 
 }
