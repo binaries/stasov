@@ -546,4 +546,37 @@ public class SBS3Test {
         Assert.assertFalse(o.get(5));
     }
 
+    @Test
+    public void testReadOptimize1() {
+        final SBS3 o = new SBS3();
+
+        o.readOptimize();
+    }
+
+    @Test
+    public void testReadOptimize2() {
+        final SBS3 o = new SBS3();
+
+        o.set(5);
+
+        o.readOptimize();
+
+        Assert.assertTrue(o.get(5));
+        Assert.assertFalse(o.get(7));
+    }
+
+    @Test
+    public void testReadOptimize3() {
+        final SBS3 o = new SBS3();
+
+        o.set(5);
+
+        o.readOptimize();
+
+        Assert.assertFalse(o.get(o.minIntegerPosition()));
+        Assert.assertTrue(o.get(5));
+        Assert.assertFalse(o.get(7));
+        Assert.assertFalse(o.get(o.maxIntegerPosition()));
+    }
+
 }

@@ -1,8 +1,11 @@
 package com.pocketmath.stasov.util.dynamicbitset;
 
+import com.pocketmath.stasov.util.StasovArrays;
 import com.pocketmath.stasov.util.validate.ValidationException;
 import com.pocketmath.stasov.util.validate.ValidationRuntimeException;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrays;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongArrays;
 import it.unimi.dsi.fastutil.longs.LongIterable;
 import it.unimi.dsi.fastutil.longs.LongIterator;
@@ -13,10 +16,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.IllegalFormatCodePointException;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Format of sparse entry is a 64-bit long with bits as:
@@ -109,34 +109,75 @@ public class SBS3 implements LongIterable {
         return MAX_BLOCKS;
     }
 
+    /**
+     * Minimum possible position.
+     *
+     * @return
+     */
     public static long minPosition() {
         return MIN_POSITION;
     }
 
+    /**
+     * Maximum possible position.
+     *
+     * @return
+     */
     public static long maxPosition() {
         return MAX_POSITION;
     }
 
+    /**
+     * Minimum position when represented with 32-bit integers.
+     *
+     * @return
+     */
     public static int minIntegerPosition() {
         return (int) Math.max(Integer.MIN_VALUE, minPosition());
     }
 
+    /**
+     * Maximum possible position when represented with 32-bit integers.
+     *
+     * @return
+     */
     public static int maxIntegerPosition() {
         return (int) Math.min(Integer.MAX_VALUE - 1, maxPosition());
     }
 
+    /**
+     * Maximum index for dense data.
+     *
+     * @return
+     */
     protected static int maxDenseIndex() {
         return MAX_DENSE_INDEX;
     }
 
+    /**
+     * Maximum blocks per dense component.
+     *
+     * @return
+     */
     protected static final int maxBlocksPerDense() {
         return MAX_BLOCKS_PER_DENSE;
     }
 
+    /**
+     * Initial blocks per dense component.
+     * @return
+     */
     protected static final int initialBlocksPerDense() {
         return INITIAL_BLOCKS_PER_DENSE;
     }
 
+    /**
+     * Expert method allowing full settings for performance and memory utilization tuning.
+     *
+     * @param capacity Initial capacity number of components.
+     * @param splitThreshold The minimum empty spacing to trigger a split.
+     * @param splitBleed The amount of extra padding to insert when splitting.
+     */
     public SBS3(final int capacity, final int splitThreshold, final int splitBleed) {
         if (capacity < 1) throw new IllegalArgumentException();
         if (splitThreshold < 1) throw new IllegalArgumentException();
@@ -154,14 +195,29 @@ public class SBS3 implements LongIterable {
         assert(validateInvariants());
     }
 
+    /**
+     * Expert method allowing full settings for performance and memory utilization tuning.
+     *
+     * @param capacity Initial capacity number of components.
+     * @param splitThreshold The minimum empty spacing to trigger a split.
+     */
     public SBS3(final int capacity, final int splitThreshold) {
         this(capacity, splitThreshold, 4);
     }
 
+    /**
+     *
+     *
+     * @param capacity Initial capacity.
+     */
     public SBS3(final int capacity) {
         this(capacity, 8);
     }
 
+    /**
+     * Default constructor.
+     *
+     */
     public SBS3() {
         this(8);
     }
@@ -183,6 +239,9 @@ public class SBS3 implements LongIterable {
         return dense[denseIndex];
     }
 
+    /**
+     * Utility methods.
+     */
     protected static class Conv {
 
         @Inline
@@ -273,6 +332,9 @@ public class SBS3 implements LongIterable {
         }
     }
 
+    /**
+     * Utility methods.
+     */
     protected static class PosConv {
 
         @Inline
@@ -331,6 +393,10 @@ public class SBS3 implements LongIterable {
 
     }
 
+    /**
+     * Utility methods.
+     */
+    // TODO: move to separate file.
     private static class BitUtil {
 
         @Inline
@@ -340,6 +406,12 @@ public class SBS3 implements LongIterable {
 
     }
 
+    /**
+     * Expert method.  More optimal performance when component known to be sparse.
+     *
+     * @param a
+     * @return
+     */
     @Inline
     protected int fastDenseLength(final long a) {
         assert(a != EMPTY);
@@ -348,6 +420,13 @@ public class SBS3 implements LongIterable {
         return data.length;
     }
 
+    /**
+     * General method for determining length regardless of sparse or dense.  Sparse-specific and dense-specific methods
+     * may be faster.
+     *
+     * @param a
+     * @return
+     */
     @Inline
     protected int length(final long a) {
         assert a != EMPTY;
@@ -366,6 +445,12 @@ public class SBS3 implements LongIterable {
         return len;
     }
 
+    /**
+     * Determine the starting block of the component.
+     *
+     * @param a
+     * @return
+     */
     @Inline
     protected int startBlock(final long a) {
         final int startBlock = Conv.startBlock(a);
@@ -373,6 +458,12 @@ public class SBS3 implements LongIterable {
         return startBlock;
     }
 
+    /**
+     * Determine the ending block of the component.
+     *
+     * @param a
+     * @return
+     */
     @Inline
     protected int endBlock(final long a) {
         // TODO: optimize?
@@ -389,12 +480,24 @@ public class SBS3 implements LongIterable {
         return x;
     }
 
+    /**
+     * Determine the start position of the component.
+     *
+     * @param a
+     * @return
+     */
     @Inline
     protected long startPosition(final long a) {
         assert a != EMPTY;
         return Conv.startPosition(a);
     }
 
+    /**
+     * Determine the end position of the component.  Calls length which may incur some performance penalty.
+     *
+     * @param a
+     * @return
+     */
     @Inline
     protected long endPosition(final long a) {
         assert a != EMPTY;
@@ -549,6 +652,225 @@ public class SBS3 implements LongIterable {
         assert validateInvariants();
     }
 
+    private static class Opt {
+        private final LongArrayList array = new LongArrayList();
+        private final ArrayList<long[]> dense = new ArrayList<>();
+        private final LongArrayList denseDataBuffer = new LongArrayList();
+        private int homogenousSinceBlock = -1;
+        private boolean homogenousValue = false;
+        private int heterogenousSinceBlock = -1;
+
+        void contributeHomo(final boolean v, final int currentBlock) {
+            if (currentBlock < 0)
+                throw new IllegalArgumentException();
+            if (currentBlock > maxBlock())
+                throw new IllegalArgumentException();
+            if (heterogenousSinceBlock >= 0)
+                throw new IllegalStateException();
+            if (homogenousSinceBlock < 0) {
+                homogenousSinceBlock = currentBlock;
+                homogenousValue = v;
+            } else if (v != homogenousValue) {
+                throw new IllegalStateException();
+            }
+        }
+
+        void closeHomo(final int endBlock) {
+            if (endBlock < 0)
+                throw new IllegalArgumentException();
+            if (endBlock > maxBlock())
+                throw new IllegalArgumentException();
+
+            if (homogenousSinceBlock < 0)
+                throw new IllegalStateException();
+
+            final int newLength = Math.subtractExact(endBlock, homogenousSinceBlock);
+            if (newLength <= 0)
+                throw new IllegalStateException();
+            final long newA = Conv.createSparse(homogenousSinceBlock, newLength, homogenousValue);
+            array.add(newA);
+            homogenousSinceBlock = -1;
+        }
+
+        void contributeHetero(final long v, final int currentBlock) {
+            if (currentBlock < 0)
+                throw new IllegalArgumentException();
+            if (currentBlock > maxBlock())
+                throw new IllegalArgumentException();
+            if (v == ALL_CLEAR || v == ALL_SET)
+                throw new IllegalArgumentException("a homogenous block was sent to the heterogenous contrib method");
+
+            if (homogenousSinceBlock >= 0)
+                throw new IllegalStateException();
+
+            if (heterogenousSinceBlock < 0) {
+                heterogenousSinceBlock = currentBlock;
+            }
+            if (Math.incrementExact(denseDataBuffer.size()) > maxBlocksPerDense())
+                throw new IllegalStateException();
+            denseDataBuffer.add(v);
+        }
+
+        void closeHetero(final int endBlock) {
+            if (endBlock < 0)
+                throw new IllegalArgumentException();
+            if (endBlock > maxBlock())
+                throw new IllegalArgumentException();
+
+            if (heterogenousSinceBlock < 0)
+                throw new IllegalStateException();
+            if (homogenousSinceBlock >= 0)
+                throw new IllegalStateException();
+            if (denseDataBuffer.isEmpty())
+                throw new IllegalStateException();
+            if (denseDataBuffer.size() > maxBlocksPerDense())
+                throw new IllegalStateException();
+
+            final long[] dd = denseDataBuffer.toLongArray();
+            if (dd.length < 1)
+                throw new IllegalStateException();
+            final int newDenseIndex = dense.size();
+            if (newDenseIndex >= maxDenseIndex())
+                throw new IllegalStateException();
+            dense.add(dd);
+            final long newA = Conv.createDense(heterogenousSinceBlock, newDenseIndex);
+            array.add(newA);
+            denseDataBuffer.clear();
+            heterogenousSinceBlock = -1;
+        }
+
+        public boolean inHomo() {
+            return homogenousSinceBlock >= 0;
+        }
+
+        public boolean inHetero() {
+            return heterogenousSinceBlock >= 0;
+        }
+
+        public boolean getHomogenousValue() {
+            return homogenousValue;
+        }
+
+        public long[] toComponentsArray() {
+            return array.toLongArray();
+        }
+
+        public long[][] toDenseArray() {
+            return dense.toArray(new long[dense.size()][]);
+        }
+    }
+
+    public void readOptimize() {
+        assert validateInvariants();
+
+        final Opt opt = new Opt();
+
+        //final long initialCardinality = calculateCardinality();
+
+        for (int i = 0; i < array.length; i++) {
+            final long a = getComponent(i);
+            if (a == EMPTY)
+                continue;
+            assert validateComponent(a);
+
+            if (Conv.isSparse(a)) {
+                final boolean v = Conv.sparseValue(a);
+
+                final int startBlock = Conv.startBlock(a);
+                final int prevEndBlock = Math.decrementExact(startBlock);
+
+                if (opt.inHomo()) {
+                    if (opt.getHomogenousValue() == v) {
+                        continue;
+                    } else {
+                        assert opt.getHomogenousValue() != v;
+                        opt.closeHomo(prevEndBlock);
+                        opt.contributeHomo(v, startBlock);
+                    }
+                } else if (opt.inHetero()) {
+                    opt.closeHetero(prevEndBlock);
+                }
+
+                opt.contributeHomo(v, startBlock);
+
+            } else {
+                assert Conv.isDense(a);
+
+                final int startBlock = startBlock(a);
+                final int denseIndex = Conv.denseIndex(a);
+                final long[] denseData = getDenseData(denseIndex);
+                for (int j = 0; j < denseData.length; j++) {
+
+                    final int currentBlock = Math.addExact(startBlock, j);
+                    final int prevEndBlock = Math.decrementExact(currentBlock);
+
+                    final long d = denseData[j];
+
+                    if (d == ALL_SET) {
+                        if (opt.inHomo()) {
+                            if (!opt.getHomogenousValue()) {
+                                opt.closeHomo(prevEndBlock);
+                            }
+                        } else if (opt.inHetero()) {
+                            opt.closeHetero(prevEndBlock);
+                        }
+                        opt.contributeHomo(true, currentBlock);
+
+                    } else if (d == ALL_CLEAR) {
+                        if (opt.inHomo()) {
+                            if (opt.getHomogenousValue()) {
+                                opt.closeHomo(prevEndBlock);
+                            }
+                        } else if (opt.inHetero()) {
+                            opt.closeHetero(prevEndBlock);
+                        }
+                        opt.contributeHomo(true, currentBlock);
+
+                    } else {
+                        // hetero
+                        assert d != ALL_SET && d != ALL_CLEAR;
+                        if (opt.inHomo()) {
+                            opt.closeHomo(prevEndBlock);
+                        }
+                        opt.contributeHetero(d, currentBlock);
+                    }
+
+                }
+            }
+        }
+
+        final long lastComponent = getComponent(end);
+        final int lastComponentEndBlock = endBlock(lastComponent);
+
+        if (! (opt.inHomo() ^ opt.inHetero()))
+            throw new IllegalStateException();
+
+        if (Math.decrementExact(opt.dense.size()) > maxDenseIndex())
+            throw new IllegalStateException();
+
+        assert opt.array.size() < maxBlocks();
+
+        if (opt.inHomo()) {
+            opt.closeHomo(lastComponentEndBlock);
+        }
+
+        if (opt.inHetero()) {
+            opt.closeHetero(lastComponentEndBlock);
+        }
+
+        dense = opt.toDenseArray();
+        array = opt.toComponentsArray();
+        end = Math.decrementExact(array.length);
+
+        //final long endingCardinality = calculateCardinality();
+
+        //if (endingCardinality != initialCardinality)
+        //    throw new IllegalStateException();
+
+        assert validateInvariants();
+    }
+
+/*
     public void readOptimize() {
         assert(validateInvariants());
 
@@ -577,6 +899,7 @@ public class SBS3 implements LongIterable {
 
         assert(validateInvariants());
     }
+    */
 
     public void readWriteOptimize() {
         LongArrays.trim(array, Math.max(256, Math.multiplyExact(end, 2)));
@@ -1621,6 +1944,28 @@ public class SBS3 implements LongIterable {
         }
     }
 
+    /**
+     * Calculates the cardinality by iterating over all components.  This method is relatively inefficient
+     * and its use should be relegated to verification and debugging primarily.
+     *
+     * @return
+     */
+    // TODO BROKen
+    /*
+    long calculateCardinality() {
+        long sum = 0;
+        for (int i = 0; i <= end; i++) {
+            final long a = getComponent(i);
+            if (a == EMPTY)
+                continue;
+            assert validateComponent(a);
+            final int len = length(a);
+            sum = Math.addExact(sum, len);
+        }
+        return sum;
+    }
+    */
+
 
 //
 //    public void not(final SBS3 o) {
@@ -1742,16 +2087,6 @@ public class SBS3 implements LongIterable {
     public boolean contains(final long a) {
         final int componentIndex = ComponentsHelper.find(startBlock(a), this);
         return componentIndex >= 0;
-    }
-
-    /*
-    public boolean delete(final long a) {
-        return ComponentsHelper.delete(a, this);
-    }
-    */
-
-    public void insert(final long a) {
-        ComponentsHelper.insert(a, 5, 1.25f, this);
     }
 
     @Override
