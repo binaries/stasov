@@ -207,6 +207,8 @@ class ComponentsHelper {
 
             assert core.validateInvariants();
 
+            assert block <= core.endBlock(core.getComponent(core.end));
+
             int min = 0;
             int max = core.end;
 
@@ -215,7 +217,15 @@ class ComponentsHelper {
 
             //final long qa = SBS3.Conv.createEphemeralQueryComponent(block);
 
-            int c = 0;
+            // the c variables modify (or "bias") the cursor alternately in each direction up and down until
+            // a definitive hit occurs
+            int c = 0; // tracks the current bias value
+            /*
+             * tracks whether c has caused the min or max to be reached
+             * will not continue to modify c in a direction has reached the boundary (min or max)
+             * both cmin and cmax true is an invalid state
+             */
+            boolean cmin = false, cmax = false;
 
             for (;;) {
 
@@ -224,9 +234,15 @@ class ComponentsHelper {
 
                 index0 = min + delta / 2;
                 if (c != 0) {
+                    assert ! (cmin && cmax);
                     index0 = Math.addExact(index0, c);
-                    index0 = Math.max(index0, min);
-                    index0 = Math.min(index0, max);
+                    if (index0 <= min) {
+                        cmin = true;
+                        index0 = min;
+                    } else if (index0 >= max) {
+                        cmax = true;
+                        index0 = max;
+                    }
                 }
 
                 assert index0 >= 0;
@@ -267,9 +283,30 @@ class ComponentsHelper {
                 //assert (previousIndex0 = index0) == 0 || true; // hack to only do this logic within assertion
 
                 //assert index1 != previousIndex1 : "index1: " + index1;
+
                 if (index1 == previousIndex1) {
-                    c = Math.incrementExact(c);
-                    c = Math.multiplyExact(c, -1);
+
+                    int c1 = c;
+                    c1 = Math.multiplyExact(c1, -1);
+                    if (c1 < 0) {
+                        if (!cmin) {
+                            c1 = Math.decrementExact(c1);
+                            c = c1;
+                        } else {
+                            c1 = c;
+                        }
+                    }
+                    if (c1 >= 0) {
+                        if (!cmax) {
+                            c1 = Math.incrementExact(c1);
+                            c = c1;
+                        } else {
+                            throw new IllegalStateException();
+                        }
+                    }
+
+                    //c = Math.incrementExact(c);
+                    //c = Math.multiplyExact(c, -1);
                 } else {
                     c = 0;
                 }
@@ -420,8 +457,6 @@ class ComponentsHelper {
         if (capacityIncreaseFactor <= 1f) throw new IllegalArgumentException();
         if (core == null) throw new IllegalArgumentException();
 
-        assert core.validateInvariants();
-
         final int capacity = core.array.length;
         assert capacity >= core.end;
         assert core.end >= 0;
@@ -511,8 +546,6 @@ class ComponentsHelper {
 
         assert newCapacity >= capacity;
         assert newCapacity > 0;
-
-        assert core.validateInvariants();
 
         return newCapacity;
     }

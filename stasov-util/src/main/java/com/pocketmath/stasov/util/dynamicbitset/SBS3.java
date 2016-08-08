@@ -1,9 +1,7 @@
 package com.pocketmath.stasov.util.dynamicbitset;
 
-import com.pocketmath.stasov.util.StasovArrays;
 import com.pocketmath.stasov.util.validate.ValidationException;
 import com.pocketmath.stasov.util.validate.ValidationRuntimeException;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrays;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongArrays;
@@ -14,7 +12,6 @@ import net.nicoulaj.compilecommand.annotations.Inline;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -299,6 +296,9 @@ public class SBS3 implements LongIterable {
             if (startBlock < 0) throw new IllegalArgumentException();
             if (length <= 0) throw new IllegalArgumentException();
             if (length > maxBlocks()) throw new IllegalArgumentException();
+
+            assert Math.decrementExact(Math.addExact(startBlock, length)) <= maxBlock();
+
             //System.out.println("startBlock: " + Integer.toBinaryString(startBlock));
             //System.out.println("length: " + Integer.toBinaryString(length));
             //System.out.println("length << 2: " + Integer.toBinaryString(length << 2));
@@ -684,10 +684,17 @@ public class SBS3 implements LongIterable {
             if (homogenousSinceBlock < 0)
                 throw new IllegalStateException();
 
-            final int newLength = Math.subtractExact(endBlock, homogenousSinceBlock);
+            final int newLength = Math.incrementExact(Math.subtractExact(endBlock, homogenousSinceBlock));
+
             if (newLength <= 0)
                 throw new IllegalStateException();
+            //if (Math.addExact(homogenousSinceBlock, newLength) > maxBlock())
+            //    throw new IllegalStateException("homogenousSinceBlock: " + homogenousSinceBlock + "; newLength: " + newLength);
+
             final long newA = Conv.createSparse(homogenousSinceBlock, newLength, homogenousValue);
+
+            assert Conv.sparseLength(newA) == newLength;
+
             array.add(newA);
             homogenousSinceBlock = -1;
         }
@@ -767,7 +774,10 @@ public class SBS3 implements LongIterable {
 
         //final long initialCardinality = calculateCardinality();
 
-        for (int i = 0; i < array.length; i++) {
+        assert end >= 0;
+        assert end < array.length;
+
+        for (int i = 0; i <= end; i++) {
             final long a = getComponent(i);
             if (a == EMPTY)
                 continue;
@@ -1111,6 +1121,12 @@ public class SBS3 implements LongIterable {
         return true;
     }
 
+    public boolean validateLastComponentEndsAtMaxBlock() throws ValidationException {
+        if (endBlock(getComponent(end)) != maxBlock())
+            throw new ValidationException("endBlock(getComponent(end)): " + endBlock(getComponent(end)) + "; maxBlock(): " + maxBlock());
+        return true;
+    }
+
     boolean validateInvariants() {
         try {
             if (!validateAllPossibleComponentOrEmpty()) throw new IllegalStateException();
@@ -1120,6 +1136,7 @@ public class SBS3 implements LongIterable {
             if (!validateEmptyMarking()) throw new IllegalStateException();
             if (!validateDenseHaveArrays()) throw new IllegalStateException();
             if (!validateOutsideEndAreEmpty()) throw new IllegalStateException();
+            if (!validateLastComponentEndsAtMaxBlock()) throw new IllegalStateException();
             return true;
         } catch (ValidationException ve) {
             throw new ValidationRuntimeException(ve);
@@ -1128,6 +1145,8 @@ public class SBS3 implements LongIterable {
 
     private boolean setOrClear(final long position, final boolean set) {
         PosConv.requireInBoundsPosition(position);
+
+        assert validateInvariants();
 
         final long a0;
 
@@ -1149,6 +1168,7 @@ public class SBS3 implements LongIterable {
 
                 if (Conv.sparseValue(a) == set) {
                     // no changes required
+                    assert validateInvariants();
                     return false;
                 }
 
@@ -1157,8 +1177,11 @@ public class SBS3 implements LongIterable {
                 // simple, non-optimized split
                 // TODO optimize
 
+                assert validateInvariants();
                 final int split0componentIndex = ComponentsHelper.trySplitBefore(block, this);
+                assert validateInvariants();
                 final int split1componentIndex = ComponentsHelper.trySplitAfter(block, this);
+                assert validateInvariants();
 
                 final int postSplitComponentIndex;
 
@@ -1219,8 +1242,11 @@ public class SBS3 implements LongIterable {
         if (d1 != d) {
             //safd setComponent(componentIndex, d1);
             denseData[offset] = d1;
+            assert validateInvariants();
             return true;
         }
+
+        assert validateInvariants();
         return false;
     }
 
