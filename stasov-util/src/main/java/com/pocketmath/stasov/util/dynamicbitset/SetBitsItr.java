@@ -3,114 +3,125 @@ package com.pocketmath.stasov.util.dynamicbitset;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 
 /**
- * Created by etucker on 5/23/16.
+ * Created by etucker on 8/9/16.
  */
 class SetBitsItr implements LongIterator {
 
     private SBS3 core;
-    boolean inPositiveSparse = false;
-    boolean inDense = false;
+    private long n = -1;
 
-    long sparsePosition = 0;
-    long sparsePositionLength = 0;
-
-    long[] denseData = null;
-    int denseDataIndex = 0;
-    long denseDataItem = 0;
-
-    int denseDataPositionOffset = 0;
-
-    long startPosition = 0;
-    int arrayIndex = 0;
-
-    long nextValue = nextNextLong();
-
-    public SetBitsItr(SBS3 core) {
+    SetBitsItr(final SBS3 core) {
         this.core = core;
+        this.n = nextSetPosition();
     }
 
-    private long nextNextLong() {
+    private int index = -1;
+    private long position = -1;
 
-        loop0:
-        while (arrayIndex < core.end) {
-            if (core.getComponent(arrayIndex) == SBS3.EMPTY) {
-                arrayIndex++;
-                continue;
-            }
-            if (inPositiveSparse) {
-                if (sparsePosition < sparsePositionLength)
-                    return sparsePosition++;
-            } else if (inDense) {
-                if (denseDataIndex < denseData.length) {
-                    if (denseDataPositionOffset < 64) {
-                        final long mask = 1L << denseDataPositionOffset++;
-                        final boolean value = (mask & denseDataItem) == 0;
-                        if (value)
-                            return startPosition + denseDataIndex * 64 + denseDataPositionOffset;
-                    } else {
-                        denseDataItem = denseData[++denseDataIndex];
-                        denseDataPositionOffset = 0;
-                    }
-                }
-            } else {
-                loop1:
-                while (true) {
-                    arrayIndex++;
-                    if (arrayIndex >= core.end)
-                        return -1L;
+    private long denseUntil = -1, sparseUntil = -1;
 
-                    final long a = core.array[arrayIndex];
-                    startPosition = SBS3.Conv.startPosition(a);
+    private long denseStartPosition = -1;
+    private long[] dd = null;
+    private int ddIndex = -1;
+    private long d = SBS3.EMPTY;
+    private short dBitPos = -1;
 
-                    if (SBS3.Conv.isSparse(a)) {
-                        if (!SBS3.Conv.sparseValue(a)) {
-                            continue loop1;
-                        } else {
-                            inPositiveSparse = true;
-                            inDense = false;
+    private boolean inDense() {
+        return denseUntil >= 0 && denseUntil < position;
+    }
 
-                            sparsePosition = 0;
-                            sparsePositionLength = Math.multiplyExact(64, SBS3.Conv.sparseLength(a));
-                            break loop1;
-                        }
-                    } else {
-                        assert (SBS3.Conv.isDense(a));
-                        inPositiveSparse = false;
-                        inDense = true;
-
-                        final int denseIndex = SBS3.Conv.denseIndex(a);
-                        denseDataIndex = 0;
-                        denseData = core.dense[denseIndex];
-                        denseDataItem = denseData[denseDataIndex];
-                        denseDataPositionOffset = 0;
-                        break loop1;
-                    }
-                }
-            }
-        }
-        throw new IllegalStateException();
+    private boolean inSparse() {
+        return sparseUntil >= 0 && denseUntil < position;
     }
 
     @Override
     public long nextLong() {
-        final long retVal = nextValue;
-        if (nextValue >= 0)
-            nextValue = nextNextLong();
-        return retVal;
+        final long r = n;
+        n = nextSetPosition();
+        return r;
     }
 
     @Override
-    public int skip(int n) {
+    public int skip(int i) {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean hasNext() {
-        return nextValue >= 0;
+        return n >= 0;
     }
 
     @Override
     public Long next() {
         return nextLong();
     }
+
+    private long nextSetPosition() {
+        for (;;) {
+
+            position++;
+
+            if (inSparse()) {
+                return position;
+            } else if (inDense()) {
+                for (; ddIndex < dd.length; ddIndex++) {
+                    d = dd[ddIndex];
+                    for (; dBitPos < 64; dBitPos++) {
+                        if (((1L << dBitPos) & d) > 0) {
+                            position =
+                                    Math.addExact(
+                                            Math.addExact(denseStartPosition, ddIndex),
+                                            dBitPos);
+                            return position;
+                        }
+                    }
+                }
+            }
+
+            index++;
+            if (index > core.end) {
+                // set so that these don't infinitely increase causing overflow
+                index--;
+                position = -1;
+
+                return -1L;
+            }
+
+            final long a = core.getComponent(index);
+            if (a == core.EMPTY)
+                continue;
+
+            if (SBS3.Conv.isSparse(a)) {
+                if (SBS3.Conv.sparseValue(a)) {
+                    final int startBlock = SBS3.Conv.startBlock(a);
+                    final int length = SBS3.Conv.sparseLength(a);
+                    final long startPosition = core.startPosition(a);
+                    sparseUntil = Math.addExact(startBlock, length);
+                    position = startPosition;
+                } else {
+                    continue;
+                }
+            } else if (SBS3.Conv.isDense(a)) {
+                final int denseIndex = SBS3.Conv.denseIndex(a);
+                final long[] dd = core.getDenseData(denseIndex);
+                denseUntil = core.endPosition(a);
+                denseStartPosition = SBS3.Conv.startPosition(a);
+                ddIndex = 0;
+                dBitPos = 0;
+                for (; ddIndex < dd.length; ddIndex++) {
+                    d = dd[ddIndex];
+                    for (; dBitPos < 64; dBitPos++) {
+                        if (((1L << dBitPos) & d) > 0) {
+                            position =
+                                    Math.addExact(
+                                        Math.addExact(denseStartPosition, ddIndex),
+                                        dBitPos);
+                            return position;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 }

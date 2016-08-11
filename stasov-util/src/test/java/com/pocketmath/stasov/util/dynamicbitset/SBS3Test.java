@@ -121,7 +121,7 @@ public class SBS3Test {
         }
     }
 
-    @Test(timeOut=(int)(60000*1.5), enabled=true)
+    @Test(enabled=true)
     public void test14() {
         final SBS3 o = new SBS3(1, 16384);
         final int n = 1024*1024;
@@ -577,6 +577,14 @@ public class SBS3Test {
         Assert.assertTrue(o.get(5));
         Assert.assertFalse(o.get(7));
         Assert.assertFalse(o.get(o.maxIntegerPosition()));
+    }
+
+    @Test
+    public void testIterator1() {
+        final SBS3 o = new SBS3();
+
+        SetBitsItr itr = new SetBitsItr(o);
+        Assert.assertFalse(itr.next() > 0);
     }
 
 }

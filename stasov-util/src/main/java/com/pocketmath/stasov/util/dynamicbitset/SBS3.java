@@ -1552,6 +1552,11 @@ public class SBS3 implements LongIterable {
         }
     }
 
+    /**
+     * Returns all positive positions.
+     *
+     * @return
+     */
     public LongIterator positionsIterator() {
         return new SetBitsItr(this);
     }
