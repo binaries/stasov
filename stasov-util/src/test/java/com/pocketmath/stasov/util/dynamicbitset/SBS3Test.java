@@ -621,4 +621,80 @@ public class SBS3Test {
         Assert.assertFalse(itr.next() >= 0);
     }
 
+    @Test
+    public void testIterator4() {
+        final SBS3 o = new SBS3();
+
+        final int n = 1024;
+
+        for (int i = 0; i < n; i++) {
+            if (i % 2 == 0)
+                o.set(i);
+        }
+
+        final Iterator<Long> itr = o.positionsIterator();
+
+        for (int i = 0; i < n / 2; i++) {
+            Assert.assertEquals(itr.next(), new Long(i*2));
+        }
+
+        Assert.assertFalse(itr.hasNext());
+        Assert.assertFalse(itr.next() >= 0);
+    }
+
+    @Test
+    public void testIterator5() {
+        final SBS3 o = new SBS3();
+
+        final int n = 16384;
+
+        for (int i = 0; i < n; i++) {
+            if (i % 256 == 0)
+                o.set(i);
+        }
+
+        final Iterator<Long> itr = o.positionsIterator();
+
+        for (int i = 0; i < n / 256; i++) {
+            Assert.assertEquals(itr.next(), new Long(i*256));
+        }
+
+        Assert.assertFalse(itr.hasNext());
+        Assert.assertFalse(itr.next() >= 0);
+    }
+
+    @Test
+    public void testIterator6() {
+        final SBS3 o = new SBS3();
+
+        o.set(1);
+        o.set(o.maxPosition());
+
+        final Iterator<Long> itr = o.positionsIterator();
+
+        Assert.assertEquals(itr.next(), new Long(1));
+        Assert.assertEquals(itr.next(), new Long(o.maxPosition()));
+
+        Assert.assertFalse(itr.hasNext());
+        Assert.assertFalse(itr.next() >= 0);
+    }
+
+    @Test
+    public void testIterator7() {
+        final SBS3 o = new SBS3();
+
+        o.set(1);
+        o.set(1032);
+        o.set(o.maxPosition());
+
+        final Iterator<Long> itr = o.positionsIterator();
+
+        Assert.assertEquals(itr.next(), new Long(1));
+        Assert.assertEquals(itr.next(), new Long(1032));
+        Assert.assertEquals(itr.next(), new Long(o.maxPosition()));
+
+        Assert.assertFalse(itr.hasNext());
+        Assert.assertFalse(itr.next() >= 0);
+    }
+
 }
