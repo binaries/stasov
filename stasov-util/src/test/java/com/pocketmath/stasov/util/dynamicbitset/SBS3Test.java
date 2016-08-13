@@ -583,8 +583,42 @@ public class SBS3Test {
     public void testIterator1() {
         final SBS3 o = new SBS3();
 
-        SetBitsItr itr = new SetBitsItr(o);
+        final Iterator<Long> itr = o.positionsIterator();
         Assert.assertFalse(itr.next() > 0);
+    }
+
+    @Test
+    public void testIterator2() {
+        final SBS3 o = new SBS3();
+
+        o.set(5);
+
+        final Iterator<Long> itr = o.positionsIterator();
+        Assert.assertTrue(itr.hasNext());
+        Assert.assertEquals(itr.next(), new Long(5));
+        Assert.assertFalse(itr.hasNext());
+        Assert.assertFalse(itr.next() >= 0);
+    }
+
+    @Test
+    public void testIterator3() {
+        final SBS3 o = new SBS3();
+
+        final int n = 1024;
+
+        for (int i = 0; i < n; i++) {
+            o.set(i);
+        }
+
+        final Iterator<Long> itr = o.positionsIterator();
+
+        for (int i = 0; i < n; i++) {
+            Assert.assertTrue(itr.hasNext());
+            Assert.assertEquals(itr.next(), new Long(i));
+        }
+
+        Assert.assertFalse(itr.hasNext());
+        Assert.assertFalse(itr.next() >= 0);
     }
 
 }
