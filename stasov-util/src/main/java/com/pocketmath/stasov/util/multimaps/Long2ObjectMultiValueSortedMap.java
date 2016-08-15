@@ -55,6 +55,10 @@ public class Long2ObjectMultiValueSortedMap<V extends Comparable<V>> extends Abs
         return getSorted(key);
     }
 
+    public ObjectSortedSets.UnmodifiableSortedSet<V> getUnmodifiable(final long key) {
+        throw new UnsupportedOperationException("not yet supported");
+    }
+
     public boolean contains(final long key, final V value) {
         ObjectSortedSet<V> set = map.get(key);
         if (set == null) return false;
@@ -73,12 +77,12 @@ public class Long2ObjectMultiValueSortedMap<V extends Comparable<V>> extends Abs
         return map.containsKey(key);
     }
 
-    public boolean matchesAll(final long[] keys, V value) {
+    public boolean matchesAll(final long[] keys, final V value) {
         if (value == null) throw new IllegalArgumentException("cannot compare null value");
         for (final long key: keys) {
             ObjectSortedSet<V> set = map.get(key);
             if (set == null) return false;
-            if (!set.contains(key)) return false;
+            if (!set.contains(value)) return false;
         }
         return true;
     }
