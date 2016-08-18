@@ -22,6 +22,7 @@
         <module>matcher</module>
         <module>stasov-common</module>
         <module>stasov-util</module>
+        <module>stasov-geo</module>
     </modules>
 
     <build>

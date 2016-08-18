@@ -8,9 +8,10 @@
       <module fileurl="file://$PROJECT_DIR$/attributes-generated-glue/attributes-generated-glue.iml" filepath="$PROJECT_DIR$/attributes-generated-glue/attributes-generated-glue.iml" />
       <module fileurl="file://$PROJECT_DIR$/matcher/matcher.iml" filepath="$PROJECT_DIR$/matcher/matcher.iml" />
       <module fileurl="file://$PROJECT_DIR$/pocketql-grammars/pocketql-grammars.iml" filepath="$PROJECT_DIR$/pocketql-grammars/pocketql-grammars.iml" />
+      <module fileurl="file://$PROJECT_DIR$/stasov.iml" filepath="$PROJECT_DIR$/stasov.iml" />
       <module fileurl="file://$PROJECT_DIR$/stasov-common/stasov-common.iml" filepath="$PROJECT_DIR$/stasov-common/stasov-common.iml" />
+      <module fileurl="file://$PROJECT_DIR$/stasov-geo/stasov-geo.iml" filepath="$PROJECT_DIR$/stasov-geo/stasov-geo.iml" />
       <module fileurl="file://$PROJECT_DIR$/stasov-util/stasov-util.iml" filepath="$PROJECT_DIR$/stasov-util/stasov-util.iml" />
-      <module fileurl="file://$PROJECT_DIR$/stasov4.iml" filepath="$PROJECT_DIR$/stasov4.iml" />
     </modules>
   </component>
 </project>

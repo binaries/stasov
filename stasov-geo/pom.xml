@@ -6,37 +6,22 @@
         <artifactId>com.pocketmath.stasov</artifactId>
         <groupId>com.pocketmath</groupId>
         <version>1.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>attributes</artifactId>
+    <artifactId>stasov-geo</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>com.pocketmath</groupId>
-            <artifactId>attributes-common</artifactId>
+            <artifactId>stasov-util</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.pocketmath</groupId>
-            <artifactId>stasov-geo</artifactId>
+            <artifactId>stasov-common</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.3</version>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>

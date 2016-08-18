@@ -18,61 +18,27 @@
       <profile default="true" name="Default" enabled="false">
         <processorPath useClasspath="true" />
       </profile>
-      <profile default="false" name="Annotation profile for pocketql-grammars" enabled="true">
+      <profile default="false" name="Annotation profile for stasov-latlon" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="true" />
-        <module name="pocketql-grammars" />
+        <module name="stasov-latlon" />
       </profile>
-      <profile default="false" name="Annotation profile for stasov-util" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="true" />
-        <module name="stasov-util" />
-      </profile>
-      <profile default="false" name="Annotation profile for attributes" enabled="true">
+      <profile default="false" name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="true" />
         <module name="attributes" />
-      </profile>
-      <profile default="false" name="Annotation profile for attributes-devel" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="true" />
-        <module name="attributes-devel" />
-      </profile>
-      <profile default="false" name="Annotation profile for stasov-common" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="true" />
-        <module name="stasov-common" />
-      </profile>
-      <profile default="false" name="Annotation profile for attributes-generated-glue" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="true" />
-        <module name="attributes-generated-glue" />
-      </profile>
-      <profile default="false" name="Annotation profile for attributes-common" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="true" />
         <module name="attributes-common" />
-      </profile>
-      <profile default="false" name="Annotation profile for matcher" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="true" />
+        <module name="attributes-devel" />
+        <module name="attributes-generated-glue" />
         <module name="matcher" />
+        <module name="pocketql-grammars" />
+        <module name="stasov-common" />
+        <module name="stasov-geo" />
+        <module name="stasov-util" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -82,7 +48,10 @@
       <module name="attributes-generated-glue" target="1.8" />
       <module name="matcher" target="1.8" />
       <module name="pocketql-grammars" target="1.8" />
+      <module name="stasov" target="1.8" />
       <module name="stasov-common" target="1.8" />
+      <module name="stasov-geo" target="1.8" />
+      <module name="stasov-latlon" target="1.8" />
       <module name="stasov-util" target="1.8" />
       <module name="stasov4" target="1.8" />
     </bytecodeTargetLevel>
