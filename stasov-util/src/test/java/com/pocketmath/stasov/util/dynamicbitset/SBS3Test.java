@@ -400,11 +400,14 @@ public class SBS3Test {
     }
 
     @Test
-    public void testIterator() {
+    public void testIterator0() {
         final SBS3 o = new SBS3();
         final BitSet bsl = new BitSet();
         for (int i = 0; i < 1024; i++) {
-            if (i % 2 == 0) o.set(i);
+            if (i % 2 == 0) {
+                o.set(i);
+                bsl.set(i);
+            }
         }
 
         final TreeSet<Long> oResults = new TreeSet<Long>();
