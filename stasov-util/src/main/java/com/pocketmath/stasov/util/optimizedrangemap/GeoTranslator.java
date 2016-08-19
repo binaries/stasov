@@ -72,19 +72,19 @@ public class GeoTranslator<T extends Comparable<T>> {
         }
     }
 
-    private final OptiRangeMap<T,Value,Entry> {
+ //   private final OptiRangeMap<T,Value,Entry> {
+//
+//    }
 
-    }
+//    private final AbstractOptiDoubleRangeMap<T> rmap = new AbstractOptiDoubleRangeMap<T>() {
+//        @Override
+//        protected OptiDoubleRMEntry<T> newEntry(@Nonnull Double x0, @Nonnull Double x1, @Nonnull T t) {
+//            return new Entry<T>();
+//        }
+//    };
 
-    private final AbstractOptiDoubleRangeMap<T> rmap = new AbstractOptiDoubleRangeMap<T>() {
-        @Override
-        protected OptiDoubleRMEntry<T> newEntry(@Nonnull Double x0, @Nonnull Double x1, @Nonnull T t) {
-            return new Entry<T>();
-        }
-    };
-
-    public void put(final double lat, final double lon, final double resolution) {
-        rmap
-    }
+//    public void put(final double lat, final double lon, final double resolution) {
+//        rmap
+//    }
 
 }

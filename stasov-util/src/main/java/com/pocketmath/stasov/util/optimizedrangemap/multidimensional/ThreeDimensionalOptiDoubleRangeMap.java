@@ -17,6 +17,7 @@ import java.util.function.Consumer;
  */
 public class ThreeDimensionalOptiDoubleRangeMap<T extends Comparable<T>> {
 
+    /*
     private static final int DIMENSIONS = 3;
 
     final MultiDimensionalComponentOptiDoubleRangeMap<T>
@@ -33,7 +34,9 @@ public class ThreeDimensionalOptiDoubleRangeMap<T extends Comparable<T>> {
         mapY.put(y0, y1, t);
         mapZ.put(z0, z1, t);
     }
+    */
 
+    /*
     public void forEachEntry(
             final double x,
             final double y,
@@ -63,12 +66,14 @@ public class ThreeDimensionalOptiDoubleRangeMap<T extends Comparable<T>> {
             return new MultiDimensionalComponentOptiDoubleRMEntry<>(x0, x1, t, dimensions);
         }
     }
-
+*/
+    /*
     public static class ThreeDimensionalResult<T> implements Comparable<ThreeDimensionalResult<T>> {
         private double x,y,z;
         private final T t;
         public void
     }
+    */
 
 
     public static class MultiDimensionalComponentOptiDoubleRMEntry<T extends Comparable<T>> extends OptiDoubleRMEntry<T> {

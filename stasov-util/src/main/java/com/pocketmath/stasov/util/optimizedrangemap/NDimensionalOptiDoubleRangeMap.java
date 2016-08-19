@@ -9,7 +9,7 @@ import java.util.function.Consumer;
  * Created by etucker on 2/5/16.
  */
 public class NDimensionalOptiDoubleRangeMap<T extends Comparable<T>> {
-
+/*
     final Int2ObjectMap<AbstractOptiDoubleRangeMap<T>> maps = new Int2ObjectLinkedOpenHashMap<>();
 
     public void put(final double[][] x, final T t) {
@@ -34,6 +34,7 @@ public class NDimensionalOptiDoubleRangeMap<T extends Comparable<T>> {
             m.forEach(x[i], consumer);
         }
     }
+*/
 
     public void remove(final float[][] x, final T t) {
         throw new UnsupportedOperationException("not yet implemented");

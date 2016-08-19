@@ -38,7 +38,7 @@ public abstract class AbstractOptiDoubleRangeMap<T extends Comparable<T>, E exte
                     consumer.accept(entry);
     }
 
-    public void forEachEntry(final Double x, final Consumer<AbstractOptiDoubleRangeMap<T>> consumer) {
+    public void forEachEntry(final Double x, final Consumer<AbstractOptiDoubleRangeMap<T,E>> consumer) {
         forEachEntry(x.doubleValue(), consumer);
     }
 

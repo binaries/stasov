@@ -10,8 +10,8 @@ import java.util.Objects;
  */
 public class LatLonMap<O extends Comparable<O>> {
 
-    public static final float BOGUS_LAT_LON_SCORE = -DEFAULT_MATCH_SCORE;
-    public static final float PROBABLE_BOGUS_MATCH_SCORE = DEFAULT_MATCH_SCORE / 2f;
+   // public static final float BOGUS_LAT_LON_SCORE = -DEFAULT_MATCH_SCORE;
+   // public static final float PROBABLE_BOGUS_MATCH_SCORE = DEFAULT_MATCH_SCORE / 2f;
 
     static class Value<AreaType extends Area, O extends Comparable<O>> implements Comparable<Value<AreaType,O>> {
         final private AreaType area;
@@ -24,11 +24,11 @@ public class LatLonMap<O extends Comparable<O>> {
 
         @Override
         public int compareTo(Value<AreaType,O> o) {
-            int r =
+            throw new UnsupportedOperationException("not yet implemented");
         }
     }
 
-    private OptiDoubleRangeMap<Value> map = new OptiDoubleRangeMap<>();
+    //private OptiDoubleRangeMap<Value> map = new OptiDoubleRangeMap<>();
 
     /**
      *
@@ -36,7 +36,7 @@ public class LatLonMap<O extends Comparable<O>> {
      * @return First element
      */
     public float[] inBounds() {
-
+        throw new UnsupportedOperationException("not yet implemented");
     }
 
 }

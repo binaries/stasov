@@ -7,6 +7,7 @@ import java.util.Objects;
 /**
  * Created by etucker on 2/9/16.
  */
+/*
 class CircleArea extends Area implements Comparable<CircleArea> {
 
     // in degrees
@@ -65,7 +66,7 @@ class CircleArea extends Area implements Comparable<CircleArea> {
     }
 
     @Override
-    Result inScored(double latitude, double longitude) {
+    Result scoredIn(double latitude, double longitude) {
         // TODO: Optimize?
         final double distanceRadians = DistanceUtils.distHaversineRAD(latitude, longitude, getLatitude(), getLongitude());
         final double distanceDegrees = DistanceUtils.toDegrees(distanceRadians);
@@ -81,6 +82,8 @@ class CircleArea extends Area implements Comparable<CircleArea> {
         if (longitude == 0d) bogus += 0.3f;
         if (latitude == longitude) bogus += 0.3f;
         if (distanceKilometers > DistanceUtils.EARTH_EQUATORIAL_RADIUS_KM) bogus += 0.3f;
+
+        throw new UnsupportedOperationException("not yet implemented");
     }
 
     @Override
@@ -108,3 +111,4 @@ class CircleArea extends Area implements Comparable<CircleArea> {
         return Objects.hash(getLatitude(), getLongitude(), getRadiusKM());
     }
 }
+*/
