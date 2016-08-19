@@ -400,38 +400,6 @@ public class SBS3Test {
     }
 
     @Test
-    public void testIterator0() {
-        final SBS3 o = new SBS3();
-        final BitSet bsl = new BitSet();
-        for (int i = 0; i < 1024; i++) {
-            if (i % 2 == 0) {
-                o.set(i);
-                bsl.set(i);
-            }
-        }
-
-        final TreeSet<Long> oResults = new TreeSet<Long>();
-        final LongIterator oItr = o.positionsIterator();
-        while (oItr.hasNext()) {
-            final long position = oItr.nextLong();
-            Assert.assertFalse(oResults.contains(position), "duplicate found at position: " + position);
-            oResults.add(position);
-        }
-
-        for (final long position : oResults) {
-            Assert.assertTrue(o.get(position));
-            Assert.assertTrue(bsl.get((int)position));
-        }
-
-        for (int i = bsl.nextSetBit(0); i >= 0; i = bsl.nextSetBit(i+1)) {
-            final boolean expected = bsl.get(i);
-            final boolean actual = o.get(i);
-            Assert.assertEquals(actual, expected);
-        }
-
-    }
-
-    @Test
     public void testAnd1() {
         final SBS3 o1 = new SBS3();
         final SBS3 o2 = new SBS3();
@@ -580,6 +548,38 @@ public class SBS3Test {
         Assert.assertTrue(o.get(5));
         Assert.assertFalse(o.get(7));
         Assert.assertFalse(o.get(o.maxIntegerPosition()));
+    }
+
+    @Test
+    public void testIterator0() {
+        final SBS3 o = new SBS3();
+        final BitSet bsl = new BitSet();
+        for (int i = 0; i < 1024; i++) {
+            if (i % 2 == 0) {
+                o.set(i);
+                bsl.set(i);
+            }
+        }
+
+        final TreeSet<Long> oResults = new TreeSet<Long>();
+        final LongIterator oItr = o.positionsIterator();
+        while (oItr.hasNext()) {
+            final long position = oItr.nextLong();
+            Assert.assertFalse(oResults.contains(position), "duplicate found at position: " + position);
+            oResults.add(position);
+        }
+
+        for (final long position : oResults) {
+            Assert.assertTrue(o.get(position));
+            Assert.assertTrue(bsl.get((int)position));
+        }
+
+        for (int i = bsl.nextSetBit(0); i >= 0; i = bsl.nextSetBit(i+1)) {
+            final boolean expected = bsl.get(i);
+            final boolean actual = o.get(i);
+            Assert.assertEquals(actual, expected);
+        }
+
     }
 
     @Test
