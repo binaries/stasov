@@ -121,7 +121,7 @@ public class SBS3Test {
         }
     }
 
-    @Test(enabled=true)
+    @Test(enabled=false)
     public void test14() {
         final SBS3 o = new SBS3(1, 16384);
         final int n = 1024*1024;
@@ -132,7 +132,7 @@ public class SBS3Test {
         }
     }
 
-    @Test(timeOut=(int)(60000*1.5), enabled=true)
+    @Test(enabled=false,timeOut=(int)(60000*1.5))
     public void test15() {
         final SBS3 o = new SBS3(1, 16384);
         final int n = 1024*1024;
