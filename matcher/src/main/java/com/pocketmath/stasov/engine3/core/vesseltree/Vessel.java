@@ -6,6 +6,8 @@ import com.pocketmath.stasov.util.multimaps2.array.AbstractLong2Long2ArrayHashMa
 import com.pocketmath.stasov.util.multimaps2.array.IArraySet;
 import com.pocketmath.stasov.util.multimaps2.array.StasovArraySet;
 import com.pocketmath.stasov.util.validate.ValidationException;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -50,10 +52,24 @@ public class Vessel implements Comparable<Vessel> {
 
     private SBS3 bitset = new SBS3();
     private MapImpl inclusions = null, exclusions = null;
+    private long[] attributeIdsCached = null;
 
     public Vessel(final long id) {
         if (id < 0) throw new IllegalArgumentException();
         this.id = id;
+    }
+
+    protected boolean containsAttributeId(final long attributeId) {
+        return inclusions.containsKey(attributeId) || exclusions.containsKey(attributeId);
+    }
+
+    public long[] getAttributeIds() {
+        if (attributeIdsCached == null) {
+            final LongSet combined = new LongOpenHashSet(inclusions.getKeys1());
+            combined.addAll(exclusions.getKeys1());
+            attributeIdsCached = combined.toLongArray();
+        }
+        return attributeIdsCached;
     }
 
     public void addInclusion(final long attributeId, final long valueId, @NotNull final Vessel vessel) throws VesselModificationException {
@@ -67,6 +83,8 @@ public class Vessel implements Comparable<Vessel> {
         if (inclusions == null)
             inclusions = new MapImpl();
         inclusions.put(attributeId, valueId, vessel);
+        if (!containsAttributeId(attributeId))
+            attributeIdsCached = null;
     }
 
     public void addInclusions(final long[] attributeIds, final long[] valueIds, @NotNull final Vessel[] vessels) throws VesselModificationException {
@@ -87,6 +105,8 @@ public class Vessel implements Comparable<Vessel> {
         if (exclusions == null)
             exclusions = new MapImpl();
         exclusions.put(attributeId, valueId, vessel);
+        if (!containsAttributeId(attributeId))
+            attributeIdsCached = null;
     }
 
     public void addExclusions(final long[] attributeIds, @NotNull final long[] valueIds, @NotNull final Vessel vessel) throws VesselModificationException {
