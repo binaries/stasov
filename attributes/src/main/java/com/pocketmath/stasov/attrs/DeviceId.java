@@ -1,8 +1,7 @@
 package com.pocketmath.stasov.attrs;
 
-import com.pocketmath.stasov.attributes.AttributeHandler;
+import com.pocketmath.stasov.attributes.handler.base.AttributeHandler;
 import com.pocketmath.stasov.attributes.AttributeType;
-import com.pocketmath.stasov.attributes.Order;
 
 /**
  * Created by etucker on 3/30/15.

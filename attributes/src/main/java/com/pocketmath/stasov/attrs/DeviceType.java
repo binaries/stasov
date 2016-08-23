@@ -1,6 +1,6 @@
 package com.pocketmath.stasov.attrs;
 
-import com.pocketmath.stasov.attributes.AttributeHandler;
+import com.pocketmath.stasov.attributes.handler.base.AttributeHandler;
 import com.pocketmath.stasov.attributes.AttributeType;
 
 /**
