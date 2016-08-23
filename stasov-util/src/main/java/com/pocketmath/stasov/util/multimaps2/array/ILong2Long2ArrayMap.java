@@ -2,12 +2,18 @@ package com.pocketmath.stasov.util.multimaps2.array;
 
 import it.unimi.dsi.fastutil.longs.LongSet;
 
+import java.util.Collection;
+
 /**
  * Created by etucker on 8/22/16.
  */
 public interface ILong2Long2ArrayMap<V> {
 
     public IArraySet<V> getArraySet(final long key1, final long key2);
+
+    public void addEach(final long key1, final long key2, final Collection<V> collector);
+
+    public void addEach(final long key1, final long[] keys2, final Collection<V> collector);
 
     public void put(final long key1, final long key2, final V value);
 

@@ -3,6 +3,8 @@ package com.pocketmath.stasov.util.multimaps2.array;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.LongSet;
 
+import java.util.Collection;
+
 /**
  * Created by etucker on 8/22/16.
  */
@@ -22,6 +24,40 @@ public abstract class AbstractLong2Long2ArrayMap<V> implements ILong2Long2ArrayM
         if (t2 == null) return null;
         final IArraySet<V> t3 = t2.get(key2);
         return t3;
+    }
+
+    @Override
+    public void addEach(final long key1, final long key2, final Collection<V> collector) {
+        final Long2ObjectMap<IArraySet<V>> t2 = map.get(key1);
+        if (t2 == null)
+            return;
+        final IArraySet<V> t3 = t2.get(key2);
+        if (t3 == null)
+            return;
+        final int t3EndIndex = t3.endIndex();
+        for (int i = t3.startIndex(); i <= t3EndIndex; i++) {
+            final V item = t3.get(i);
+            assert item != null;
+            collector.add(item);
+        }
+    }
+
+    @Override
+    public void addEach(final long key1, final long[] keys2, final Collection<V> collector) {
+        final Long2ObjectMap<IArraySet<V>> t2 = map.get(key1);
+        if (t2 == null)
+            return;
+        for (final long key2 : keys2) {
+            final IArraySet<V> t3 = t2.get(key2);
+            if (t3 == null)
+                return;
+            final int t3EndIndex = t3.endIndex();
+            for (int i = t3.startIndex(); i <= t3EndIndex; i++) {
+                final V item = t3.get(i);
+                assert item != null;
+                collector.add(item);
+            }
+        }
     }
 
     @Override
@@ -162,4 +198,5 @@ public abstract class AbstractLong2Long2ArrayMap<V> implements ILong2Long2ArrayM
     public String prettyPrint(String prefix, String key1Prefix, String key2Prefix, String valuePrefix) {
         return null;
     }
+
 }

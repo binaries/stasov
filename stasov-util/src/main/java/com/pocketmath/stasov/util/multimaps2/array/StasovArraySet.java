@@ -91,7 +91,7 @@ public abstract class StasovArraySet<V> implements IArraySet<V> {
         this(comparator, values, false);
     }
 
-    abstract V[] newArray(final int size);
+    protected abstract V[] newArray(final int size);
 
     protected void resize(final int newCapacity) {
         if (newCapacity < size())
