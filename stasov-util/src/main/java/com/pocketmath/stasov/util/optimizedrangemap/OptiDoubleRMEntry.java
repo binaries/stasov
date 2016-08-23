@@ -2,12 +2,13 @@ package com.pocketmath.stasov.util.optimizedrangemap;
 
 import com.pocketmath.stasov.util.validate.ValidationException;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * Created by etucker on 2/7/16.
  */
-public class OptiDoubleRMEntry<T extends Comparable<T>> extends AbstractOptiRMEntry<T, Double> {
+public class OptiDoubleRMEntry<T extends Comparable<T>> extends AbstractOptiRMEntry<T, Double> implements Serializable {
 
     final double x0;
     final double x1;

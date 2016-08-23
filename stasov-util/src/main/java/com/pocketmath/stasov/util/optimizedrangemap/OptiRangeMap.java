@@ -10,10 +10,15 @@ import com.pocketmath.stasov.util.validate.ValidationRuntimeException;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 
+import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Optimized to maintain fast range matching with adaptive block (interval) size.
@@ -66,6 +71,9 @@ public abstract class OptiRangeMap<T extends Comparable<T>, K extends Comparable
     protected abstract E newEntry(@Nonnull final K x0, @Nonnull final K x1, @Nonnull final T t);
 
     public void put(@Nonnull final K x0, @Nonnull final K x1, @Nonnull final T t) {
+        Objects.requireNonNull(x0);
+        Objects.requireNonNull(x1);
+        Objects.requireNonNull(t);
         final long x0scaled = calcScaled(x0);
         final long x1scaled = calcScaled(x1);
         try {
@@ -76,6 +84,7 @@ public abstract class OptiRangeMap<T extends Comparable<T>, K extends Comparable
     }
 
     protected void fastPut(@Nonnull final E entry) {
+        assert(entry != null);
         final long x0scaled = calcScaled(entry.getX0());
         final long x1scaled = calcScaled(entry.getX1());
         final T t = entry.getT();
@@ -87,11 +96,13 @@ public abstract class OptiRangeMap<T extends Comparable<T>, K extends Comparable
     }
 
     protected void put(@Nonnull final E entry) throws ValidationException {
+        Objects.requireNonNull(entry);
         entry.validate();
         fastPut(entry);
     }
 
     public void forEachEntry(final K x, final Consumer<E> consumer) {
+        assert(consumer != null);
         final long xscaled = calcScaled(x);
         for (final long interval : getIntervals())
             for (final E entry : getPossibilities(xscaled, interval))
@@ -103,12 +114,40 @@ public abstract class OptiRangeMap<T extends Comparable<T>, K extends Comparable
         return map.get( x - x % interval );
     }
 
+    public void remove(@Nonnull final K x, @Nonnull final T t) {
+        Objects.requireNonNull(x);
+        Objects.requireNonNull(t);
+        final long xscaled = calcScaled(x);
+        for (final long interval : getIntervals())
+            for (final E entry : getPossibilities(xscaled, interval))
+                if (entry.inBounds(x) && entry.getT().equals(t)) {
+                    map.remove(xscaled, entry);
+                    intervalToEntries.remove(interval, entry);
+                }
+    }
+
+    public void removeConditionally(@Nonnull final K x, @Nonnull final Function<E,Boolean> removalTest) {
+        Objects.requireNonNull(x);
+        Objects.requireNonNull(removalTest);
+        final long xscaled = calcScaled(x);
+        for (final long interval : getIntervals()) {
+            for (final E entry : getPossibilities(xscaled, interval)) {
+                if (entry.inBounds(x) && removalTest.apply(entry)) { // TODO: Optimize by reducing redundant calls to removalTest.apply.
+                    map.remove(xscaled, entry);
+                    intervalToEntries.remove(interval, entry);
+                }
+            }
+        }
+    }
+
     protected LongSet getIntervals() {
         return intervalToEntries.getKeys();
     }
 
     private long calculateNewInterval() {
         final int maxOccurrences = 10;
+
+        if (this.interval <= 0) throw new IllegalStateException("current interval was less than or equal to zero: " + this.interval);
 
         final LongSet keys = map.getKeys();
 
@@ -122,10 +161,14 @@ public abstract class OptiRangeMap<T extends Comparable<T>, K extends Comparable
             }
         }
         // Change is important.  Ensure it.
+        if (newInterval > Long.MAX_VALUE / (Math.max(tuneFactor, 2))) newInterval = (long)( Long.MAX_VALUE / (double)Math.max(tuneFactor, 2d));
         if (newInterval == interval) newInterval *= 1D / tuneFactor;
-        if (newInterval == interval) newInterval = (long)(newInterval * 0.75d) + ThreadLocalRandom.current().nextLong(newInterval) / 2;
-        if (newInterval == interval) newInterval = (long)(initialInterval * 0.75d) + ThreadLocalRandom.current().nextLong(initialInterval) / 2;
+        if (newInterval == interval) newInterval = (long)((newInterval * 0.75d) + ThreadLocalRandom.current().nextLong(newInterval) / 2d);
+        if (newInterval == interval) newInterval = (long)((initialInterval * 0.75d) + ThreadLocalRandom.current().nextLong(initialInterval) / 2d);
         if (newInterval == interval) newInterval = initialInterval;
+        if (newInterval == interval) newInterval =
+                ThreadLocalRandom.current().nextBoolean() ? newInterval + 1 : Math.max(1, newInterval - 1);
+        if (newInterval == 0) throw new IllegalStateException();
         if (newInterval == interval) throw new IllegalStateException();
 
         newInterval = Math.max(1L, newInterval);
@@ -136,6 +179,12 @@ public abstract class OptiRangeMap<T extends Comparable<T>, K extends Comparable
 
     private void doMaintain(final int n) {
         if (n <= 0) throw new IllegalArgumentException();
+
+        final long size = map.size();
+        if (n > size / 2f) {
+            Logger.getLogger(getClass().getName())
+                    .log(Level.WARNING, "max items was more than half the size of the structure: maxItems: " + n + ", size: " + size);
+        }
 
         if (putsSinceLastIntervalCalculation >= newIntervalCalculationAfterNPuts) {
             interval = calculateNewInterval();
@@ -166,7 +215,7 @@ public abstract class OptiRangeMap<T extends Comparable<T>, K extends Comparable
      *
      * @param maxItems The maximum number of items (or entries) upon which to perform maintenance.
      */
-    public synchronized void maintain(final int maxItems) {
+    public synchronized void maintain(@Nonnegative final int maxItems) {
         doMaintain(maxItems);
     }
 

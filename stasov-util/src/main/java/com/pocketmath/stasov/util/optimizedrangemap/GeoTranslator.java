@@ -24,7 +24,7 @@ public class GeoTranslator<T extends Comparable<T>> {
             return 0;
         }
     }
-
+/*
     private class Entry<T extends Comparable<T>> extends AbstractOptiRMEntry<T,Value> {
         private final double lat, lon, resolution;
 
@@ -86,5 +86,5 @@ public class GeoTranslator<T extends Comparable<T>> {
     public void put(final double lat, final double lon, final double resolution) {
         rmap
     }
-
+*/
 }
