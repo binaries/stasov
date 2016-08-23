@@ -3,6 +3,7 @@ package com.pocketmath.stasov.util.multimaps;
 import com.pocketmath.stasov.util.PrettyPrintable;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
+import it.unimi.dsi.fastutil.objects.ObjectSets;
 
 import java.util.Set;
 
@@ -21,6 +22,8 @@ public interface ILong2Long2ObjectMultiValueMap<V> extends PrettyPrintable {
 
     public ObjectSet<V> get(final long key1, final long key2);
 
+    public ObjectSets.UnmodifiableSet<V> getUnmodifiable(final long key1, final long key2);
+
     public LongSet getKeys1();
 
     public LongSet getKeys2(final long key1);
@@ -31,6 +34,13 @@ public interface ILong2Long2ObjectMultiValueMap<V> extends PrettyPrintable {
 
     public void remove(final long key1, final long key2, final long value);
 
+    /**
+     *
+     * @param key1
+     * @param keys2
+     * @param value
+     * @return true if all the keys2 are found
+     */
     public boolean matchesAll(final long key1, final long[] keys2, final V value);
 
     public boolean isEmpty();

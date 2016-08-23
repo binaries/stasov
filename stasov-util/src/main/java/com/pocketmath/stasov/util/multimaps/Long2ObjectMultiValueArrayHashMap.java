@@ -10,10 +10,11 @@ import it.unimi.dsi.fastutil.objects.ObjectSet;
 import it.unimi.dsi.fastutil.objects.ObjectSets;
 
 /**
- * Created by etucker on 2/3/16.
+ * Created by etucker on 8/20/16.
  */
-public class Long2ObjectMultiValueHashMap<V> extends AbstractMultiValueMap<V>
+public class Long2ObjectMultiValueArrayHashMap<V> extends AbstractMultiValueMap<V>
         implements ILong2ObjectMultiValueMap<V> {
+
 
     private Long2ObjectMap<ObjectSet<V>> map = new Long2ObjectOpenHashMap<>();
 
@@ -24,11 +25,11 @@ public class Long2ObjectMultiValueHashMap<V> extends AbstractMultiValueMap<V>
     /**
      * @param valuesIndexAlgorithm Used as the algorithm to store sets of values which have the same keys.  Note internally hash is used in all other mappings.
      */
-    public Long2ObjectMultiValueHashMap(final IndexAlgorithm valuesIndexAlgorithm) {
+    public Long2ObjectMultiValueArrayHashMap(final IndexAlgorithm valuesIndexAlgorithm) {
         this.valuesIndexAlgorithm = valuesIndexAlgorithm;
     }
 
-    public Long2ObjectMultiValueHashMap() {
+    public Long2ObjectMultiValueArrayHashMap() {
         this(IndexAlgorithm.HASH);
     }
 

@@ -4,6 +4,7 @@ import com.pocketmath.stasov.util.PrettyPrintable;
 import com.pocketmath.stasov.util.IndexAlgorithm;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
+import it.unimi.dsi.fastutil.objects.ObjectSets;
 import it.unimi.dsi.fastutil.objects.ObjectSortedSet;
 
 import java.util.Comparator;
@@ -78,6 +79,11 @@ public class Long2Long2ObjectMultiValueSortedMap<V extends Comparable<V>> extend
     public LongSet getKeys2(final long key1) {
         final Long2ObjectMultiValueSortedMap<V> subMap = map.get(key1);
         return (subMap == null) ? null : subMap.getKeys();
+    }
+
+    @Override
+    public ObjectSets.UnmodifiableSet<V> getUnmodifiable(long key1, long key2) {
+        throw new UnsupportedOperationException("not yet supported");
     }
 
     @Override

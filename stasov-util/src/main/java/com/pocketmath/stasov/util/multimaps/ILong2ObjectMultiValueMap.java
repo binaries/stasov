@@ -2,6 +2,7 @@ package com.pocketmath.stasov.util.multimaps;
 
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
+import it.unimi.dsi.fastutil.objects.ObjectSets;
 import it.unimi.dsi.fastutil.objects.ObjectSortedSet;
 
 /**
@@ -14,6 +15,8 @@ public interface ILong2ObjectMultiValueMap<V> {
     public abstract boolean containsKey(final long key);
 
     public ObjectSet<V> get(final long key);
+
+    public ObjectSets.UnmodifiableSet<V> getUnmodifiable(final long key);
 
     public void remove(final long key);
 

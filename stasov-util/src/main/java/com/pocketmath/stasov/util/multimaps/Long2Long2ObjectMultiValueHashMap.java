@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
+import it.unimi.dsi.fastutil.objects.ObjectSets;
 
 /**
  * Created by etucker on 2/3/16.
@@ -29,11 +30,15 @@ public class Long2Long2ObjectMultiValueHashMap<V extends Comparable<V>> implemen
         this(IndexAlgorithm.HASH);
     }
 
+    protected ILong2ObjectMultiValueMap<V> newSecondLevelMap() {
+        return new Long2ObjectMultiValueHashMap<>(valuesIndexAlgorithm);
+    }
+
     @Override
     public void put(long key1, long key2, V value) {
         ILong2ObjectMultiValueMap<V> map2 = map.get(key1);
         if (map2 == null) {
-            map2 = new Long2ObjectMultiValueHashMap<>(valuesIndexAlgorithm);
+            map2 = newSecondLevelMap();
             map.put(key1, map2);
         }
         map2.put(key2, value);
@@ -63,6 +68,13 @@ public class Long2Long2ObjectMultiValueHashMap<V extends Comparable<V>> implemen
         final ILong2ObjectMultiValueMap<V> map2 = map.get(key1);
         if (map2 == null) return null;
         return map2.get(key2);
+    }
+
+    @Override
+    public ObjectSets.UnmodifiableSet<V> getUnmodifiable(long key1, long key2) {
+        final ILong2ObjectMultiValueMap<V> map2 = map.get(key1);
+        if (map2 == null) return null;
+        return map2.getUnmodifiable(key2);
     }
 
     @Override

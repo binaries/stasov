@@ -6,7 +6,7 @@ import it.unimi.dsi.fastutil.longs.*;
 /**
  * Created by etucker on 3/26/15.
  */
-public class Long2LongMultiValueSortedMap<V extends Comparable<V>> extends AbstractSortedMultiValueMap<V> {
+public class Long2LongMultiValueSortedMap extends AbstractSortedMultiValueMap<Long> implements ILong2LongMultiValueSortedMap {
 
     private final Long2ObjectMap<LongSortedSet> map;
 
@@ -23,6 +23,7 @@ public class Long2LongMultiValueSortedMap<V extends Comparable<V>> extends Abstr
         this(IndexAlgorithm.AVL);
     }
 
+    @Override
     public void put(final long key, final long value) {
         LongSortedSet set = map.get(key);
         if (set == null) {
@@ -36,24 +37,29 @@ public class Long2LongMultiValueSortedMap<V extends Comparable<V>> extends Abstr
         set.add(value);
     }
 
+    @Override
     public void fastPut(final long key, final LongSortedSet set) {
         map.put(key, set);
     }
 
+    @Override
     public LongSortedSet getSorted(final long key) {
         return map.get(key);
     }
 
+    @Override
     public boolean contains(final long key, final long value) {
         LongSortedSet set = map.get(key);
         if (set == null) return false;
         return set.contains(value);
     }
 
+    @Override
     public boolean containsKey(final long key) {
         return map.containsKey(key);
     }
 
+    @Override
     public void remove(final long key, final long value) {
         final LongSortedSet set = map.get(key);
         if (set != null) set.remove(value);
@@ -61,14 +67,17 @@ public class Long2LongMultiValueSortedMap<V extends Comparable<V>> extends Abstr
         if (set.isEmpty()) map.remove(key);
     }
 
+    @Override
     public void remove(final long key) {
         map.remove(key);
     }
 
+    @Override
     public LongSet getKeys() {
         return map.keySet();
     }
 
+    @Override
     public void clear() {
         map.clear();
     }
