@@ -1,76 +1,97 @@
 package com.pocketmath.stasov.engine3.core.vesseltree;
 
-import com.pocketmath.stasov.util.IndexAlgorithm;
+import com.pocketmath.stasov.attributes.validation.AttributesValidation;
 import com.pocketmath.stasov.util.dynamicbitset.SBS3;
-import com.pocketmath.stasov.util.multimaps.*;
+import com.pocketmath.stasov.util.multimaps2.array.AbstractLong2Long2ArrayHashMap;
+import com.pocketmath.stasov.util.multimaps2.array.IArraySet;
+import com.pocketmath.stasov.util.multimaps2.array.StasovArraySet;
+import com.pocketmath.stasov.util.validate.ValidationException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Objects;
 
 /**
  * Created by etucker on 8/14/16.
  */
 public class Vessel implements Comparable<Vessel> {
 
-    private static class MapImpl extends Long2ObjectMultiValueHashReadCachedMap<Vessel> {
-        public MapImpl() {
-            super(IndexAlgorithm.HASH);
+    private static final transient Comparator<Vessel> COMPARATOR = new Comparator<Vessel>() {
+        @org.jetbrains.annotations.Contract(pure = true)
+        @Override
+        public int compare(final Vessel o1, final Vessel o2) {
+            final int retVal = Long.compare(o1.id, o2.id);
+            return retVal;
+        }
+    };
+
+    private static class SetImpl extends StasovArraySet<Vessel> {
+
+        public SetImpl() {
+            super(COMPARATOR, 1);
         }
 
         @Override
-        protected Vessel[] newValuesArray(int size) {
+        protected Vessel[] newArray(int size) {
             return new Vessel[size];
+        }
+    }
+
+    private static class MapImpl extends AbstractLong2Long2ArrayHashMap<Vessel> {
+
+        @Override
+        protected IArraySet<Vessel> newThirdLevelSet() {
+            return new SetImpl();
         }
     }
 
     private long id;
 
-    private long attributeId;
-
     private SBS3 bitset = new SBS3();
     private MapImpl inclusions = null, exclusions = null;
 
-    private static final Comparator<Vessel> COMPARATOR = new Comparator<Vessel>() {
-        @org.jetbrains.annotations.Contract(pure = true)
-        @Override
-        public int compare(final Vessel o1, final Vessel o2) {
-            final int retVal = Long.compare(o1.id, o2.id);
-            assert retVal == 0 ? o1.attributeId == o2.attributeId : true;
-            return retVal;
-        }
-    };
-
-    public Vessel(final long id, final long attributeId) {
+    public Vessel(final long id) {
         if (id < 0) throw new IllegalArgumentException();
-        if (attributeId < 0) throw new IllegalArgumentException();
         this.id = id;
-        this.attributeId = attributeId;
     }
 
-    public void addInclusion(final long valueId, @NotNull final Vessel vessel) {
+    public void addInclusion(final long attributeId, final long valueId, @NotNull final Vessel vessel) throws VesselModificationException {
+        try {
+            AttributesValidation.validateAttributeId(attributeId);
+            AttributesValidation.validateAttributeValidId(valueId);
+        } catch (final ValidationException ve) {
+            throw new VesselModificationException(ve);
+        }
+        Objects.requireNonNull(vessel);
         if (inclusions == null)
             inclusions = new MapImpl();
-        inclusions.put(valueId, vessel);
+        inclusions.put(attributeId, valueId, vessel);
     }
 
-    public void addInclusions(final long[] valueIds, @NotNull final Vessel[] vessels) {
+    public void addInclusions(final long[] attributeIds, final long[] valueIds, @NotNull final Vessel[] vessels) throws VesselModificationException {
         if (valueIds.length != vessels.length)
             throw new IllegalArgumentException();
         for (int i = 0; i < valueIds.length; i++) {
-            addInclusion(valueIds[i], vessels[i]);
+            addInclusion(attributeIds[i], valueIds[i], vessels[i]);
         }
     }
 
-    public void addExclusion(final long valueId, @NotNull final Vessel vessel) {
+    public void addExclusion(final long attributeId, final long valueId, @NotNull final Vessel vessel) throws VesselModificationException {
+        try {
+            AttributesValidation.validateAttributeId(attributeId);
+            AttributesValidation.validateAttributeValidId(valueId);
+        } catch (final ValidationException ve) {
+            throw new VesselModificationException(ve);
+        }
         if (exclusions == null)
             exclusions = new MapImpl();
-        exclusions.put(valueId, vessel);
+        exclusions.put(attributeId, valueId, vessel);
     }
 
-    public void addExclusions(final long[] valueIds, @NotNull final Vessel vessel) {
+    public void addExclusions(final long[] attributeIds, @NotNull final long[] valueIds, @NotNull final Vessel vessel) throws VesselModificationException {
         for (int i = 0; i < valueIds.length; i++) {
-            addExclusion(valueIds[i], vessel);
+            addExclusion(attributeIds[i], valueIds[i], vessel);
         }
     }
 
@@ -79,17 +100,9 @@ public class Vessel implements Comparable<Vessel> {
         return COMPARATOR.compare(this, o);
     }
 
-    public void match(final long[] valueIds, @NotNull final Collection<Vessel> vessels) {
-        for (final long valueId : valueIds) {
-            {
-                final Vessel[] subVessels = inclusions.getArray(valueId);
-                for (Vessel subVessel : subVessels) vessels.add(subVessel);
-            }
-            {
-                final Vessel[] subVessels = exclusions.getArray(valueId);
-                for (final Vessel subVessel : subVessels) vessels.remove(subVessel);
-            }
-        }
+    public void match(final long attributeId, @NotNull final long[] valueIds, @NotNull final Collection<Vessel> vessels) {
+        inclusions.addEach(attributeId, valueIds, vessels);
+        exclusions.addEach(attributeId, valueIds, vessels);
     }
 
 }
