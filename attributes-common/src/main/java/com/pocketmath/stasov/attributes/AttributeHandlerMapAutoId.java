@@ -2,13 +2,13 @@ package com.pocketmath.stasov.attributes;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.pocketmath.stasov.attributes.handler.base.ExactMatchAttributeHandler;
 import com.pocketmath.stasov.util.StasovArrays;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Created by etucker on 6/23/15.

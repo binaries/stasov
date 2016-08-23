@@ -1,5 +1,6 @@
 package com.pocketmath.stasov.attributes;
 
+import com.pocketmath.stasov.attributes.handler.base.ExactMatchAttributeHandler;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 

@@ -1,5 +1,6 @@
 package com.pocketmath.stasov.attributes;
 
+import com.pocketmath.stasov.attributes.handler.base.ExactMatchAttributeHandler;
 import com.pocketmath.stasov.util.cache.Object2LongFIFOCacheMap;
 
 /**

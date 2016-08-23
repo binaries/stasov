@@ -1,6 +1,7 @@
 package com.pocketmath.stasov.attributes;
 
 import com.google.common.primitives.Longs;
+import com.pocketmath.stasov.attributes.handler.base.AttributeHandler;
 import com.pocketmath.stasov.util.Weights;
 import com.pocketmath.stasov.util.validate.ValidationException;
 import com.pocketmath.stasov.util.validate.ValidationRuntimeException;
@@ -11,6 +12,7 @@ import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -20,7 +22,7 @@ import java.util.logging.Logger;
 /**
  * Created by etucker on 4/3/15.
  */
-public abstract class AttrSvcBase {
+public abstract class AttrSvcBase<IdType extends Serializable & Comparable<IdType>, ValueType> {
 
     private static final boolean SILENT = false;
 
@@ -42,7 +44,7 @@ public abstract class AttrSvcBase {
         this.attrComparator = new AttrTypeIdWeightComparator(weights);
     }
 
-    public abstract AttributeHandler lookupHandler(final long attrTypeId);
+    public abstract AttributeHandler<IdType, ? extends Object, ValueType> lookupHandler(final long attrTypeId);
 
     public long findTypeId(final String typeName) {
         assert(registered);
@@ -55,7 +57,7 @@ public abstract class AttrSvcBase {
         final AttributeHandler handler = lookupHandler(attrTypeId);
         if (validate) {
             try {
-                handler.validate(input);
+                handler.tryValidate(input);
             } catch (ValidationException ve) {
                 throw new ValidationRuntimeException(ve);
             }

@@ -1,7 +1,7 @@
 package com.pocketmath.stasov.attributes;
 
 import com.google.common.collect.ImmutableSortedSet;
-import org.reflections.Configuration;
+import com.pocketmath.stasov.attributes.handler.base.AttributeHandler;
 import org.reflections.Reflections;
 
 import java.lang.annotation.Annotation;

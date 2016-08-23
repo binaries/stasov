@@ -1,4 +1,4 @@
-package com.pocketmath.stasov.attributes;
+package com.pocketmath.stasov.attributes.handler.base;
 
 /**
  * Created by etucker on 2/2/16.

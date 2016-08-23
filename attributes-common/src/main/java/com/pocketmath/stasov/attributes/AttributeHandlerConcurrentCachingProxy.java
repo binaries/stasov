@@ -1,5 +1,7 @@
 package com.pocketmath.stasov.attributes;
 
+import com.pocketmath.stasov.attributes.handler.base.ExactMatchAttributeHandler;
+
 /**
  * Created by etucker on 1/12/16.
  */
