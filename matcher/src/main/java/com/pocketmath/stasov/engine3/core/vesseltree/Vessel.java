@@ -138,8 +138,10 @@ public class Vessel implements Comparable<Vessel> {
     }
 
     public void match(final long attributeId, @NotNull final long[] valueIds, @NotNull final Collection<Vessel> vessels) {
+
+        // TODO: optimize by not adding in inclusions that which would be removed in exclusions
         inclusions.addEach(attributeId, valueIds, vessels);
-        exclusions.addEach(attributeId, valueIds, vessels);
+        exclusions.removeEach(attributeId, valueIds, vessels);
     }
 
 }
