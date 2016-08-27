@@ -1,5 +1,6 @@
 package com.pocketmath.stasov.engine3.core.vesseltree;
 
+import com.pocketmath.stasov.attributes.AttrSvcBase;
 import com.pocketmath.stasov.attributes.validation.AttributesValidation;
 import com.pocketmath.stasov.util.dynamicbitset.SBS3;
 import com.pocketmath.stasov.util.multimaps2.array.AbstractLong2Long2ArrayHashMap;
@@ -9,6 +10,7 @@ import com.pocketmath.stasov.util.validate.ValidationException;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -50,13 +52,27 @@ public class Vessel implements Comparable<Vessel> {
 
     private long id;
 
-    private SBS3 bitset = new SBS3();
     private MapImpl inclusions = null, exclusions = null;
     private long[] attributeIdsCached = null;
 
-    public Vessel(final long id) {
+    private SBS3 matches = new SBS3();
+
+    public Vessel(final long id, @Nullable final SBS3 matches) {
         if (id < 0) throw new IllegalArgumentException();
         this.id = id;
+        this.matches = matches;
+    }
+
+    public Vessel(final long id) {
+        this(id, null);
+    }
+
+    public SBS3 getMatches() {
+        return matches;
+    }
+
+    public void setMatches(final SBS3 matches) {
+        this.matches = matches;
     }
 
     protected boolean containsAttributeId(final long attributeId) {
@@ -69,6 +85,7 @@ public class Vessel implements Comparable<Vessel> {
             combined.addAll(exclusions.getKeys1());
             attributeIdsCached = combined.toLongArray();
         }
+        assert attributeIdsCached != null;
         return attributeIdsCached;
     }
 
