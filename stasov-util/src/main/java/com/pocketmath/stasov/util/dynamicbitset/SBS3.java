@@ -1579,8 +1579,7 @@ public class SBS3 implements LongIterable {
     }
 
     public LongIterator positionsIterator(final SBS3Iterator iterator) {
-        iterator.reset();
-        iterator.load(this);
+        iterator.resetAndLoad(this);
         return iterator;
     }
 

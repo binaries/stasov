@@ -41,7 +41,7 @@ public class SBS3Iterator implements LongIterator, IResettable {
         dBitPos = -1;
     }
 
-    public SBS3Iterator resetAndLoad(final SBS3 core) {
+    SBS3Iterator resetAndLoad(final SBS3 core) {
         reset();
         this.core = core;
         return this;
