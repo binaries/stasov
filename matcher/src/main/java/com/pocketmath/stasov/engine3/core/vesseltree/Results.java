@@ -3,6 +3,7 @@ package com.pocketmath.stasov.engine3.core.vesseltree;
 import com.pocketmath.stasov.util.IResettable;
 import com.pocketmath.stasov.util.dynamicbitset.SBS3;
 import com.pocketmath.stasov.util.dynamicbitset.SBS3Iterator;
+import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 
 /**
@@ -61,8 +62,8 @@ public class Results implements IResettable {
         assert countSinceTrim <= TRIM_FREQUENCY;
     }
 
-    public SBS3Iterator matchesIterator() {
+    public LongIterator matchesIterator() {
         assert matchesObject != null;
-        return matchesObjectIterator.resetAndLoad(matchesObject);
+        return matchesObject.positionsIterator(matchesObjectIterator);
     }
 }
