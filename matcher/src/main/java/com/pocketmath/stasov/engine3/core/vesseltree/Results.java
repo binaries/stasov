@@ -66,4 +66,17 @@ public class Results implements IResettable {
         assert matchesObject != null;
         return matchesObject.positionsIterator(matchesObjectIterator);
     }
+
+    /**
+     * Placeholder/reminder to stop using the iterator at a certain point as it will be recycled.
+     *
+     * Users should call this method when they are done with the iterator.
+     *
+     * Actual recycling will take place when the Results instance is recycled.
+     *
+     * @param matchesIterator
+     */
+    public void reclaimMatchesIterator(final LongIterator matchesIterator) {
+        // noop
+    }
 }
