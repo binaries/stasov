@@ -8,7 +8,7 @@ import java.util.Collection;
 /**
  * Created by etucker on 8/22/16.
  */
-public abstract class AbstractLong2Long2ArrayMap<V> implements ILong2Long2ArrayMap<V> {
+public abstract class AbstractLong2Long2ArrayMap<RawKeyType1, RawKeyType2, V> implements ILong2Long2ArrayMap<V> {
 
     private Long2ObjectMap<Long2ObjectMap<IArraySet<V>>> map = newFirstLevelMap();
 
@@ -59,6 +59,78 @@ public abstract class AbstractLong2Long2ArrayMap<V> implements ILong2Long2ArrayM
             }
         }
     }
+
+    @Override
+    public void removeEach(final long key1, final long key2, final Collection<V> collector) {
+        final Long2ObjectMap<IArraySet<V>> t2 = map.get(key1);
+        if (t2 == null)
+            return;
+        final IArraySet<V> t3 = t2.get(key2);
+        if (t3 == null)
+            return;
+        final int t3EndIndex = t3.endIndex();
+        for (int i = t3.startIndex(); i <= t3EndIndex; i++) {
+            final V item = t3.get(i);
+            assert item != null;
+            collector.remove(item);
+        }
+    }
+
+    @Override
+    public void removeEach(final long key1, final long[] keys2, final Collection<V> collector) {
+        final Long2ObjectMap<IArraySet<V>> t2 = map.get(key1);
+        if (t2 == null)
+            return;
+        for (final long key2 : keys2) {
+            final IArraySet<V> t3 = t2.get(key2);
+            if (t3 == null)
+                return;
+            final int t3EndIndex = t3.endIndex();
+            for (int i = t3.startIndex(); i <= t3EndIndex; i++) {
+                final V item = t3.get(i);
+                assert item != null;
+                collector.remove(item);
+            }
+        }
+    }
+
+    /*
+    @Override
+    public void addEach(final long key1, final RawKeyType2 rawKey2, final IKeyTranslator translator, final Collection<V> collector) {
+        final Long2ObjectMap<IArraySet<V>> t2 = map.get(key1);
+        if (t2 == null)
+            return;
+        final long key2 = translator.translate(key1, rawKey2);
+        final IArraySet<V> t3 = t2.get(key2);
+        if (t3 == null)
+            return;
+        final int t3EndIndex = t3.endIndex();
+        for (int i = t3.startIndex(); i <= t3EndIndex; i++) {
+            final V item = t3.get(i);
+            assert item != null;
+            collector.add(item);
+        }
+    }
+
+    @Override
+    public void addEach(final long key1, final Collection<RawKeyType2> rawKeys2, final IKeyTranslator translator, final Collection<V> collector) {
+        final Long2ObjectMap<IArraySet<V>> t2 = map.get(key1);
+        if (t2 == null)
+            return;
+        for (final RawKeyType2 rawKey2 : rawKeys2) {
+            final long key2 = translator.translate(key1, rawKey2);
+            final IArraySet<V> t3 = t2.get(key2);
+            if (t3 == null)
+                return;
+            final int t3EndIndex = t3.endIndex();
+            for (int i = t3.startIndex(); i <= t3EndIndex; i++) {
+                final V item = t3.get(i);
+                assert item != null;
+                collector.add(item);
+            }
+        }
+    }
+    */
 
     @Override
     public void put(long key1, long key2, V value) {

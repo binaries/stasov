@@ -15,6 +15,10 @@ public interface ILong2Long2ArrayMap<V> {
 
     public void addEach(final long key1, final long[] keys2, final Collection<V> collector);
 
+    void removeEach(long key1, long key2, Collection<V> collector);
+
+    public void removeEach(long key1, long[] keys2, Collection<V> collector);
+
     public void put(final long key1, final long key2, final V value);
 
     public void put(final long key1, final long[] keys2, final V value);
