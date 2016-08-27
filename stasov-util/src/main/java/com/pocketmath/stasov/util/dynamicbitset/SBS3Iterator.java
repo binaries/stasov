@@ -1,16 +1,17 @@
 package com.pocketmath.stasov.util.dynamicbitset;
 
+import com.pocketmath.stasov.util.IResettable;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 
 /**
  * Created by etucker on 8/9/16.
  */
-class SetBitsItr implements LongIterator {
+public class SBS3Iterator implements LongIterator, IResettable {
 
     private SBS3 core;
     private long n = -1;
 
-    SetBitsItr(final SBS3 core) {
+    SBS3Iterator(final SBS3 core) {
         this.core = core;
         this.n = nextSetPosition();
     }
@@ -25,6 +26,26 @@ class SetBitsItr implements LongIterator {
     private int ddIndex = -1;
     private long d = SBS3.EMPTY;
     private short dBitPos = -1;
+
+    public void reset() {
+        n = -1;
+        index = -1;
+        position = -1;
+        denseUntil = -1;
+        sparseUntil = -1;
+
+        denseStartPosition = -1;
+        dd = null;
+        ddIndex = -1;
+        d = SBS3.EMPTY;
+        dBitPos = -1;
+    }
+
+    public SBS3Iterator resetAndLoad(final SBS3 core) {
+        reset();
+        this.core = core;
+        return this;
+    }
 
     private void resetSparse() {
         sparseUntil = -1;

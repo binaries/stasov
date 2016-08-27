@@ -192,6 +192,23 @@ public class SBS3 implements LongIterable {
         assert(validateInvariants());
     }
 
+    public void clear() {
+        end = 0;
+        denseFreeSize = 0;
+    }
+
+    /**
+     * Preferred method when reusing will happen.
+     *
+     * Optimizes array sizes first, then clears.  The opposite order would cause all arrays to return to
+     * smallest size which may not be desirable.  Resizing arrays will not take place if not too far outside bounds
+     * thus preventing expensive array resizing operations.
+     */
+    public void clearAndOptimizeForReuse() {
+        readWriteOptimize();
+        clear();
+    }
+
     /**
      * Expert method allowing full settings for performance and memory utilization tuning.
      *
@@ -912,9 +929,9 @@ public class SBS3 implements LongIterable {
     */
 
     public void readWriteOptimize() {
-        LongArrays.trim(array, Math.max(256, Math.multiplyExact(end, 2)));
-        ObjectArrays.trim(dense, Math.max(128, Math.multiplyExact(denseSize, 2)));
-        IntArrays.trim(denseFree, Math.max(128, Math.multiplyExact(denseFreeSize,2)));
+        LongArrays.trim(array, Math.max(256, Math.multiplyExact(end, 8)));
+        ObjectArrays.trim(dense, Math.max(128, Math.multiplyExact(denseSize, 8)));
+        IntArrays.trim(denseFree, Math.max(128, Math.multiplyExact(denseFreeSize, 8)));
     }
 
     protected boolean setDenseByPosition(final long a, final long position) {
@@ -1558,7 +1575,13 @@ public class SBS3 implements LongIterable {
      * @return
      */
     public LongIterator positionsIterator() {
-        return new SetBitsItr(this);
+        return new SBS3Iterator(this);
+    }
+
+    public LongIterator positionsIterator(final SBS3Iterator iterator) {
+        iterator.reset();
+        iterator.load(this);
+        return iterator;
     }
 
     @Override
@@ -2118,6 +2141,10 @@ public class SBS3 implements LongIterable {
     public boolean contains(final long a) {
         final int componentIndex = ComponentsHelper.find(startBlock(a), this);
         return componentIndex >= 0;
+    }
+
+    public static SBS3Iterator reusableIterator() {
+        return new SBS3Iterator(null);
     }
 
     @Override
